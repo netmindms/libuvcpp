@@ -1,0 +1,13 @@
+//
+// Created by netmind on 16. 11. 28.
+//
+
+#include <gtest/gtest.h>
+#include <nmdutil/nmdlog.h>
+
+int main(int argc, char* argv[]) {
+//	NMDU_SET_LOG_LEVEL(LOG_INFO);
+	::testing::InitGoogleTest(&argc, argv);
+//	::testing::GTEST_FLAG(filter) = "basic.timer";
+	return RUN_ALL_TESTS();
+}
