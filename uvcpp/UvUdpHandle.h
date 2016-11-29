@@ -23,6 +23,8 @@ namespace uvcpp {
 		int bind(const struct sockaddr *addr, unsigned int flags);
 //		int send(const uv_buf_t bufs[], unsigned int nbufs, const struct sockaddr* addr, uv_udp_send_cb send_cb)
 		int send(const char* buf, const struct sockaddr* addr, uv_udp_send_cb send_cb);
+		int readStart();
+		void readStop();
 
 	protected:
 		ReadLis _readLis;

@@ -47,6 +47,7 @@ namespace uvcpp {
 			_loop = new uv_loop_t;
 			_createLoop = true;
 			loop = _loop;
+			uv_loop_init(_loop);
 		}
 		_loop = loop;
 		_gEdContext = this;

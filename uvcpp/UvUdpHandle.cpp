@@ -24,13 +24,23 @@ namespace uvcpp {
 		_writeReqQue.open(10);
 		auto ret = uv_udp_init(_ctx->getLoop(), &_rawHandle);
 		if (!ret) {
-			ret = uv_udp_recv_start(&_rawHandle, alloc_cb, recv_cb);
+//			ret = uv_udp_recv_start(&_rawHandle, alloc_cb, recv_cb);
+//			ald("udp read start, ret=%d", ret);
+			if(ret) {
+				ale("### read start error");
+			}
+		} else {
+			ale("### udp init error");
 		}
 		return ret;
 	}
 
 	int UvUdpHandle::bind(const struct sockaddr *addr, unsigned int flags) {
-		return uv_udp_bind(&_rawHandle, addr, flags);
+		auto ret= uv_udp_bind(&_rawHandle, addr, flags);
+		if(ret) {
+			ale("### bind error, ret=%d", ret);
+		}
+		return ret;
 	}
 
 	void UvUdpHandle::recv_cb(uv_udp_t *handle, ssize_t nread, const uv_buf_t *buf, const struct sockaddr *addr,
@@ -56,6 +66,7 @@ namespace uvcpp {
 	}
 
 	void UvUdpHandle::alloc_cb(uv_handle_t *handle, size_t suggesited_size, uv_buf_t *puvbuf) {
+		ald("alloc cb");
 		auto pudpch = (UvUdpHandle *) handle->data;
 		auto uprbuf = pudpch->_readBufQue.allocObj();
 		auto tbuf = uprbuf->allocBuffer(suggesited_size);
@@ -67,6 +78,14 @@ namespace uvcpp {
 	int UvUdpHandle::send(const char *buf, const struct sockaddr *addr, uv_udp_send_cb send_cb) {
 
 		return 0;
+	}
+
+	int UvUdpHandle::readStart() {
+		return uv_udp_recv_start(&_rawHandle, alloc_cb, recv_cb);
+	}
+
+	void UvUdpHandle::readStop() {
+		uv_udp_recv_stop(&_rawHandle);
 	}
 
 }
