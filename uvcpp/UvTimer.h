@@ -5,8 +5,8 @@
  *      Author: netmind
  */
 
-#ifndef UVTIMER2_H_
-#define UVTIMER2_H_
+#ifndef UVTIMER_H_
+#define UVTIMER_H_
 
 #include <cstdint>
 #include <functional>
@@ -30,7 +30,9 @@ namespace uvcpp {
 		void kill();
 
 	private:
-		UvTimerHandle *_handle;
+		UvHandle *_ohandle;
+		Lis _lis;
+		static void timer_cb(uv_timer_t* handle);
 	};
 }
-#endif /* UVTIMER2_H_ */
+#endif /* UVTIMER_H_ */

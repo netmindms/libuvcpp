@@ -36,6 +36,7 @@ namespace uvcpp {
 	void UvBaseHandle::close() {
 		if (_rawhandle) {
 			ali("handle active=%d", uv_is_active(_rawhandle));
+			ali("  close callback=%x", (long)UvContext::handle_close_cb);
 			uv_close(_rawhandle, UvContext::handle_close_cb);
 		}
 	}

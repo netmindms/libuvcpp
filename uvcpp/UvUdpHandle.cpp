@@ -75,10 +75,20 @@ namespace uvcpp {
 		pudpch->_readBufQue.push(move(uprbuf));
 	}
 
-	int UvUdpHandle::send(const char *buf, const struct sockaddr *addr, uv_udp_send_cb send_cb) {
+	int UvUdpHandle::send(const char *buf, size_t len, const struct sockaddr *addr) {
+		auto upwr = _writeReqQue.allocObj();
+		upwr->fillBuf(buf, len);
+		upwr->req.data = this;
+		auto ret = uv_udp_send(&upwr->req, (uv_udp_t *)&_rawHandle, &upwr->uvBuf, 1, addr, send_cb);
+		if (!ret) {
+			_writeReqQue.push(move(upwr));
+		} else {
+			ale("### uv write fail, ret=%d", ret);
+		}
+		return ret;
 
-		return 0;
 	}
+
 
 	int UvUdpHandle::readStart() {
 		return uv_udp_recv_start(&_rawHandle, alloc_cb, recv_cb);

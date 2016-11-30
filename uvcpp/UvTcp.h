@@ -5,8 +5,8 @@
  *      Author: netmind
  */
 
-#ifndef UVTCP3_H_
-#define UVTCP3_H_
+#ifndef UVTCP_H_
+#define UVTCP_H_
 
 #include <memory>
 #include <utility>
@@ -48,4 +48,4 @@ namespace uvcpp {
 		void openChild(UvTcpHandle *newhandle);
 	};
 }
-#endif /* UVTCP3_H_ */
+#endif /* UVTCP_H_ */

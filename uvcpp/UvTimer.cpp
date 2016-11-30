@@ -7,10 +7,10 @@
 
 #include "UvTimer.h"
 #include "UvTimerHandle.h"
-
+#include "uvcppdef.h"
 namespace uvcpp {
 	UvTimer::UvTimer() {
-		_handle = nullptr;
+		_ohandle = nullptr;
 
 	}
 
@@ -18,26 +18,33 @@ namespace uvcpp {
 	}
 
 	void UvTimer::set(uint64_t period, uint64_t first_expire, Lis lis) {
-		if (!_handle) {
+		if (!_ohandle) {
+			_lis = lis;
 			auto ctx = UvContext::getContext();
-			_handle = ctx->createUvHandle<UvTimerHandle>();
-			_handle->open();
-			_handle->timer_start(first_expire, period, lis);
+			_ohandle = ctx->createHandle(this);
+			uv_timer_t* rawh = (uv_timer_t*)_ohandle->getRawHandle();
+			uv_timer_init(ctx->getLoop(), rawh);
+			uv_timer_start(rawh, timer_cb, first_expire, period);
 		}
 	}
 
 	void UvTimer::reset() {
-		if (!_handle) {
-			_handle->timer_again();
+		if (!_ohandle) {
+			uv_timer_again((uv_timer_t*)_ohandle->getRawHandle());
 		}
 	}
 
 	void UvTimer::kill() {
-		if (_handle) {
-			_handle->timer_stop();
-			_handle->close();
-			_handle = nullptr;
+		if (_ohandle) {
+			uv_timer_stop((uv_timer_t*)_ohandle->getRawHandle());
+			_ohandle->close(); _ohandle = nullptr;
 		}
+	}
+
+	void UvTimer::timer_cb(uv_timer_t *rawh) {
+		ASSERT_RAW_UVHANDLE(rawh);
+		auto ptimer = GET_UVHANDLE_OWNER(UvTimer, rawh);
+		ptimer->_lis();
 	}
 
 }
