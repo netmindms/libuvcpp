@@ -4,19 +4,19 @@
 
 #include <chrono>
 #include <thread>
-#include <chrono>
 #include <gtest/gtest.h>
 #include "tlog.h"
 #include "../uvcpp/UvContext.h"
 #include "../uvcpp/UvTimer.h"
 #include "../uvcpp/UvUdp.h"
 
-#include "../uvcpp/UvHandle.h"
 #include "../uvcpp/UvCheck.h"
 #include "../uvcpp/UvPrepare.h"
 #include "../uvcpp/UvAsync.h"
 #include "../uvcpp/UvTcp.h"
 #include "../uvcpp/UvEvent.h"
+#include "../uvcpp/UvFdTimer.h"
+#include "../uvcpp/UvIdle.h"
 
 using namespace std;
 using namespace uvcpp;
@@ -36,6 +36,7 @@ TEST(basic, timer) {
 			}
 		});
 		uv_run(uv_default_loop(), UV_RUN_DEFAULT);
+		uv_loop_close(uv_default_loop());
 	});
 
 	std::this_thread::sleep_for(chrono::milliseconds(550));
@@ -43,6 +44,34 @@ TEST(basic, timer) {
 	bexit = true;
 	thr.join();
 }
+
+#ifdef __linux
+TEST(basic, fdtimer) {
+	uint64_t expire_cnt=0;
+	bool bexit=false;
+	std::thread thr = thread([&]() {
+		UvContext ctx;
+		ctx.openWithDefaultLoop();
+		UvFdTimer timer;
+		timer.set(100, 100, [&]() {
+			ald("timer expired");
+			expire_cnt += timer.getFireCount();
+			if(bexit) {
+				timer.kill();
+			}
+		});
+		uv_run(uv_default_loop(), UV_RUN_DEFAULT);
+		uv_loop_close(ctx.getLoop());
+	});
+
+	std::this_thread::sleep_for(chrono::milliseconds(590));
+	ASSERT_EQ(5, expire_cnt);
+	bexit = true;
+	if(thr.joinable()) {
+		thr.join();
+	}
+}
+#endif
 
 TEST(basic, tcp) {
 	UvContext ctx;
@@ -178,6 +207,21 @@ TEST(basic, async) {
 	});
 	auto ret = async.send();
 	assert(!ret);
+	ctx.run();
+	uv_loop_close(ctx.getLoop());
+	ASSERT_EQ(1, cnt);
+}
+
+TEST(basic, idle) {
+	UvContext ctx;
+	ctx.openWithDefaultLoop();
+	int cnt=0;
+	UvIdle idle;
+	idle.open([&]() {
+		ald("idle callback");
+		cnt++;
+		idle.close();
+	});
 	ctx.run();
 	uv_loop_close(ctx.getLoop());
 	ASSERT_EQ(1, cnt);

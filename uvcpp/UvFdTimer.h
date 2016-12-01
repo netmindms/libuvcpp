@@ -31,6 +31,7 @@ namespace uvcpp {
 		void kill();
 		void pause();
 		void resume();
+		uint64_t getFireCount();
 
 	private:
 		Lis _lis;

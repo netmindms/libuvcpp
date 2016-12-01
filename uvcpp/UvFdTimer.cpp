@@ -16,10 +16,11 @@ namespace uvcpp {
 	UvFdTimer::UvFdTimer() {
 		_fd = -1;
 		_fireCount = 0;
+		_rawh = nullptr;
 	}
 
 	UvFdTimer::~UvFdTimer() {
-		// TODO Auto-generated destructor stub
+		kill();
 	}
 
 	void UvFdTimer::setUsec(uint64_t usec, uint64_t first_usec, Lis lis) {
@@ -66,6 +67,7 @@ namespace uvcpp {
 			close();
 			::close(_fd);
 			_fd = -1;
+			_rawh = nullptr;
 		}
 	}
 
@@ -81,13 +83,18 @@ namespace uvcpp {
 
 	void UvFdTimer::pollCb(int status, int events) {
 		read(_fd, &_fireCount, sizeof(_fireCount));
+		ald("fd count=%lu", _fireCount);
 		_lis();
 	}
 
 	void UvFdTimer::poll_cb(uv_poll_t *handle, int status, int events) {
 		ali("poll callback");
-		auto pfdtimer = (UvFdTimer*)UvHandleOwner::getHandleOwner<UvFdTimer>((uv_handle_t*)handle);
+		auto pfdtimer = UvHandleOwner::getHandleOwner<UvFdTimer>((uv_handle_t*)handle);
 		pfdtimer->pollCb(status, events);
+	}
+
+	uint64_t UvFdTimer::getFireCount() {
+		return _fireCount;
 	}
 }
 #endif // __linux

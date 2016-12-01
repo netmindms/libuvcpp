@@ -21,6 +21,8 @@ namespace uvcpp {
 			ASSERT_RAW_UVHANDLE(rawh);
 			return GET_UVHANDLE_OWNER(T, rawh);
 		}
+		uv_loop_t* getLoop();
+		uv_handle_t* getRawHandle();
 	protected:
 		uv_handle_t* createHandle();
 		UvHandle* _ohandle;

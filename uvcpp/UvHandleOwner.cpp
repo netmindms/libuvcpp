@@ -43,4 +43,16 @@ namespace uvcpp {
 			}
 		}
 	}
+
+	uv_loop_t *UvHandleOwner::getLoop() {
+		return _ctx->getLoop();
+	}
+
+	uv_handle_t *UvHandleOwner::getRawHandle() {
+		if(_ohandle) {
+			return _ohandle->getRawHandle();
+		} else {
+			return nullptr;
+		}
+	}
 }
