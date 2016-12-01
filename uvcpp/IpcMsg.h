@@ -7,6 +7,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <condition_variable>
 #include "UvObj.h"
 
 namespace uvcpp {
@@ -16,6 +17,11 @@ namespace uvcpp {
 		uint32_t param1;
 		uint32_t param2;
 		std::unique_ptr<UvObj> _upUserObj;
+
+		std::condition_variable* msgCv;
+		std::mutex* msgMutex;
+		bool isSync;
+		int returnValue;
 	};
 
 	typedef std::unique_ptr<IpcMsg> upIpcMsg;

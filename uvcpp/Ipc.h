@@ -16,6 +16,7 @@ namespace uvcpp {
 		int open(Lis lis);
 		void close();
 		int postMsg(uint32_t msgid, int p1, int p2, upUvObj userobj);
+		int sendMsg(uint32_t msgid, int p1, int p2, upUvObj userobj);
 	private:
 		Lis _lis;
 		UvAsync _async;

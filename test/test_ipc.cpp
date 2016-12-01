@@ -31,7 +31,7 @@ TEST(basic, ipc) {
 	std::string teststr = "my data msg";
 	std::string recvstr;
 	int recvCnt=0;
-
+	int sendCnt=0;
 
 	Ipc ipc;
 	thread subtask = thread([&](){
@@ -51,6 +51,10 @@ TEST(basic, ipc) {
 
 			} else if(msg.msgId == 1001) {
 				ipc.close();
+			} else if(msg.msgId == 1002) {
+				ald("send msg received.");
+				++sendCnt;
+				msg.returnValue = sendCnt;
 			}
 		});
 		subctx.run();
@@ -62,9 +66,14 @@ TEST(basic, ipc) {
 	ipc.postMsg(1000, 1, 2, unique_ptr<MyMsgObj>( new MyMsgObj(teststr)));
 	ipc.postMsg(1000, 1, 2, unique_ptr<MyMsgObj>( new MyMsgObj(teststr)));
 	ipc.postMsg(1000, 1, 2, unique_ptr<MyMsgObj>( new MyMsgObj(teststr)));
+
+	for(int i=0;i<100;i++) {
+		ipc.sendMsg(1002, 1, 2, nullptr);
+	}
 	ipc.postMsg(1001, 1, 2, unique_ptr<MyMsgObj>( new MyMsgObj(teststr)));
 
 	subtask.join();
 	ASSERT_STREQ(teststr.c_str(), recvstr.c_str());
 	ASSERT_EQ(5, recvCnt);
+	ASSERT_EQ(100, sendCnt);
 }
