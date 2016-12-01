@@ -28,11 +28,11 @@ namespace uvcpp {
 		pasync->_lis();
 	}
 
-	void UvAsync::close() {
-		if(_ohandle) {
-			_ohandle->close(); _ohandle = nullptr;
-		}
-	}
+//	void UvAsync::close() {
+//		if(_ohandle) {
+//			_ohandle->close(); _ohandle = nullptr;
+//		}
+//	}
 
 	int UvAsync::send() {
 		return uv_async_send((uv_async_t*)_ohandle->getRawHandle());

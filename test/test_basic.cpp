@@ -15,6 +15,8 @@
 #include "../uvcpp/UvCheck.h"
 #include "../uvcpp/UvPrepare.h"
 #include "../uvcpp/UvAsync.h"
+#include "../uvcpp/UvTcp.h"
+#include "../uvcpp/UvEvent.h"
 
 using namespace std;
 using namespace uvcpp;
@@ -40,6 +42,54 @@ TEST(basic, timer) {
 	ASSERT_EQ(5, expire_cnt);
 	bexit = true;
 	thr.join();
+}
+
+TEST(basic, tcp) {
+	UvContext ctx;
+	UvTcp client;
+	UvTcp server;
+	UvTcp child;
+	std::string teststr="test string";
+	std::string recvstr;
+
+	ctx.openWithDefaultLoop();
+	int ret;
+	server.open([&](int event) {
+		if(event == UvEvent::INCOMING) {
+			server.accept(&child);
+			child.setOnReadLis([&](upUvReadBuffer upbuf) {
+				ald("child on read");
+				child.write(upbuf->buffer, upbuf->size);
+			});
+			child.setOnCnnLis([&](int event) {
+				if(event == UvEvent::DISCONNECTED) {
+					ald("child cnn disconnected");
+					child.close();
+				}
+			});
+		}
+	}, nullptr);
+	server.listen(9090, "127.0.0.1");
+
+	ret = client.open(nullptr, nullptr);
+	client.setOnCnnLis([&](int event) {
+		if(event == UvEvent::CONNECTED) {
+			ald("connected");
+			client.write(teststr.data());
+		} else if(event == UvEvent::DISCONNECTED) {
+			ald("disconnected");
+			client.close();
+		}
+	});
+	client.setOnReadLis([&](upUvReadBuffer upbuf) {
+		recvstr.assign(upbuf->buffer, upbuf->size);
+		client.close();
+		server.close();
+	});
+	client.connect("127.0.0.1", 9090);
+	ctx.run();
+	uv_loop_close(ctx.getLoop());
+	ASSERT_STREQ(teststr.c_str(), recvstr.c_str());
 }
 
 TEST(basic, udp) {

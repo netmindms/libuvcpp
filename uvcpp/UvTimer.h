@@ -12,10 +12,10 @@
 #include <functional>
 
 #include "UvContext.h"
-#include "UvTimerHandle.h"
+#include "UvHandleOwner.h"
 
 namespace uvcpp {
-	class UvTimer {
+	class UvTimer : public UvHandleOwner {
 	public:
 		typedef std::function<void()> Lis;
 
@@ -30,7 +30,6 @@ namespace uvcpp {
 		void kill();
 
 	private:
-		UvHandle *_ohandle;
 		Lis _lis;
 		static void timer_cb(uv_timer_t* handle);
 	};

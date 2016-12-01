@@ -7,12 +7,14 @@
 
 #include <cstdint>
 #include <functional>
+#include <nmdutil/ObjMemQue.h>
 #include "UvReadBuffer.h"
-#include "UvUdpHandle.h"
+#include "UvHandleOwner.h"
+#include "UvUdpWriteInfo.h"
 
 namespace uvcpp {
 
-	class UvUdp {
+	class UvUdp : public UvHandleOwner {
 	public:
 		typedef std::function<void(const struct sockaddr *, std::unique_ptr<UvReadBuffer>)> Lis;
 		UvUdp();
@@ -29,7 +31,6 @@ namespace uvcpp {
 		void close();
 		int readStart();
 	private:
-		UvHandle* _ohandle;
 		sockaddr* _remoteAddr;
 		Lis _readLis;
 		nmdu::ObjMemQue<UvUdpWriteInfo> _writeReqQue;

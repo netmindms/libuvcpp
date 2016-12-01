@@ -6,9 +6,10 @@
 #define UVCPPPRJ_UVPREPARE_H
 
 #include "UvHandle.h"
+#include "UvHandleOwner.h"
 
 namespace uvcpp {
-	class UvPrepare {
+	class UvPrepare: public UvHandleOwner {
 	public:
 		typedef std::function<void()> Lis;
 		UvPrepare();
@@ -19,7 +20,6 @@ namespace uvcpp {
 
 	private:
 		static void prepare_cb(uv_prepare_t* rawh);
-		UvHandle *_ohandle;
 		Lis _lis;
 	};
 }

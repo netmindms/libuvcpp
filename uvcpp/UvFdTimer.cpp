@@ -11,12 +11,10 @@
 #include <sys/timerfd.h>
 
 #include "UvFdTimer.h"
-#include "UvPollHandle.h"
 
 namespace uvcpp {
 	UvFdTimer::UvFdTimer() {
 		_fd = -1;
-		_handle = nullptr;
 		_fireCount = 0;
 	}
 
@@ -25,14 +23,14 @@ namespace uvcpp {
 	}
 
 	void UvFdTimer::setUsec(uint64_t usec, uint64_t first_usec, Lis lis) {
-		if (!_handle) {
+		if (!_rawh) {
 			auto ctx = UvContext::getContext();
 			if (ctx) {
-				_handle = ctx->createUvHandle<UvPollHandle>();
+				_rawh = (uv_poll_t*)createHandle();
 				auto fd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
 				ali("timerfd create fd=%d", fd);
 				if (fd > 0) {
-					_handle->open(fd);
+					uv_poll_init(_ctx->getLoop(), _rawh, fd);
 				}
 				_fd = fd;
 				_lis = lis;
@@ -44,13 +42,7 @@ namespace uvcpp {
 				mTimerSpec.it_value.tv_nsec = (iusec % 1000000) * 1000;
 
 				timerfd_settime(_fd, 0, &mTimerSpec, NULL);
-				_handle->poll_start(UV_READABLE, [this](int events) {
-					if (events | UV_READABLE) {
-						read(_fd, &_fireCount, sizeof(_fireCount));
-						_lis();
-					}
-				});
-
+				uv_poll_start(_rawh, UV_READABLE, poll_cb);
 			} else {
 				ale("### context not found");
 				assert(0);
@@ -69,10 +61,9 @@ namespace uvcpp {
 	}
 
 	void UvFdTimer::kill() {
-		if (_handle) {
-			_handle->poll_stop();
-			_handle->close();
-			_handle = nullptr;
+		if (_rawh) {
+			uv_poll_stop(_rawh);
+			close();
 			::close(_fd);
 			_fd = -1;
 		}
@@ -88,5 +79,15 @@ namespace uvcpp {
 		timerfd_settime(_fd, 0, &mTimerSpec, NULL);
 	}
 
+	void UvFdTimer::pollCb(int status, int events) {
+		read(_fd, &_fireCount, sizeof(_fireCount));
+		_lis();
+	}
+
+	void UvFdTimer::poll_cb(uv_poll_t *handle, int status, int events) {
+		ali("poll callback");
+		auto pfdtimer = (UvFdTimer*)UvHandleOwner::getHandleOwner<UvFdTimer>((uv_handle_t*)handle);
+		pfdtimer->pollCb(status, events);
+	}
 }
 #endif // __linux

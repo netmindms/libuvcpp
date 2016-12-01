@@ -16,10 +16,11 @@
 #include <cstdint>
 #include <functional>
 
-#include "UvPollHandle.h"
+
+#include "UvHandleOwner.h"
 
 namespace uvcpp {
-	class UvFdTimer {
+	class UvFdTimer: public UvHandleOwner {
 	public:
 		typedef std::function<void()> Lis;
 		UvFdTimer();
@@ -33,10 +34,12 @@ namespace uvcpp {
 
 	private:
 		Lis _lis;
-		UvPollHandle *_handle;
 		int _fd;
 		uint64_t _fireCount;
+		uv_poll_t* _rawh;
 		struct itimerspec mTimerSpec;
+		static void poll_cb(uv_poll_t *handle, int status, int events);
+		void pollCb(int status, int events);
 	};
 }
 

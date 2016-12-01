@@ -55,7 +55,7 @@ namespace uvcpp {
 		if(_ohandle != nullptr) {
 			ald("closing udp ...");
 			uv_udp_recv_stop(GET_UDP_RAWH(_ohandle));
-			_ohandle->close(); _ohandle = nullptr;
+			UvHandleOwner::close();
 		}
 	}
 

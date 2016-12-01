@@ -6,8 +6,10 @@
  */
 
 #include "UvTimer.h"
-#include "UvTimerHandle.h"
 #include "uvcppdef.h"
+#include <nmdutil/nmdlog.h>
+using namespace nmdu;
+
 namespace uvcpp {
 	UvTimer::UvTimer() {
 		_ohandle = nullptr;
@@ -15,6 +17,7 @@ namespace uvcpp {
 	}
 
 	UvTimer::~UvTimer() {
+
 	}
 
 	void UvTimer::set(uint64_t period, uint64_t first_expire, Lis lis) {
@@ -37,7 +40,7 @@ namespace uvcpp {
 	void UvTimer::kill() {
 		if (_ohandle) {
 			uv_timer_stop((uv_timer_t*)_ohandle->getRawHandle());
-			_ohandle->close(); _ohandle = nullptr;
+			close();
 		}
 	}
 

@@ -41,7 +41,7 @@ namespace uvcpp {
 	void UvPrepare::close() {
 		if(_ohandle) {
 			uv_prepare_stop((uv_prepare_t*)_ohandle->getRawHandle());
-			_ohandle->close(); _ohandle = nullptr;
+			UvHandleOwner::close();
 		}
 	}
 }

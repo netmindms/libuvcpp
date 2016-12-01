@@ -7,9 +7,10 @@
 
 #include <functional>
 #include "UvHandle.h"
+#include "UvHandleOwner.h"
 
 namespace uvcpp {
-	class UvCheck  {
+	class UvCheck : public UvHandleOwner  {
 	public:
 		typedef std::function<void()> Lis;
 		UvCheck();
@@ -19,7 +20,6 @@ namespace uvcpp {
 		void close();
 	private:
 		Lis _lis;
-		UvHandle* _ohandle;
 		static void check_cb(uv_check_t* handle);
 	};
 }

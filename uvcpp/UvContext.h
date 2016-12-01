@@ -25,8 +25,6 @@ namespace uvcpp {
 
 		virtual ~UvContext();
 
-//		int open();
-
 		void open(uv_loop_t *loop=nullptr);
 
 		void openWithDefaultLoop();
@@ -37,39 +35,21 @@ namespace uvcpp {
 
 		uv_loop_t *getLoop();
 
-		template<typename T>
-		T *createUvHandle() {
-			T *baseh = new T;
-			++_pendingHandleCnt;
-			initUvHandle(baseh);
-			return baseh;
-		}
-
 		UvHandle* createHandle(void* user_data);
-
 
 		int run();
 		static void handle_close_cb(uv_handle_t *phandle);
-		static void handle2_close_cb(uv_handle_t *phandle);
 
 	private:
 		bool _createLoop;
 		uv_loop_t *_loop;
 		uv_prepare_t _prepareHandle;
-		UvBaseHandle *_handleLast;
-		UvHandle *_handle2Last;
-		int _pendingHandleCnt;
+		UvHandle *_handleLast;
 		int _pendingHandleCnt2;
 
-		void deleteHandle(UvBaseHandle *phandle);
-
-		void initUvHandle(UvBaseHandle *phandle);
-		void dumpHandle(UvBaseHandle *plast);
-
-
-		void deleteHandle2(UvHandle *pHandle);
-
-		void initHandle2(UvHandle *handle, void* user_data);
+		void dumpHandle(UvHandle *plast);
+		void deleteHandle(UvHandle *pHandle);
+		void initHandle(UvHandle *handle, void *user_data);
 	};
 
 
