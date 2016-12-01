@@ -19,7 +19,7 @@ namespace uvcpp {
 
 		virtual ~MsgTask();
 
-		int start(void* arg);
+		int start(void* arg=nullptr);
 		void stop();
 
 		virtual void OnMsgProc(IpcMsg& msg);

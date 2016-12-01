@@ -62,6 +62,7 @@ namespace uvcpp {
 		ald("sendMsg");
 		upIpcMsg upmsg;
 		_msgQue.lock();
+
 		upmsg = _msgQue.allocObj();
 		upmsg->msgId = msgid;
 		upmsg->param1 = p1;

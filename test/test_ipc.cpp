@@ -7,6 +7,7 @@
 #include <chrono>
 #include "../uvcpp/Ipc.h"
 #include "tlog.h"
+#include "../uvcpp/MsgTask.h"
 
 using namespace std;
 using namespace uvcpp;
@@ -76,4 +77,19 @@ TEST(basic, ipc) {
 	ASSERT_STREQ(teststr.c_str(), recvstr.c_str());
 	ASSERT_EQ(5, recvCnt);
 	ASSERT_EQ(100, sendCnt);
+}
+
+TEST(basic, msgtask) {
+	class MyTask: public MsgTask {
+		void OnMsgProc(IpcMsg& msg) {
+			if(msg.msgId == MsgTask::TM_INIT) {
+
+			} else if(msg.msgId == MsgTask::TM_CLOSE) {
+
+			}
+		}
+	};
+	MyTask task;
+	task.start(nullptr);
+
 }
