@@ -5,8 +5,8 @@
  *      Author: netmind
  */
 
-#ifndef UVFDTIMER_H_
-#define UVFDTIMER_H_
+#ifndef UVCPPPRJ_UVFDTIMER_H_
+#define UVCPPPRJ_UVFDTIMER_H_
 
 #ifndef __linux
 #error "This API is not supported in this OS"
@@ -45,4 +45,4 @@ namespace uvcpp {
 }
 
 
-#endif /* UVFDTIMER_H_ */
+#endif /* UVCPPPRJ_UVFDTIMER_H_ */

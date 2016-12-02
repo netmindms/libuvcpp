@@ -28,11 +28,11 @@ TEST(basic, timer) {
 		UvContext ctx;
 		ctx.open(uv_default_loop());
 		UvTimer timer;
-		timer.set(100, 100, [&]() {
+		timer.timerStart(100, 100, [&]() {
 			ald("timer expired");
 			expire_cnt++;
-			if(bexit) {
-				timer.kill();
+			if (bexit) {
+				timer.timerStop();
 			}
 		});
 		uv_run(uv_default_loop(), UV_RUN_DEFAULT);
@@ -173,9 +173,9 @@ TEST(basic, check) {
 		chk.close();
 	});
 	assert(!ret);
-	timer.set(1000, 1000, [&]() {
+	timer.timerStart(1000, 1000, [&]() {
 		ald("timer expired");
-		timer.kill();
+		timer.timerStop();
 	});
 	ctx.run();
 	uv_loop_close(ctx.getLoop());

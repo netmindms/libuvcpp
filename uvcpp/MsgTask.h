@@ -11,6 +11,7 @@
 namespace uvcpp {
 	class MsgTask {
 	public:
+		typedef std::function<void(IpcMsg&)> Lis;
 		enum MSG {
 			TM_INIT=0,
 			TM_CLOSE=1,
@@ -23,9 +24,11 @@ namespace uvcpp {
 		void stop();
 		void postExit();
 		void wait();
+		void setOnListener(Lis lis);
 		virtual void OnMsgProc(IpcMsg& msg);
 
 	private:
+		Lis _lis;
 		Ipc _ipc;
 		std::thread _msgThread;
 	};

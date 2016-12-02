@@ -6,7 +6,7 @@
  */
 
 #include "UvTcp.h"
-#include <nmdutil/nmdlog.h>
+#include "uvcpplog.h"
 #include "UvEvent.h"
 
 using namespace std;
@@ -26,8 +26,12 @@ namespace uvcpp {
 		if(!_rawh) {
 			_rawh = (uv_tcp_t *) createHandle();
 			if (_rawh) {
-				_cnnLis = clis;
-				_readLis = rlis;
+				if(clis) {
+					_cnnLis = clis;
+				}
+				if(rlis) {
+					_readLis = rlis;
+				}
 				_writeReqQue.open(10);
 				return uv_tcp_init(_ctx->getLoop(), _rawh);
 			}
@@ -66,6 +70,7 @@ namespace uvcpp {
 	void UvTcp::close() {
 		if (_ohandle) {
 			ali("closing...");
+			_rawh = nullptr;
 			UvHandleOwner::close();
 		}
 	}

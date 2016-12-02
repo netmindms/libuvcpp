@@ -1,16 +1,27 @@
 cmake_minimum_required(VERSION 3.5)
 project(uvcppprj)
 
+set(UVCPP_VER_MAJOR 1)
+set(UVCPP_VER_MINOR 1)
+set(UVCPP_VER_PATCH 1)
+set(UVCPP_VER ${UVCPP_VER_MAJOR}.${UVCPP_VER_MINOR}.${UVCPP_VER_PATCH} )
+
 set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 
 file(GLOB UVCPPSRCS "uvcpp/*.cpp")
 set(SOURCE_FILES ${UVCPPSRCS} test/testmain.cpp)
 
 file(GLOB TESTSRCS "test/*.cpp")
 
-add_library(uvcpp SHARED ${SOURCE_FILES} uvcpp/UvUdpWriteInfo.cpp uvcpp/UvUdpWriteInfo.h uvcpp/UvUdp.cpp uvcpp/UvUdp.h uvcpp/UvCheck.cpp uvcpp/UvCheck.h uvcpp/UvHandle.cpp uvcpp/UvPrepare.cpp uvcpp/UvPrepare.h uvcpp/UvAsync.cpp uvcpp/UvAsync.h uvcpp/UvHandleOwner.cpp uvcpp/UvHandleOwner.h uvcpp/UvIdle.cpp uvcpp/UvIdle.h uvcpp/IpcMsg.cpp uvcpp/IpcMsg.h uvcpp/UvObj.cpp uvcpp/UvObj.h uvcpp/Ipc.cpp uvcpp/Ipc.h uvcpp/MsgTask.cpp uvcpp/MsgTask.h)
+add_library(uvcpp SHARED ${SOURCE_FILES} )
 target_link_libraries(uvcpp uv nmdutil)
+set_target_properties(uvcpp PROPERTIES SOVERSION ${UVCPP_VER_MAJOR}.${UVCPP_VER_MINOR} VERSION ${UVCPP_VER})
+install(TARGETS uvcpp DESTINATION lib )
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/uvcpp/ DESTINATION include/uvcpp
+        FILES_MATCHING PATTERN "*.h")
+
+#add_library(uvcpp_static STATIC ${SOURCE_FILES})
 
 add_executable(testuvcpp ${SOURCE_FILES} ${TESTSRCS} test/test_basic.cpp test/test_ipc.cpp)
-target_link_libraries(testuvcpp pthread uv nmdutil gtest)
+target_link_libraries(testuvcpp pthread uv gtest)

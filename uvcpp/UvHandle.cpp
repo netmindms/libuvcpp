@@ -47,5 +47,4 @@ namespace uvcpp {
 		_clis = lis;
 	}
 
-
 }

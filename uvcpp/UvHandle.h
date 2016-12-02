@@ -27,6 +27,11 @@ namespace uvcpp {
 
 		void* getUserData();
 		void setOnCloseListener(CloseLis lis);
+
+#ifndef NDEBUG
+		// for debugging
+		std::string _handleName;
+#endif
 	private:
 		CloseLis _clis;
 		uv_any_handle _rawHandle;
@@ -35,8 +40,16 @@ namespace uvcpp {
 		UvContext *_ctx;
 		void* _userData;
 		int _status;
-
 		int init(void* user_data);
 	};
 }
+
+#ifdef NDEBUG
+#define GET_UV_HANDLE_NAME(UVH)
+#define SET_UV_HANDLE_NAME(UVH, NAME)
+#else
+#define GET_UV_HANDLE_NAME(UVH) ((const std::string&)std::ref(UVH->_handleName))
+#define SET_UV_HANDLE_NAME(UVH, NAME) (UVH->_handleName = NAME)
+#endif
+
 #endif //UVCPPPRJ_UVHANDLE_H

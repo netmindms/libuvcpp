@@ -5,8 +5,8 @@
  *      Author: netmind
  */
 
-#ifndef UVEVENT_H_
-#define UVEVENT_H_
+#ifndef UVCPPPRJ_UVEVENT_H_
+#define UVCPPPRJ_UVEVENT_H_
 
 namespace uvcpp {
 
@@ -20,4 +20,4 @@ namespace uvcpp {
 
 }
 
-#endif /* UVEVENT_H_ */
+#endif /* UVCPPPRJ_UVEVENT_H_ */

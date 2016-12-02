@@ -5,12 +5,12 @@
  *      Author: netmind
  */
 
-#ifndef UVTCP_H_
-#define UVTCP_H_
+#ifndef UVCPPPRJ_UVTCP_H_
+#define UVCPPPRJ_UVTCP_H_
 
 #include <memory>
 #include <utility>
-#include <nmdutil/ObjMemQue.h>
+#include "ObjQue.h"
 
 
 #include "UvHandleOwner.h"
@@ -27,7 +27,7 @@ namespace uvcpp {
 
 		virtual ~UvTcp();
 
-		int open(CnnLis clis, ReadLis rlis);
+		int open(CnnLis clis=nullptr, ReadLis rlis=nullptr);
 
 		int write(const char *buf, size_t len);
 
@@ -57,8 +57,8 @@ namespace uvcpp {
 		uv_connect_t _cnnHandle;
 		size_t _readSize;
 		uv_tcp_t* _rawh;
-		nmdu::ObjMemQue<UvWriteInfo> _writeReqQue;
-		nmdu::ObjMemQue<UvReadBuffer> _readBufQue;
+		ObjQue<UvWriteInfo> _writeReqQue;
+		ObjQue<UvReadBuffer> _readBufQue;
 		//void openChild(UvTcpHandle *newhandle);
 
 		static void alloc_cb(uv_handle_t *handle, size_t suggesited_size, uv_buf_t *puvbuf);
@@ -68,4 +68,4 @@ namespace uvcpp {
 		static void on_write_end(uv_write_t *req, int status);
 	};
 }
-#endif /* UVTCP_H_ */
+#endif /* UVCPPPRJ_UVTCP_H_ */

@@ -5,8 +5,8 @@
  *      Author: netmind
  */
 
-#ifndef UVWRITEINFO_H_
-#define UVWRITEINFO_H_
+#ifndef UVCPPPRJ_UVWRITEINFO_H_
+#define UVCPPPRJ_UVWRITEINFO_H_
 
 #include <uv.h>
 
@@ -26,4 +26,4 @@ namespace uvcpp {
 
 	};
 }
-#endif /* UVWRITEINFO_H_ */
+#endif /* UVCPPPRJ_UVWRITEINFO_H_ */

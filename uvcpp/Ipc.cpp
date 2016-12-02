@@ -3,7 +3,7 @@
 //
 
 #include "Ipc.h"
-#include <nmdutil/nmdlog.h>
+#include "uvcpplog.h"
 using namespace std;
 
 namespace uvcpp {

@@ -7,7 +7,7 @@
 
 #include <cstdint>
 #include <functional>
-#include <nmdutil/ObjMemQue.h>
+#include "ObjQue.h"
 #include "UvReadBuffer.h"
 #include "UvHandleOwner.h"
 #include "UvUdpWriteInfo.h"
@@ -33,8 +33,8 @@ namespace uvcpp {
 	private:
 		sockaddr* _remoteAddr;
 		Lis _readLis;
-		nmdu::ObjMemQue<UvUdpWriteInfo> _writeReqQue;
-		nmdu::ObjMemQue<UvReadBuffer> _readBufQue;
+		ObjQue<UvUdpWriteInfo> _writeReqQue;
+		ObjQue<UvReadBuffer> _readBufQue;
 
 		static void alloc_cb(uv_handle_t *handle, size_t suggesited_size, uv_buf_t *puvbuf);
 		static void recv_cb(uv_udp_t *handle, ssize_t nread, const uv_buf_t *buf, const struct sockaddr *addr, unsigned flags);

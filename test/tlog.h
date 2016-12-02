@@ -7,4 +7,4 @@
 
 #endif //UVCPPPRJ_TLOG_H_H
 
-#include <nmdutil/nmdlog.h>
+#include "../uvcpp/uvcpplog.h"

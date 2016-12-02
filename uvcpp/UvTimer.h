@@ -5,8 +5,8 @@
  *      Author: netmind
  */
 
-#ifndef UVTIMER_H_
-#define UVTIMER_H_
+#ifndef UVCPPPRJ_UVTIMER_H_
+#define UVCPPPRJ_UVTIMER_H_
 
 #include <cstdint>
 #include <functional>
@@ -23,15 +23,15 @@ namespace uvcpp {
 
 		virtual ~UvTimer();
 
-		void set(uint64_t period, uint64_t first_expire, Lis lis);
+		void timerStart(uint64_t period, uint64_t first_expire, Lis lis);
 
 		void reset();
 
-		void kill();
+		void timerStop();
 
 	private:
 		Lis _lis;
 		static void timer_cb(uv_timer_t* handle);
 	};
 }
-#endif /* UVTIMER_H_ */
+#endif /* UVCPPPRJ_UVTIMER_H_ */

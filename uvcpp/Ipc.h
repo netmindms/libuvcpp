@@ -5,7 +5,7 @@
 #ifndef UVCPPPRJ_IPC_H
 #define UVCPPPRJ_IPC_H
 
-#include <nmdutil/ObjMemQue.h>
+#include "ObjQue.h"
 #include "UvAsync.h"
 #include "IpcMsg.h"
 
@@ -27,7 +27,7 @@ namespace uvcpp {
 	private:
 		Lis _lis;
 		UvAsync _async;
-		nmdu::ObjMemQue<IpcMsg> _msgQue;
+		ObjQue<IpcMsg> _msgQue;
 		bool _isClosing;
 	};
 

@@ -2,7 +2,7 @@
 // Created by netmind on 16. 11. 28.
 //
 
-#include <nmdutil/nmdlog.h>
+#include "uvcpplog.h"
 #include "UvUdp.h"
 
 #include "uvcppdef.h"

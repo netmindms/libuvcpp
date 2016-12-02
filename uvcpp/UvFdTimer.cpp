@@ -7,7 +7,7 @@
 
 #ifdef __linux
 
-#include <nmdutil/nmdlog.h>
+#include "uvcpplog.h"
 #include <sys/timerfd.h>
 
 #include "UvFdTimer.h"

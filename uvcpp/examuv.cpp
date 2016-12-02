@@ -12,7 +12,7 @@
 #include <iostream>
 
 #include <uv.h>
-#include <nmdutil/nmdlog.h>
+#include "nmdlog.h"
 
 #include "UvEvent.h"
 #include "UvTcp.h"
@@ -141,9 +141,9 @@ int main() {
 //			sck.send(tbuf, tbuf_size);
 			sck.send(ts.data(), ts.size());
 //			sck.close();
-			timer.set(1000, 1000, [&]() {
+			timer.timerStart(1000, 1000, [&]() {
 				ali("timer expired....");
-				timer.kill();
+				timer.timerStop();
 				sck.close();
 			});
 		} else if(event == UvBaseTcp::SOCK_EVENT_DISCONNECTED) {

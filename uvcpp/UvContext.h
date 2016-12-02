@@ -5,8 +5,8 @@
  *      Author: netmind
  */
 
-#ifndef UVCONTEXT_H_
-#define UVCONTEXT_H_
+#ifndef UVCPPPRJ_UVCONTEXT_H_
+#define UVCPPPRJ_UVCONTEXT_H_
 
 #include <uv.h>
 #include "UvHandle.h"
@@ -53,4 +53,4 @@ namespace uvcpp {
 
 
 }
-#endif /* UVCONTEXT_H_ */
+#endif /* UVCPPPRJ_UVCONTEXT_H_ */

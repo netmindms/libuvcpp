@@ -5,7 +5,7 @@
  *      Author: netmind
  */
 
-#include <nmdutil/nmdlog.h>
+#include "uvcpplog.h"
 #include "UvContext.h"
 #include "UvHandle.h"
 
@@ -121,9 +121,9 @@ namespace uvcpp {
 		if (tprev == nullptr && tnext == nullptr) {
 			_handleLast = nullptr;
 		}
+		ald("delete handle, phandle=%x, remain=%d, name=%s", (long) phandle, _pendingHandleCnt, GET_UV_HANDLE_NAME(phandle));
 		delete phandle;
 		--_pendingHandleCnt;
-		ald("delete handle, phandle=%x, remain=%d", (long) phandle, _pendingHandleCnt);
 	}
 
 	UvHandle *UvContext::createHandle(void *user_data) {

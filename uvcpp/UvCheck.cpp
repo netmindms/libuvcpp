@@ -3,7 +3,7 @@
 //
 
 #include <cassert>
-#include <nmdutil/nmdlog.h>
+#include "uvcpplog.h"
 #include "uvcppdef.h"
 #include "UvCheck.h"
 

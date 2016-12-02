@@ -53,7 +53,9 @@ namespace uvcpp {
 	}
 
 	void MsgTask::OnMsgProc(IpcMsg &msg) {
-
+		if(_lis) {
+			_lis(msg);
+		}
 	}
 
 	void MsgTask::postExit() {
@@ -64,5 +66,9 @@ namespace uvcpp {
 		if(_msgThread.joinable()) {
 			_msgThread.join();
 		}
+	}
+
+	void MsgTask::setOnListener(MsgTask::Lis lis) {
+		_lis = lis;
 	}
 }
