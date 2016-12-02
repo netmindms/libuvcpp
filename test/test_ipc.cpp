@@ -8,6 +8,7 @@
 #include "../uvcpp/Ipc.h"
 #include "tlog.h"
 #include "../uvcpp/MsgTask.h"
+#include "../uvcpp/UvTimer.h"
 
 using namespace std;
 using namespace uvcpp;
@@ -80,16 +81,32 @@ TEST(basic, ipc) {
 }
 
 TEST(basic, msgtask) {
+
 	class MyTask: public MsgTask {
+	public:
+		UvTimer _timer;
+		int _cnt;
 		void OnMsgProc(IpcMsg& msg) {
 			if(msg.msgId == MsgTask::TM_INIT) {
-
+				ald("task init");
+				_cnt = 0;
+				_timer.set(100, 100, [this]() {
+					ald("task timer expired");
+					_cnt++;
+					if(_cnt == 5) {
+//						postExit();
+					}
+				});
 			} else if(msg.msgId == MsgTask::TM_CLOSE) {
-
+				ald("task closing");
+				_timer.kill();
 			}
 		}
 	};
 	MyTask task;
 	task.start(nullptr);
-
+	this_thread::sleep_for(chrono::milliseconds(250));
+	task.stop();
+	ASSERT_EQ(2, task._cnt);
+	ald("test end");
 }

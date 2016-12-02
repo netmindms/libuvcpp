@@ -21,7 +21,8 @@ namespace uvcpp {
 
 		int start(void* arg=nullptr);
 		void stop();
-
+		void postExit();
+		void wait();
 		virtual void OnMsgProc(IpcMsg& msg);
 
 	private:

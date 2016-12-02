@@ -12,12 +12,9 @@
 #include "UvHandle.h"
 
 namespace uvcpp {
-	class UvBaseHandle;
 	class UvHandle;
 
 	class UvContext {
-		friend class UvBaseHandle;
-		friend class UvTcpHandle;
 		friend class UvHandle;
 
 	public:
@@ -37,6 +34,8 @@ namespace uvcpp {
 
 		UvHandle* createHandle(void* user_data);
 
+		int handleCount();
+
 		int run();
 		static void handle_close_cb(uv_handle_t *phandle);
 
@@ -45,7 +44,7 @@ namespace uvcpp {
 		uv_loop_t *_loop;
 		uv_prepare_t _prepareHandle;
 		UvHandle *_handleLast;
-		int _pendingHandleCnt2;
+		int _pendingHandleCnt;
 
 		void dumpHandle(UvHandle *plast);
 		void deleteHandle(UvHandle *pHandle);

@@ -29,7 +29,7 @@ namespace uvcpp {
 			_ipc.open([&](IpcMsg& msg) {
 				OnMsgProc(msg);
 				if(msg.msgId == TM_CLOSE) {
-
+					_ipc.close();
 				}
 			});
 
@@ -54,5 +54,15 @@ namespace uvcpp {
 
 	void MsgTask::OnMsgProc(IpcMsg &msg) {
 
+	}
+
+	void MsgTask::postExit() {
+		_ipc.postMsg(TM_CLOSE, 0, 0, nullptr);
+	}
+
+	void MsgTask::wait() {
+		if(_msgThread.joinable()) {
+			_msgThread.join();
+		}
 	}
 }

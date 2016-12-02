@@ -7,12 +7,20 @@
 using namespace std;
 
 namespace uvcpp {
+	Ipc::Ipc() {
+		_isClosing = false;
+	}
+	Ipc::~Ipc() {
+
+	}
+
+
 	int Ipc::open(Lis lis) {
 		_lis = lis;
 		_msgQue.open(10);
 		_async.open([this]() {
 			upIpcMsg upmsg;
-			for(;;) {
+			for(;!_isClosing;) {
 				_msgQue.lock();
 				upmsg = _msgQue.pop();
 				_msgQue.unlock();
@@ -38,9 +46,9 @@ namespace uvcpp {
 	}
 
 	void Ipc::close() {
-		_async.close();
 		_msgQue.lock();
-		_msgQue.clear();
+		_isClosing = true;
+		_async.close();
 		_msgQue.unlock();
 	}
 
@@ -84,5 +92,7 @@ namespace uvcpp {
 		ulock.unlock();
 		return 0;
 	}
+
+
 
 }

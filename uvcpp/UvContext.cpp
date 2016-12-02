@@ -25,7 +25,7 @@ namespace uvcpp {
 	UvContext::UvContext() {
 		_loop = nullptr;
 		_createLoop = false;
-		_pendingHandleCnt2 = 0;
+		_pendingHandleCnt = 0;
 		_handleLast = nullptr;
 	}
 
@@ -89,7 +89,7 @@ namespace uvcpp {
 			handle->_prev = nullptr;
 		}
 		handle->init(user_data);
-		ald("init handle, rawhandle=%x, cnt2=%d", (long) &handle->_rawHandle, _pendingHandleCnt2);
+		ald("init handle, rawhandle=%x, cnt2=%d", (long) &handle->_rawHandle, _pendingHandleCnt);
 		dumpHandle(_handleLast);
 	}
 
@@ -122,15 +122,19 @@ namespace uvcpp {
 			_handleLast = nullptr;
 		}
 		delete phandle;
-		--_pendingHandleCnt2;
-		ald("delete handle, phandle=%x, remain=%d", (long) phandle, _pendingHandleCnt2);
+		--_pendingHandleCnt;
+		ald("delete handle, phandle=%x, remain=%d", (long) phandle, _pendingHandleCnt);
 	}
 
 	UvHandle *UvContext::createHandle(void *user_data) {
 		auto ohandle = new UvHandle;
-		++_pendingHandleCnt2;
+		++_pendingHandleCnt;
 		initHandle(ohandle, user_data);
 		return ohandle;
+	}
+
+	int UvContext::handleCount() {
+		return _pendingHandleCnt;
 	}
 
 

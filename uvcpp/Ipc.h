@@ -13,14 +13,22 @@ namespace uvcpp {
 	class Ipc {
 	public:
 		typedef std::function<void(IpcMsg& msg)> Lis;
+		Ipc();
+
+		virtual ~Ipc();
+
 		int open(Lis lis);
+
 		void close();
+
 		int postMsg(uint32_t msgid, int p1, int p2, upUvObj userobj);
+
 		int sendMsg(uint32_t msgid, int p1, int p2, upUvObj userobj);
 	private:
 		Lis _lis;
 		UvAsync _async;
 		nmdu::ObjMemQue<IpcMsg> _msgQue;
+		bool _isClosing;
 	};
 
 }
