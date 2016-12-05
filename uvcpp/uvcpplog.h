@@ -39,6 +39,7 @@ MAKE_LOG_INSTANCE(your_log_instance_name);
 #include <string>
 #include <mutex>
 #include "uvcpp_format.h"
+
 namespace uvcpp {
 
 #define LOG_NONE 0
@@ -50,9 +51,6 @@ namespace uvcpp {
 #define LOG_VERBOSE 6
 
 
-#ifndef NMDU_FILE_NAME
-#define NMDU_FILE_NAME "Line"
-#endif
 //
 //#ifndef LOG_LEVEL
 //#define LOG_LEVEL LOG_INFO
@@ -168,7 +166,7 @@ inline void NmduMemPrintf2(uvcppfmt::MemoryWriter& w, const char level, const ch
 FMT_VARIADIC(void, NmduMemPrintf2, uvcppfmt::MemoryWriter&, const char, const char*, int, int, const char*)
 
 #define MAKE_LOG_INSTANCE(NAME) \
-nmdu::LogInst *NAME=nullptr; \
+uvcpp::LogInst *NAME=nullptr; \
 struct INST_TYPE_##NAME { \
 	INST_TYPE_##NAME() { \
 		NAME = new nmdu::LogInst; \
@@ -191,7 +189,7 @@ struct INST_TYPE_##NAME { \
 #define NMDU_SET_LOG_LEVEL_FILE(L) LOCAL_LOG_INST->levelFile(L)
 #define NMDU_SET_LOG_FILE(F) LOCAL_LOG_INST->setLogFile(F)
 #if 0
-#define NMDULOGPUT(LL, OUT, FMTSTR, ...) do {\
+#define UVCPPLOGPUT(LL, OUT, FMTSTR, ...) do {\
 	if(LOG_LEVEL>=LL) {\
 		uvcppfmt::MemoryWriter w;\
 		/*LOCAL_LOG_INST->lock();\ */ \
@@ -208,7 +206,7 @@ struct INST_TYPE_##NAME { \
 	}\
 	}while(0)
 #else
-#define NMDULOGPUT(LL, OUT, FMTSTR, ...) do {\
+#define UVCPPLOGPUT(LL, OUT, FMTSTR, ...) do {\
 	if(LOG_LEVEL>=LL) { /*compile time log level check*/ \
 		if(LOCAL_LOG_INST->level()>=LL || LOCAL_LOG_INST->levelFile()>=LL ) { \
 			uvcppfmt::MemoryWriter w;\
@@ -232,12 +230,12 @@ struct INST_TYPE_##NAME { \
 	}\
 	}while(0)
 #endif
-#define ale(FMTSTR, ...) NMDULOGPUT(LOG_ERROR, stderr, FMTSTR, ## __VA_ARGS__)
-#define alw(FMTSTR, ...) NMDULOGPUT(LOG_WARN, stderr, FMTSTR, ## __VA_ARGS__)
-#define aln(FMTSTR, ...) NMDULOGPUT(LOG_NOTICE, stdout, FMTSTR, ## __VA_ARGS__)
-#define ali(FMTSTR, ...) NMDULOGPUT(LOG_INFO, stdout, FMTSTR, ## __VA_ARGS__)
-#define ald(FMTSTR, ...) NMDULOGPUT(LOG_DEBUG, stdout, FMTSTR, ## __VA_ARGS__)
-#define alv(FMTSTR, ...) NMDULOGPUT(LOG_VERBOSE, stdout, FMTSTR, ## __VA_ARGS__)
+#define ale(FMTSTR, ...) UVCPPLOGPUT(LOG_ERROR, stderr, FMTSTR, ## __VA_ARGS__)
+#define alw(FMTSTR, ...) UVCPPLOGPUT(LOG_WARN, stderr, FMTSTR, ## __VA_ARGS__)
+#define aln(FMTSTR, ...) UVCPPLOGPUT(LOG_NOTICE, stdout, FMTSTR, ## __VA_ARGS__)
+#define ali(FMTSTR, ...) UVCPPLOGPUT(LOG_INFO, stdout, FMTSTR, ## __VA_ARGS__)
+#define ald(FMTSTR, ...) UVCPPLOGPUT(LOG_DEBUG, stdout, FMTSTR, ## __VA_ARGS__)
+#define alv(FMTSTR, ...) UVCPPLOGPUT(LOG_VERBOSE, stdout, FMTSTR, ## __VA_ARGS__)
 #else
 #define ale(FMTSTR, ...) { if(LOG_LEVEL>=LOG_ERROR) { if(LOCAL_LOG_INST->level()>=LOG_ERROR) { LOCAL_LOG_INST->lock();uvcppfmt::fprintf(stderr, "%s [E:%s:%d] " FMTSTR "\n", uvcpp::GetLogTimeNow(), NMDU_FILE_NAME, __LINE__, ## __VA_ARGS__);LOCAL_LOG_INST->unlock(); }; if(LOCAL_LOG_INST->levelFile()>=LOG_ERROR) {LOCAL_LOG_INST->lock(); std::string s = uvcppfmt::sprintf("%s [E:%s:%d] " FMTSTR "\n", uvcpp::GetLogTimeNow(), NMDU_FILE_NAME, __LINE__, ## __VA_ARGS__);LOCAL_LOG_INST->writeFile(s.data(), s.size());LOCAL_LOG_INST->unlock();} } }
 #define alw(FMTSTR, ...) { if(LOG_LEVEL>=LOG_WARN) { if(LOCAL_LOG_INST->level()>=LOG_WARN) { LOCAL_LOG_INST->lock();uvcppfmt::fprintf(stderr, "%s [W:%s:%d] " FMTSTR "\n", uvcpp::GetLogTimeNow(), NMDU_FILE_NAME, __LINE__, ## __VA_ARGS__);LOCAL_LOG_INST->unlock(); }; if(LOCAL_LOG_INST->levelFile()>=LOG_WARN) {LOCAL_LOG_INST->lock(); std::string s = uvcppfmt::sprintf("%s [W:%s:%d] " FMTSTR "\n", uvcpp::GetLogTimeNow(), NMDU_FILE_NAME, __LINE__, ## __VA_ARGS__);LOCAL_LOG_INST->writeFile(s.data(), s.size());LOCAL_LOG_INST->unlock();} } }

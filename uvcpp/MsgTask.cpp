@@ -4,6 +4,7 @@
 
 #include <condition_variable>
 #include "MsgTask.h"
+#include "uvcpplog.h"
 
 using namespace std;
 
@@ -18,6 +19,7 @@ namespace uvcpp {
 	}
 
 	int MsgTask::start(void *arg) {
+		ald("task starting...");
 		std::condition_variable startSync;
 		std::mutex startMutex;
 
@@ -44,12 +46,15 @@ namespace uvcpp {
 			ctx.close();
 		});
 		startSync.wait(ulock);
+		ald("task starting sync ok");
 		return 0;
 	}
 
 	void MsgTask::stop() {
+		ald("task stopping");
 		_ipc.sendMsg(TM_CLOSE, 0, 0, nullptr);
 		_msgThread.join();
+		ald("task stop ok");
 	}
 
 	void MsgTask::OnMsgProc(IpcMsg &msg) {
@@ -59,6 +64,7 @@ namespace uvcpp {
 	}
 
 	void MsgTask::postExit() {
+		ald("post exiting,");
 		_ipc.postMsg(TM_CLOSE, 0, 0, nullptr);
 	}
 

@@ -4,6 +4,7 @@
 
 #include "uvcppdef.h"
 #include "UvAsync.h"
+#include "uvcpplog.h"
 
 namespace uvcpp {
 	UvAsync::UvAsync() {
@@ -17,7 +18,8 @@ namespace uvcpp {
 	int UvAsync::open(Lis lis) {
 		auto ctx = UvContext::getContext();
 		_lis = lis;
-		_ohandle = ctx->createHandle(this);
+//		_ohandle = ctx->createHandle(this);
+		createHandle("async");
 		uv_async_init(ctx->getLoop(), (uv_async_t*)_ohandle->getRawHandle(), async_cb);
 		return 0;
 	}

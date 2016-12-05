@@ -24,7 +24,8 @@ namespace uvcpp {
 		// allocaton ohandle from context
 		// ...
 		auto ctx = UvContext::getContext();
-		_ohandle = ctx->createHandle(this);
+		//_ohandle = ctx->createHandle(this);
+		createHandle("check");
 		_lis = lis;
 		uv_check_t* ph = GETRAWHANDLE();
 		uv_check_init(ctx->getLoop(), ph);

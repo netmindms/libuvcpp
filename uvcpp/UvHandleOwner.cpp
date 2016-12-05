@@ -3,6 +3,7 @@
 //
 
 #include "UvHandleOwner.h"
+#include "uvcpplog.h"
 
 namespace uvcpp {
 
@@ -34,11 +35,15 @@ namespace uvcpp {
 		}
 	}
 
-	uv_handle_t *UvHandleOwner::createHandle() {
+	uv_handle_t *UvHandleOwner::createHandle(const char*
+#ifndef NDEBUG
+	name
+#endif
+	) {
 		if(!_ohandle) {
 			_ctx = UvContext::getContext();
 			if(_ctx) {
-				_ohandle = _ctx->createHandle(this);
+				_ohandle = _ctx->createHandle(this, name);
 				return _ohandle->getRawHandle();
 			}
 		}

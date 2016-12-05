@@ -87,7 +87,7 @@ int setFileLog(int level, const char *path) {
 
 
 LogInst::LogInst() {
-	mLevel = LOG_VERBOSE;
+	mLevel = LOG_WARN;
 	mFileLevel = -1;
 	mFd = -1;
 	mMaxFileSize = 10*1024*1024; // default 10MB

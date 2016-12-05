@@ -16,7 +16,7 @@ namespace uvcpp {
 
 	class UvContext {
 		friend class UvHandle;
-
+		friend class UvHandleOwner;
 	public:
 		UvContext();
 
@@ -32,7 +32,7 @@ namespace uvcpp {
 
 		uv_loop_t *getLoop();
 
-		UvHandle* createHandle(void* user_data);
+		UvHandle* createHandle(void* user_data, const char* typestr);
 
 		int handleCount();
 
@@ -45,6 +45,7 @@ namespace uvcpp {
 		uv_prepare_t _prepareHandle;
 		UvHandle *_handleLast;
 		int _pendingHandleCnt;
+		uint32_t _handleIdSeed;
 
 		void dumpHandle(UvHandle *plast);
 		void deleteHandle(UvHandle *pHandle);

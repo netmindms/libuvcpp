@@ -3,6 +3,7 @@
 //
 
 #include "UvIdle.h"
+#include "uvcpplog.h"
 
 namespace uvcpp {
 
@@ -16,7 +17,7 @@ namespace uvcpp {
 
 	int UvIdle::open(UvIdle::Lis lis) {
 		_lis = lis;
-		auto rawh = (uv_idle_t*)createHandle();
+		auto rawh = (uv_idle_t*)createHandle("idle");
 		uv_idle_init(getLoop(), rawh);
 		return uv_idle_start(rawh, idle_cb);
 	}

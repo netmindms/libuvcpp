@@ -24,7 +24,7 @@ namespace uvcpp {
 		uv_loop_t* getLoop();
 		uv_handle_t* getRawHandle();
 	protected:
-		uv_handle_t* createHandle();
+		uv_handle_t* createHandle(const char* type);
 		UvHandle* _ohandle;
 		UvContext* _ctx;
 	};

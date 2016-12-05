@@ -4,6 +4,7 @@
 
 #include "uvcppdef.h"
 #include "UvPrepare.h"
+#include "uvcpplog.h"
 
 namespace uvcpp {
 
@@ -20,8 +21,9 @@ namespace uvcpp {
 		int ret;
 		if(ctx) {
 			_lis = lis;
-			_ohandle = ctx->createHandle(this);
-			uv_prepare_t* prawh = (uv_prepare_t*)_ohandle->getRawHandle();
+//			_ohandle = ctx->createHandle(this);
+			auto prawh = (uv_prepare_t*)createHandle("prepare");
+//			uv_prepare_t* prawh = (uv_prepare_t*)_ohandle->getRawHandle();
 			ret = uv_prepare_init(ctx->getLoop(), prawh);
 			assert(!ret);
 			ret = uv_prepare_start(prawh, prepare_cb);

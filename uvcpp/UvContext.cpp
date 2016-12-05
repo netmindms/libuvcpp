@@ -14,9 +14,9 @@ namespace uvcpp {
 	thread_local UvContext *_gEdContext;
 
 	void UvContext::dumpHandle(UvHandle *plast) {
-		ald("dump handles, ");
+		alv("dump handles, ");
 		for (; plast;) {
-			ald("    phandle=%x", (long) plast);
+			ald(" name=%s", plast->_handleName);
 			plast = plast->_prev;
 		}
 	}
@@ -27,6 +27,7 @@ namespace uvcpp {
 		_createLoop = false;
 		_pendingHandleCnt = 0;
 		_handleLast = nullptr;
+		_handleIdSeed = 0;
 	}
 
 	UvContext::~UvContext() {
@@ -89,8 +90,7 @@ namespace uvcpp {
 			handle->_prev = nullptr;
 		}
 		handle->init(user_data);
-		ald("init handle, rawhandle=%x, cnt2=%d", (long) &handle->_rawHandle, _pendingHandleCnt);
-		dumpHandle(_handleLast);
+//		ald("init handle, cnt=%d", _pendingHandleCnt);
 	}
 
 	int UvContext::run() {
@@ -121,14 +121,26 @@ namespace uvcpp {
 		if (tprev == nullptr && tnext == nullptr) {
 			_handleLast = nullptr;
 		}
-		ald("delete handle, phandle=%x, remain=%d, name=%s", (long) phandle, _pendingHandleCnt, GET_UV_HANDLE_NAME(phandle));
+		ald("delete handle, name=%s, remain=%d", GET_UV_HANDLE_NAME(phandle), _pendingHandleCnt-1);
 		delete phandle;
 		--_pendingHandleCnt;
 	}
 
-	UvHandle *UvContext::createHandle(void *user_data) {
+	UvHandle *UvContext::createHandle(void *user_data, const char*
+#ifndef NDEBUG
+	typestr
+#endif
+	) {
 		auto ohandle = new UvHandle;
 		++_pendingHandleCnt;
+		++_handleIdSeed;
+#ifndef NDEBUG
+		char buf[100];
+		snprintf(buf, sizeof(buf), "%s_%u", typestr, _handleIdSeed);
+		ohandle->_handleName = buf;
+		ald("create handle, handle_name: %s, cnt=%d", ohandle->_handleName, _pendingHandleCnt);
+#endif
+
 		initHandle(ohandle, user_data);
 		return ohandle;
 	}

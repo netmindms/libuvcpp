@@ -27,7 +27,7 @@ namespace uvcpp {
 		if (!_rawh) {
 			auto ctx = UvContext::getContext();
 			if (ctx) {
-				_rawh = (uv_poll_t*)createHandle();
+				_rawh = (uv_poll_t*)createHandle("fdtimer");
 				auto fd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
 				ali("timerfd create fd=%d", fd);
 				if (fd > 0) {

@@ -14,7 +14,7 @@ set(SOURCE_FILES ${UVCPPSRCS} test/testmain.cpp)
 
 file(GLOB TESTSRCS "test/*.cpp")
 
-add_library(uvcpp SHARED ${SOURCE_FILES} )
+add_library(uvcpp SHARED ${SOURCE_FILES} uvcpp/uvcpp.cpp)
 target_link_libraries(uvcpp uv nmdutil)
 set_target_properties(uvcpp PROPERTIES SOVERSION ${UVCPP_VER_MAJOR}.${UVCPP_VER_MINOR} VERSION ${UVCPP_VER})
 install(TARGETS uvcpp DESTINATION lib )

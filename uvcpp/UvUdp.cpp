@@ -38,10 +38,11 @@ namespace uvcpp {
 		int ret;
 		if(ctx) {
 			_readLis = lis;
-			_ohandle = ctx->createHandle(this);
+//			_ohandle = ctx->createHandle(this);
+			auto rawh = (uv_udp_t*)createHandle("udp");
 			_readBufQue.open(10);
 			_writeReqQue.open(10);
-			ret = uv_udp_init(ctx->getLoop(), GET_UDP_RAWH(_ohandle));
+			ret = uv_udp_init(ctx->getLoop(), rawh);
 			if(ret) {
 				ale("### udp init error");
 			}
@@ -118,7 +119,7 @@ namespace uvcpp {
 	}
 
 	void UvUdp::recv_cb(uv_udp_t *handle, ssize_t nread, const uv_buf_t *buf, const struct sockaddr *addr, unsigned flags) {
-		ali("readcb, nread=%d", nread);
+		alv("readcb, nread=%d", nread);
 		auto phandle = GET_UVHANDLE_OWNER(UvUdp, handle);
 //		auto phandle = (UvUdp *) handle->data;
 		auto uprbuf = phandle->_readBufQue.pop();
@@ -131,7 +132,7 @@ namespace uvcpp {
 	}
 
 	void UvUdp::send_cb(uv_udp_send_t *req, int status) {
-		ali("send cb, status=%d, psock=%0x", status, (uint64_t) req->data);
+		alv("send cb, status=%d, psock=%0x", status, (uint64_t) req->data);
 		auto psock = (UvUdp *) req->data;
 		if (psock) {
 			auto up = psock->_writeReqQue.pop();

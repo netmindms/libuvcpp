@@ -16,6 +16,7 @@ namespace uvcpp {
 
 
 	int Ipc::open(Lis lis) {
+		ald("ipc open, ...");
 		_lis = lis;
 		_msgQue.open(10);
 		_async.open([this]() {
@@ -26,14 +27,14 @@ namespace uvcpp {
 				_msgQue.unlock();
 				if(upmsg) {
 					if(upmsg->isSync) {
-						ald("ripc sync message");
+						alv("ripc sync message");
 						unique_lock<mutex> msgulock(*(upmsg->msgMutex));
-						ald("ripc lock ok");
+						alv("ripc lock ok");
 						_lis(*(upmsg.get()));
 						upmsg->msgCv->notify_one();
-						ald("ripc notify ok");
+						alv("ripc notify ok");
 						msgulock.unlock();
-						ald("ripc unlock ok");
+						alv("ripc unlock ok");
 					} else {
 						_lis(*(upmsg.get()));
 					}
@@ -46,13 +47,16 @@ namespace uvcpp {
 	}
 
 	void Ipc::close() {
+		ald("ipc close");
 		_msgQue.lock();
 		_isClosing = true;
 		_async.close();
 		_msgQue.unlock();
+		alv("ipc close ok");
 	}
 
 	int Ipc::postMsg(uint32_t msgid, int p1, int p2, upUvObj userobj) {
+		ald("postMsg, msgid=%u, p1=%d, p2=%d", msgid, p1, p2);
 		_msgQue.lock();
 		auto upmsg = _msgQue.allocObj();
 		upmsg->msgId = msgid;
@@ -67,7 +71,6 @@ namespace uvcpp {
 	}
 
 	int Ipc::sendMsg(uint32_t msgid, int p1, int p2, upUvObj userobj) {
-		ald("sendMsg");
 		upIpcMsg upmsg;
 		_msgQue.lock();
 
@@ -82,13 +85,13 @@ namespace uvcpp {
 		upmsg->msgCv = &cv;
 		upmsg->isSync = true;
 		std::unique_lock<mutex> ulock( mtx ); // lock을 거는 이유: msg큐에 push한 후 task switching 되어 wait 하기 전에 메시지 처리 되는 것을 방지 한다.
-		ald("slock ok");
+		alv("send msgq lock ok");
 		_msgQue.push(move(upmsg));
 		_async.send();
 		_msgQue.unlock();
-		ald("s msgque unlock ok");
+		alv("send msgq unlock ok");
 		cv.wait(ulock);
-		ald("slock wait ok");
+		alv("send lock wait ok");
 		ulock.unlock();
 		return 0;
 	}

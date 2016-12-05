@@ -24,7 +24,7 @@ namespace uvcpp {
 
 	int UvTcp::open(CnnLis clis, ReadLis rlis) {
 		if(!_rawh) {
-			_rawh = (uv_tcp_t *) createHandle();
+			_rawh = (uv_tcp_t *) createHandle("tcp");
 			if (_rawh) {
 				if(clis) {
 					_cnnLis = clis;
@@ -69,7 +69,7 @@ namespace uvcpp {
 
 	void UvTcp::close() {
 		if (_ohandle) {
-			ali("closing...");
+			ald("closing...");
 			_rawh = nullptr;
 			UvHandleOwner::close();
 		}
@@ -152,7 +152,7 @@ namespace uvcpp {
 	}
 
 	void UvTcp::on_write_end(uv_write_t *req, int status) {
-		ali("write cb, status=%d, ptcp=%0x", status, (uint64_t) req->data);
+		alv("write cb, status=%d, ptcp=%0x", status, (uint64_t) req->data);
 		auto ptcp = (UvTcp *) req->data;
 		if (ptcp) {
 			auto up = ptcp->_writeReqQue.pop();
@@ -161,7 +161,7 @@ namespace uvcpp {
 	}
 
 	void UvTcp::read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *) {
-		ali("readcb, nread=%d", nread);
+		alv("readcb, nread=%d", nread);
 		auto ptcp = UvHandleOwner::getHandleOwner<UvTcp>((uv_handle_t*)stream);
 		assert(ptcp->_readLis!=nullptr);
 		auto uprbuf = ptcp->_readBufQue.pop();

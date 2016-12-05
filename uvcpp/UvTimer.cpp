@@ -24,9 +24,9 @@ namespace uvcpp {
 		if (!_ohandle) {
 			_lis = lis;
 			auto ctx = UvContext::getContext();
-			_ohandle = ctx->createHandle(this);
-			SET_UV_HANDLE_NAME(_ohandle, "uv_timer");
-			uv_timer_t* rawh = (uv_timer_t*)_ohandle->getRawHandle();
+//			_ohandle = ctx->createHandle(this);
+			auto rawh = (uv_timer_t*)createHandle("timer");
+//			uv_timer_t* rawh = (uv_timer_t*)_ohandle->getRawHandle();
 			uv_timer_init(ctx->getLoop(), rawh);
 			uv_timer_start(rawh, timer_cb, first_expire, period);
 		}
