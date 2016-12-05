@@ -148,7 +148,7 @@ int main() {
 			});
 		} else if(event == UvBaseTcp::SOCK_EVENT_DISCONNECTED) {
 			ali("disconnected");
-			sck.close();
+			sck.closeHandle();
 		} else if(event == UvBaseTcp::SOCK_EVENT_READ) {
 			auto upbuf = sck.fetchReadBuf();
 			string ts;

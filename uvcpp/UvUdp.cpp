@@ -7,7 +7,7 @@
 
 #include "uvcppdef.h"
 
-#define GET_UDP_RAWH(UVHANDLE) GET_RAWH(uv_udp_t, UVHANDLE)
+#define RAWH() GET_RAWH(uv_udp_t)
 
 namespace uvcpp {
 	UvUdp::UvUdp() {
@@ -16,7 +16,7 @@ namespace uvcpp {
 	}
 
 	UvUdp::~UvUdp() {
-		close();
+		closeHandle();
 
 		if(_remoteAddr) {
 			free(_remoteAddr);
@@ -24,7 +24,7 @@ namespace uvcpp {
 	}
 
 	int UvUdp::bind(const struct sockaddr *addr, unsigned int flags) {
-		return uv_udp_bind(GET_UDP_RAWH(_ohandle), addr, flags);
+		return uv_udp_bind(RAWH(), addr, flags);
 	}
 
 	int UvUdp::bind(const char *ipaddr, uint16_t port, unsigned int flags) {
@@ -38,7 +38,6 @@ namespace uvcpp {
 		int ret;
 		if(ctx) {
 			_readLis = lis;
-//			_ohandle = ctx->createHandle(this);
 			auto rawh = (uv_udp_t*)createHandle("udp");
 			_readBufQue.open(10);
 			_writeReqQue.open(10);
@@ -55,14 +54,14 @@ namespace uvcpp {
 	void UvUdp::close() {
 		if(_ohandle != nullptr) {
 			ald("closing udp ...");
-			uv_udp_recv_stop(GET_UDP_RAWH(_ohandle));
-			UvHandleOwner::close();
+			uv_udp_recv_stop(RAWH());
+			closeHandleAsync();
 		}
 	}
 
 	int UvUdp::readStart() {
 		if(_ohandle) {
-			return uv_udp_recv_start(GET_UDP_RAWH(_ohandle), alloc_cb, recv_cb);
+			return uv_udp_recv_start(RAWH(), alloc_cb, recv_cb);
 		}
 		return -1;
 	}
@@ -71,7 +70,7 @@ namespace uvcpp {
 		auto upwr = _writeReqQue.allocObj();
 		upwr->fillBuf(buf, len);
 		upwr->req.data = this;
-		auto ret = uv_udp_send(&upwr->req, GET_UDP_RAWH(_ohandle), &upwr->uvBuf, 1, addr, send_cb);
+		auto ret = uv_udp_send(&upwr->req, RAWH(), &upwr->uvBuf, 1, addr, send_cb);
 		if (!ret) {
 			_writeReqQue.push(move(upwr));
 		} else {

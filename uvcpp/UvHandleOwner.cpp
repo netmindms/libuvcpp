@@ -14,25 +14,29 @@ namespace uvcpp {
 
 	UvHandleOwner::~UvHandleOwner() {
 		assert(!_ohandle);
-		close();
+		closeHandle();
 	}
 
-	void UvHandleOwner::closeAsync(UvHandle::CloseLis lis) {
+	void UvHandleOwner::closeHandleAsync() {
 		if(_ohandle) {
-			auto rawh = GET_RAWH(uv_handle_t, _ohandle);
-			if(!uv_is_closing(rawh)) {
-				_ohandle->setOnCloseListener(lis);
+			auto rawh = GET_RAWH(uv_handle_t);
+			if (!uv_is_closing(rawh)) {
 				_ohandle->close();
+				if(!_ohandle->_clis) {
+					_ohandle = nullptr;
+				}
 			}
 		}
+
 	}
 
-	void UvHandleOwner::close() {
+	void UvHandleOwner::closeHandle() {
+		closeHandleAsync();
 		if(_ohandle) {
-			closeAsync(nullptr);
-			_ohandle->setOnCloseListener(nullptr);
+			_ohandle->_clis = nullptr; // closeHandle callback이 호출 되지 않도록 한다.
 			_ohandle = nullptr;
 		}
+
 	}
 
 	uv_handle_t *UvHandleOwner::createHandle(const char*
@@ -59,5 +63,9 @@ namespace uvcpp {
 		} else {
 			return nullptr;
 		}
+	}
+
+	void UvHandleOwner::setOnCloseListener(UvHandle::CloseLis lis) {
+		_ohandle->_clis = lis;
 	}
 }

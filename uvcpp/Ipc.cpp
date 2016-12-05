@@ -47,12 +47,12 @@ namespace uvcpp {
 	}
 
 	void Ipc::close() {
-		ald("ipc close");
+		ald("ipc closeHandle");
 		_msgQue.lock();
 		_isClosing = true;
-		_async.close();
+		_async.asyncStop();
 		_msgQue.unlock();
-		alv("ipc close ok");
+		alv("ipc closeHandle ok");
 	}
 
 	int Ipc::postMsg(uint32_t msgid, int p1, int p2, upUvObj userobj) {

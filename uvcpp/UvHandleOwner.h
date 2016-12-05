@@ -15,16 +15,19 @@ namespace uvcpp {
 
 		virtual ~UvHandleOwner();
 
-		void closeAsync(UvHandle::CloseLis lis);
-		void close();
+		void closeHandleAsync();
+		void closeHandle();
+
 		template<typename T> static T* getHandleOwner(uv_handle_t* rawh) {
 			ASSERT_RAW_UVHANDLE(rawh);
 			return GET_UVHANDLE_OWNER(T, rawh);
 		}
 		uv_loop_t* getLoop();
 		uv_handle_t* getRawHandle();
+		void setOnCloseListener(UvHandle::CloseLis lis);
 	protected:
 		uv_handle_t* createHandle(const char* type);
+
 		UvHandle* _ohandle;
 		UvContext* _ctx;
 	};

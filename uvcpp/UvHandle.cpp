@@ -22,7 +22,7 @@ namespace uvcpp {
 	void UvHandle::close() {
 		if (_rawHandle.handle.data) {
 //				ali("handle active=%d", uv_is_active(_rawhandle));
-			ald("   close handle, name=%s, cb=%x", _handleName, (long)UvContext::handle_close_cb);
+			ald("   closeHandle handle, name=%s, cb=%x", _handleName, (long)UvContext::handle_close_cb);
 			uv_close((uv_handle_t *) &_rawHandle, UvContext::handle_close_cb);
 //			ali("   uv closing=%d", uv_is_closing(&_rawHandle.handle));
 		}

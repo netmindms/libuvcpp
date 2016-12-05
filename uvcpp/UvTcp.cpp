@@ -71,7 +71,7 @@ namespace uvcpp {
 		if (_ohandle) {
 			ald("closing...");
 			_rawh = nullptr;
-			UvHandleOwner::close();
+			closeHandleAsync();
 		}
 	}
 
@@ -88,7 +88,7 @@ namespace uvcpp {
 		} else {
 			ale("### accept error");
 			assert(0);
-			newtcp->close();
+			newtcp->closeHandle();
 			return -1;
 		}
 	}

@@ -64,7 +64,7 @@ namespace uvcpp {
 	void UvFdTimer::kill() {
 		if (_rawh) {
 			uv_poll_stop(_rawh);
-			close();
+			closeHandleAsync();
 			::close(_fd);
 			_fd = -1;
 			_rawh = nullptr;

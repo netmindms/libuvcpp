@@ -40,10 +40,10 @@ namespace uvcpp {
 		pprepare->_lis();
 	}
 
-	void UvPrepare::close() {
+	void UvPrepare::prepareStop() {
 		if(_ohandle) {
 			uv_prepare_stop((uv_prepare_t*)_ohandle->getRawHandle());
-			UvHandleOwner::close();
+			closeHandleAsync();
 		}
 	}
 }

@@ -17,6 +17,7 @@
 #include "../uvcpp/UvEvent.h"
 #include "../uvcpp/UvFdTimer.h"
 #include "../uvcpp/UvIdle.h"
+#include "../uvcpp/UvPoll.h"
 
 using namespace std;
 using namespace uvcpp;
@@ -170,7 +171,7 @@ TEST(basic, check) {
 	int ret;
 	ret = chk.open([&](){
 		ald("check call back");
-		chk.close();
+		chk.checkStop();
 	});
 	assert(!ret);
 	timer.timerStart(1000, 1000, [&]() {
@@ -189,7 +190,7 @@ TEST(basic, prepare) {
 	UvPrepare prepare;
 	prepare.open([&]() {
 		ald("prepare callback");
-		prepare.close();
+		prepare.prepareStop();
 	});
 	ctx.run();
 	uv_loop_close(ctx.getLoop());
@@ -203,7 +204,7 @@ TEST(basic, async) {
 	async.open([&]() {
 		ald("async callback");
 		cnt++;
-		async.close();
+		async.asyncStop();
 	});
 	auto ret = async.send();
 	assert(!ret);
@@ -220,9 +221,85 @@ TEST(basic, idle) {
 	idle.open([&]() {
 		ald("idle callback");
 		cnt++;
-		idle.close();
+		idle.closeHandle();
 	});
 	ctx.run();
 	uv_loop_close(ctx.getLoop());
 	ASSERT_EQ(1, cnt);
 }
+
+
+TEST(basic, closecb) {
+	UvContext ctx;
+	ctx.openWithDefaultLoop();
+	int cnt=0;
+	UvTimer timer;
+	timer.timerStart(100, 100, [&]() {
+		cnt++;
+		timer.setOnCloseListener([&]() {
+			ald("timer closeHandle callback");
+			timer.closeHandle();
+		});
+		timer.timerStop();
+	});
+	ctx.run();
+	uv_loop_close(ctx.getLoop());
+	ASSERT_EQ(1, cnt);
+}
+
+
+#ifdef __linux
+TEST(basic, poll) {
+
+	class PollFdTimer: public UvPoll {
+	public:
+		PollFdTimer() {
+			_fireCnt = 0;
+		}
+
+		virtual ~PollFdTimer() {
+
+		}
+		int set() {
+			int fd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
+			if(fd>0) {
+				open(fd);
+				pollStart(UV_READABLE, [this](int events) {
+					if(events|UV_READABLE) {
+						uint64_t cnt;
+						auto rcnt = ::read(_fd, &cnt, sizeof(cnt));
+						if(rcnt>0) {
+							ald("timer cnt=%llu", rcnt);
+							_fireCnt++;
+							kill();
+						}
+					}
+				});
+				struct itimerspec mTimerSpec;
+				mTimerSpec.it_interval.tv_sec = 1;
+				mTimerSpec.it_interval.tv_nsec = 0;
+				mTimerSpec.it_value.tv_sec = 1;
+				mTimerSpec.it_value.tv_nsec = 0;
+				timerfd_settime(_fd, 0, &mTimerSpec, NULL);
+			} else {
+				return -1;
+			}
+		};
+		void kill() {
+			pollStop();
+		};
+
+		int _fireCnt;
+	};
+
+	UvContext ctx;
+	ctx.openWithDefaultLoop();
+	PollFdTimer fdTimer;
+	fdTimer.set();
+	ctx.run();
+	uv_loop_close(ctx.getLoop());
+	ASSERT_EQ(1, fdTimer._fireCnt);
+
+
+}
+#endif

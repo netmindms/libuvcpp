@@ -44,9 +44,9 @@ namespace uvcpp {
 		}
 	}
 
-	void UvCheck::close() {
+	void UvCheck::checkStop() {
 		uv_check_stop(GETRAWHANDLE());
-		UvHandleOwner::close();
+		closeHandleAsync();
 	}
 
 }

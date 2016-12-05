@@ -17,7 +17,7 @@ namespace uvcpp {
 
 		virtual ~UvCheck();
 		int open(Lis lis);
-		void close();
+		void checkStop();
 	private:
 		Lis _lis;
 		static void check_cb(uv_check_t* handle);
