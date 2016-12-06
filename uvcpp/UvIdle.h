@@ -16,7 +16,9 @@ namespace uvcpp {
 		virtual ~UvIdle();
 
 		int open(Lis lis);
-		void idleStop();
+
+		void close(UvHandle::CloseLis lis) override;
+
 	private:
 		Lis _lis;
 		static void idle_cb(uv_idle_t* rawh);

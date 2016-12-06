@@ -27,7 +27,9 @@ namespace uvcpp {
 
 		void reset();
 
-		void timerStop();
+		void timerStop(UvHandle::CloseLis lis=nullptr);
+
+		void close(UvHandle::CloseLis lis) override;
 
 	private:
 		Lis _lis;

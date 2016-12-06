@@ -16,7 +16,7 @@ namespace uvcpp {
 
 		virtual ~UvPrepare();
 		int open(Lis lis);
-		void prepareStop();
+		void close(UvHandle::CloseLis lis) override;
 
 	private:
 		static void prepare_cb(uv_prepare_t* rawh);

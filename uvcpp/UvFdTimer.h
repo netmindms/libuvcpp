@@ -28,10 +28,12 @@ namespace uvcpp {
 		void setUsec(uint64_t expire, uint64_t period, Lis lis);
 		void set(uint64_t expire, uint64_t period, Lis lis);
 		void reset();
-		void kill();
+		void kill(UvHandle::CloseLis lis=nullptr);
 		void pause();
 		void resume();
 		uint64_t getFireCount();
+
+		void close(UvHandle::CloseLis lis) override;
 
 	private:
 		Lis _lis;

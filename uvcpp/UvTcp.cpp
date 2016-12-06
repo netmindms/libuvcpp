@@ -67,14 +67,6 @@ namespace uvcpp {
 
 	}
 
-	void UvTcp::close() {
-		if (_ohandle) {
-			ald("closing...");
-			_rawh = nullptr;
-			closeHandleAsync();
-		}
-	}
-
 	size_t UvTcp::writeQueCnt() {
 		return _writeReqQue.getQueCnt();
 	}
@@ -88,7 +80,7 @@ namespace uvcpp {
 		} else {
 			ale("### accept error");
 			assert(0);
-			newtcp->closeHandle();
+			newtcp->closeNow();
 			return -1;
 		}
 	}
@@ -181,6 +173,11 @@ namespace uvcpp {
 
 	int UvTcp::write(const string &msg) {
 		return write(msg.data(), msg.size());
+	}
+
+	void UvTcp::close(UvHandle::CloseLis lis) {
+		UvHandleOwner::close(lis);
+		_rawh = nullptr;
 	}
 
 

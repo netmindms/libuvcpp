@@ -94,7 +94,7 @@ TEST(basic, tcp) {
 			child.setOnCnnLis([&](int event) {
 				if(event == UvEvent::DISCONNECTED) {
 					ald("child cnn disconnected");
-					child.close();
+					child.close(nullptr);
 				}
 			});
 		}
@@ -108,13 +108,13 @@ TEST(basic, tcp) {
 			client.write(teststr.data());
 		} else if(event == UvEvent::DISCONNECTED) {
 			ald("disconnected");
-			client.close();
+			client.close(nullptr);
 		}
 	});
 	client.setOnReadLis([&](upUvReadBuffer upbuf) {
 		recvstr.assign(upbuf->buffer, upbuf->size);
-		client.close();
-		server.close();
+		client.close(nullptr);
+		server.close(nullptr);
 	});
 	client.connect("127.0.0.1", 9090);
 	ctx.run();
@@ -138,8 +138,8 @@ TEST(basic, udp) {
 			string ts(upbuf->buffer, upbuf->size);
 			ald("recv str: %s", ts);
 			recvstr = ts;
-			senderUdp.close();
-			recvUdp.close();
+			senderUdp.closeNow();
+			recvUdp.closeNow();
 		});
 		ald("recvUdp open ret=%d", ret);
 		uv_ip4_addr("127.0.0.1", 17000, &inaddr);
@@ -171,7 +171,7 @@ TEST(basic, check) {
 	int ret;
 	ret = chk.open([&](){
 		ald("check call back");
-		chk.checkStop();
+		chk.close(nullptr);
 	});
 	assert(!ret);
 	timer.timerStart(1000, 1000, [&]() {
@@ -190,7 +190,7 @@ TEST(basic, prepare) {
 	UvPrepare prepare;
 	prepare.open([&]() {
 		ald("prepare callback");
-		prepare.prepareStop();
+		prepare.close(nullptr);
 	});
 	ctx.run();
 	uv_loop_close(ctx.getLoop());
@@ -204,7 +204,7 @@ TEST(basic, async) {
 	async.open([&]() {
 		ald("async callback");
 		cnt++;
-		async.asyncStop();
+		async.close(nullptr);
 	});
 	auto ret = async.send();
 	assert(!ret);
@@ -221,7 +221,7 @@ TEST(basic, idle) {
 	idle.open([&]() {
 		ald("idle callback");
 		cnt++;
-		idle.closeHandle();
+		idle.closeNow();
 	});
 	ctx.run();
 	uv_loop_close(ctx.getLoop());
@@ -238,7 +238,7 @@ TEST(basic, closecb) {
 		cnt++;
 		timer.setOnCloseListener([&]() {
 			ald("timer closeHandle callback");
-			timer.closeHandle();
+			timer.closeNow();
 		});
 		timer.timerStop();
 	});
@@ -263,8 +263,7 @@ TEST(basic, poll) {
 		int set() {
 			int fd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
 			if(fd>0) {
-				open(fd);
-				pollStart(UV_READABLE, [this](int events) {
+				open(fd, UV_READABLE, [this](int events) {
 					if(events|UV_READABLE) {
 						uint64_t cnt;
 						auto rcnt = ::read(_fd, &cnt, sizeof(cnt));
@@ -286,7 +285,7 @@ TEST(basic, poll) {
 			}
 		};
 		void kill() {
-			pollStop();
+			close(nullptr);
 		};
 
 		int _fireCnt;

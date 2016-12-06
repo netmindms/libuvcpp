@@ -21,7 +21,6 @@ namespace uvcpp {
 
 		int send();
 
-		void asyncStop();
 	private:
 		Lis _lis;
 		static void async_cb(uv_async_t* handle);

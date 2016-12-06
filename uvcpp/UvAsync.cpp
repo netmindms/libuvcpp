@@ -18,9 +18,8 @@ namespace uvcpp {
 	int UvAsync::open(Lis lis) {
 		auto ctx = UvContext::getContext();
 		_lis = lis;
-//		_ohandle = ctx->createHandle(this);
-		createHandle("async");
-		uv_async_init(ctx->getLoop(), (uv_async_t*)_ohandle->getRawHandle(), async_cb);
+		auto rawh = (uv_async_t*)createHandle("async");
+		uv_async_init(ctx->getLoop(), rawh, async_cb);
 		return 0;
 	}
 
@@ -30,18 +29,8 @@ namespace uvcpp {
 		pasync->_lis();
 	}
 
-//	void UvAsync::closeHandle() {
-//		if(_ohandle) {
-//			_ohandle->closeHandle(); _ohandle = nullptr;
-//		}
-//	}
-
 	int UvAsync::send() {
 		return uv_async_send((uv_async_t*)_ohandle->getRawHandle());
-	}
-
-	void UvAsync::asyncStop() {
-		closeHandleAsync();
 	}
 
 

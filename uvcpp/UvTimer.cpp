@@ -17,7 +17,7 @@ namespace uvcpp {
 	}
 
 	UvTimer::~UvTimer() {
-		closeHandle();
+		closeNow();
 	}
 
 	void UvTimer::timerStart(uint64_t period, uint64_t first_expire, Lis lis) {
@@ -38,17 +38,22 @@ namespace uvcpp {
 		}
 	}
 
-	void UvTimer::timerStop() {
-		if (_ohandle) {
-			uv_timer_stop((uv_timer_t*)_ohandle->getRawHandle());
-			closeHandleAsync();
-		}
+	void UvTimer::timerStop(UvHandle::CloseLis lis) {
+		close(lis);
 	}
 
 	void UvTimer::timer_cb(uv_timer_t *rawh) {
 		ASSERT_RAW_UVHANDLE(rawh);
 		auto ptimer = GET_UVHANDLE_OWNER(UvTimer, rawh);
 		ptimer->_lis();
+	}
+
+	void UvTimer::close(UvHandle::CloseLis lis) {
+		auto rawh = (uv_timer_t*)getRawHandle();
+		if (rawh) {
+			uv_timer_stop(rawh);
+		}
+		UvHandleOwner::close(lis);
 	}
 
 }

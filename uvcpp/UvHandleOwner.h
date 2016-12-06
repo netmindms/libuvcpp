@@ -12,12 +12,9 @@ namespace uvcpp {
 	class UvHandleOwner {
 	public:
 		UvHandleOwner();
-
 		virtual ~UvHandleOwner();
-
-		void closeHandleAsync();
-		void closeHandle();
-
+		virtual void close(UvHandle::CloseLis lis);
+		void closeNow();
 		template<typename T> static T* getHandleOwner(uv_handle_t* rawh) {
 			ASSERT_RAW_UVHANDLE(rawh);
 			return GET_UVHANDLE_OWNER(T, rawh);

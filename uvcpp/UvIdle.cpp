@@ -27,11 +27,12 @@ namespace uvcpp {
 		pidle->_lis();
 	}
 
-	void UvIdle::idleStop() {
-		if(_ohandle) {
-			uv_idle_stop(GET_RAWH(uv_idle_t));
-			closeHandleAsync();
+	void UvIdle::close(UvHandle::CloseLis lis) {
+		auto rawh = (uv_idle_t*)getRawHandle();
+		if(rawh) {
+			uv_idle_stop(rawh);
 		}
+		UvHandleOwner::close(lis);
 	}
 
 }

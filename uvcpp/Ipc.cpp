@@ -50,7 +50,7 @@ namespace uvcpp {
 		ald("ipc closeHandle");
 		_msgQue.lock();
 		_isClosing = true;
-		_async.asyncStop();
+		_async.close(nullptr);
 		_msgQue.unlock();
 		alv("ipc closeHandle ok");
 	}

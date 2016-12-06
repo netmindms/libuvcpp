@@ -18,7 +18,6 @@ namespace uvcpp {
 	public:
 		typedef std::function<void(const struct sockaddr *, std::unique_ptr<UvReadBuffer>)> Lis;
 		UvUdp();
-
 		virtual ~UvUdp();
 		int open(Lis lis);
 		int bind(const struct sockaddr *addr, unsigned int flags=UV_UDP_REUSEADDR);
@@ -28,13 +27,15 @@ namespace uvcpp {
 		int send(const std::string& msg);
 		int send(const std::string& msg, const sockaddr* addr);
 		void setRemoteIpV4Addr(const char* ipaddr, uint16_t port);
-		void close();
+		void close(UvHandle::CloseLis lis) override;
+
 		int readStart();
 	private:
 		sockaddr* _remoteAddr;
 		Lis _readLis;
 		ObjQue<UvUdpWriteInfo> _writeReqQue;
 		ObjQue<UvReadBuffer> _readBufQue;
+		uv_udp_t* _rawh;
 
 		static void alloc_cb(uv_handle_t *handle, size_t suggesited_size, uv_buf_t *puvbuf);
 		static void recv_cb(uv_udp_t *handle, ssize_t nread, const uv_buf_t *buf, const struct sockaddr *addr, unsigned flags);

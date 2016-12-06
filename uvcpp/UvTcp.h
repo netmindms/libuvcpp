@@ -39,14 +39,13 @@ namespace uvcpp {
 
 		int bind(const struct sockaddr *addr, unsigned int flags);
 
-		void close();
+		void close(UvHandle::CloseLis lis) override;
 
 		int listen(uint16_t port, const char *ipaddr = nullptr, int backlogs = 10);
 		int listen(int backlogs);
 
 		size_t writeQueCnt();
 
-		//std::pair<ssize_t, std::unique_ptr<char[]>> fetchReadBuf();
 		void setOnCnnLis(CnnLis lis);
 
 		void setOnReadLis(ReadLis lis);

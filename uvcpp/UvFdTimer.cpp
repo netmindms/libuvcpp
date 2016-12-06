@@ -61,14 +61,8 @@ namespace uvcpp {
 		resume();
 	}
 
-	void UvFdTimer::kill() {
-		if (_rawh) {
-			uv_poll_stop(_rawh);
-			closeHandleAsync();
-			::close(_fd);
-			_fd = -1;
-			_rawh = nullptr;
-		}
+	void UvFdTimer::kill(UvHandle::CloseLis lis) {
+		close(lis);
 	}
 
 	void UvFdTimer::pause(void) {
@@ -95,6 +89,16 @@ namespace uvcpp {
 
 	uint64_t UvFdTimer::getFireCount() {
 		return _fireCount;
+	}
+
+	void UvFdTimer::close(UvHandle::CloseLis lis) {
+		if (_rawh) {
+			uv_poll_stop(_rawh);
+			::close(_fd);
+			_fd = -1;
+			_rawh = nullptr;
+		}
+		UvHandleOwner::close(lis);
 	}
 }
 #endif // __linux
