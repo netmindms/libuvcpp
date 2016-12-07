@@ -18,9 +18,22 @@
 #include "../uvcpp/UvFdTimer.h"
 #include "../uvcpp/UvIdle.h"
 #include "../uvcpp/UvPoll.h"
+#include "../uvcpp/UvTty.h"
 
 using namespace std;
 using namespace uvcpp;
+
+static void test_close_cb(uv_handle_t* handle) {
+	ald("test close callback");
+}
+TEST(testuv, handle) {
+	uv_idle_t handle;
+	uv_loop_t* loop = uv_default_loop();
+	uv_idle_init(loop, &handle);
+	uv_close((uv_handle_t*)&handle, test_close_cb);
+	uv_run(uv_default_loop(), UV_RUN_DEFAULT);
+	uv_loop_close(loop);
+}
 
 TEST(basic, timer) {
 	int expire_cnt=0;
@@ -228,6 +241,28 @@ TEST(basic, idle) {
 	ASSERT_EQ(1, cnt);
 }
 
+#if 0
+TEST(basic, tty) {
+	UvContext ctx;
+	UvTty intty;
+	UvTty outty;
+	std::string inputstr;
+	std::string expectedStr="test";
+
+	ctx.openWithDefaultLoop();
+	intty.open(1, 0);
+	intty.readStart([&](upUvReadBuffer upbuf) {
+		inputstr.assign(upbuf->buffer, expectedStr.size());
+		intty.closeNow();
+		outty.closeNow();
+	});
+	outty.open(0, 1);
+	outty.write(std::string("Input '" + expectedStr + "' : "));
+	ctx.run();
+	uv_loop_close(ctx.getLoop());
+	ASSERT_STREQ(expectedStr.c_str(), inputstr.c_str());
+}
+#endif
 
 TEST(basic, closecb) {
 	UvContext ctx;

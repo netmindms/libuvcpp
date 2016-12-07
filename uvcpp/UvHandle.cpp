@@ -10,6 +10,7 @@ namespace uvcpp {
 		_ctx = nullptr;
 		_prev = nullptr;
 		_next = nullptr;
+//		memset(&_rawHandle, 0, sizeof(_rawHandle)); // TODO: test
 		_rawHandle.handle.data = nullptr;
 		_status = 0;
 		_userData = nullptr;

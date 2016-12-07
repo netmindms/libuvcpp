@@ -9,6 +9,7 @@
 #include "tlog.h"
 #include "../uvcpp/MsgTask.h"
 #include "../uvcpp/UvTimer.h"
+#include "../uvcpp/UvPipe.h"
 
 using namespace std;
 using namespace uvcpp;
@@ -111,3 +112,25 @@ TEST(basic, msgtask) {
 	ASSERT_EQ(2, task._cnt);
 	ald("test end");
 }
+
+#ifdef __linux
+TEST(basic, pipe) {
+	UvContext ctx;
+	ctx.openWithDefaultLoop();
+	UvPipe pipec, pipes;
+	std::string recvstr;
+	int fds[2];
+	pipe(fds);
+	pipec.open(fds[0]);
+	pipes.open(fds[1]);
+	pipes.readStart([&](upUvReadBuffer upbuf) {
+		recvstr.assign(upbuf->buffer, upbuf->size);
+		pipec.closeNow();
+		pipes.closeNow();
+	});
+	pipec.write("1234");
+	ctx.run();
+	uv_loop_close(ctx.getLoop());
+	ASSERT_STREQ("1234", recvstr.c_str());
+}
+#endif
