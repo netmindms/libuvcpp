@@ -5,27 +5,29 @@
 #ifndef UVCPPPRJ_UVPOLL_H
 #define UVCPPPRJ_UVPOLL_H
 
+#include <memory>
 #include "UvHandleOwner.h"
 
 namespace uvcpp {
-	class UvPoll : public UvHandleOwner {
+	class UvPoll : public UvHandle {
 	public:
 		typedef std::function<void(int)> Lis;
-		UvPoll();
 
-		virtual ~UvPoll();
+		static UvPoll* init(int fd, std::unique_ptr<UvPoll> pollobj=nullptr);
 
-		int open(int fd, int events, Lis lis);
-//		int pollStart(int events, Lis lis);
-//		int pollStop(UvHandle::CloseLis lis=nullptr);
-
-		void close(UvHandle::CloseLis lis) override;
+		int pollStart(int events, Lis lis);
+		int pollStop();
+		int getFd();
 
 	private:
-		static void poll_cb(uv_poll_t* handle, int status, int events);
-		Lis _lis;
-	protected:
 		int _fd;
+		Lis _lis;
+
+		static void poll_cb(uv_poll_t* handle, int status, int events);
+
+	public:
+		UvPoll();
+		virtual ~UvPoll();
 	};
 }
 

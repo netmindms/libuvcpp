@@ -7,14 +7,13 @@
 
 #include "UvTcp.h"
 #include "uvcpplog.h"
-#include "UvEvent.h"
+#include "UvStreamEvent.h"
 
 using namespace std;
 
 namespace uvcpp {
 	UvTcp::UvTcp() {
 		_cnnHandle.data = nullptr;
-		_readSize = 0;
 		_rawh = nullptr;
 	}
 
@@ -22,30 +21,14 @@ namespace uvcpp {
 
 	}
 
-	int UvTcp::open(CnnLis clis, ReadLis rlis) {
-		if(!_rawh) {
-			_rawh = (uv_tcp_t *) createHandle("tcp");
-			if (_rawh) {
-				if(clis) {
-					_cnnLis = clis;
-				}
-				if(rlis) {
-					_readLis = rlis;
-				}
-				_writeReqQue.open(10);
-				return uv_tcp_init(_ctx->getLoop(), _rawh);
-			}
-		} else {
-			ale("handle already opened...");
-			return -1;
-		}
-	}
 
-	int UvTcp::connect(const char *ipaddr, uint16_t port) {
+
+	int UvTcp::connect(const char *ipaddr, uint16_t port, CnnLis lis) {
 		sockaddr_in req_addr;
 		uv_ip4_addr(ipaddr, port, &req_addr);
 		_cnnHandle.data = (void *) this;
-		return uv_tcp_connect(&_cnnHandle, _rawh, (struct sockaddr *) &req_addr, connect_cb);
+		setOnCnnLis(lis);
+		return uv_tcp_connect(&_cnnHandle, _rawh, (struct sockaddr *) &req_addr, UvStream::connect_cb);
 	}
 
 //	int UvTcp::connect(const char *ipaddr, uint16_t port) {
@@ -53,6 +36,8 @@ namespace uvcpp {
 //		return _ohandle->connect(ipaddr, port);
 //	}
 
+
+#if 0
 	int UvTcp::write(const char *buf, size_t len) {
 		auto upwr = _writeReqQue.allocObj();
 		upwr->fillBuf(buf, len);
@@ -90,13 +75,7 @@ namespace uvcpp {
 		_readLis = lis;
 	}
 
-	void UvTcp::setOnCnnLis(CnnLis lis) {
-		_cnnLis = lis;
-	}
 
-	int UvTcp::bind(const struct sockaddr *addr, unsigned int flags) {
-		return uv_tcp_bind(_rawh, addr, flags);
-	}
 
 	int UvTcp::listen(uint16_t port, const char *ipaddr, int backlogs) {
 		sockaddr_in inaddr;
@@ -110,28 +89,12 @@ namespace uvcpp {
 		uv_listen((uv_stream_t *) _rawh, backlogs, connection_cb);
 		return 0;
 	}
-
-
-	void UvTcp::connect_cb(uv_connect_t *puvcnn, int status) {
-		ali("on connect, status=%d", status);
-		UvTcp *ptcp = (UvTcp *) puvcnn->data;
-		if (status == 0) {
-			uv_read_start((uv_stream_t *)ptcp->_rawh, alloc_cb, read_cb);
-			if (ptcp->_cnnLis) {
-				ptcp->_cnnLis(UvEvent::CONNECTED);
-			}
-		} else {
-			if (ptcp->_cnnLis) {
-				ptcp->_cnnLis(UvEvent::DISCONNECTED);
-			}
-		}
-	}
-
 	void UvTcp::connection_cb(uv_stream_t *server, int status) {
 		auto ptcph = UvHandleOwner::getHandleOwner<UvTcp>((uv_handle_t*)server);
 		assert(ptcph->_cnnLis != nullptr);
 		ptcph->_cnnLis(UvEvent::INCOMING);
 	}
+
 
 
 	void UvTcp::alloc_cb(uv_handle_t *handle, size_t suggesited_size, uv_buf_t *puvbuf) {
@@ -175,10 +138,52 @@ namespace uvcpp {
 		return write(msg.data(), msg.size());
 	}
 
-	void UvTcp::close(UvHandle::CloseLis lis) {
-		UvHandleOwner::close(lis);
-		_rawh = nullptr;
+#endif
+
+
+
+//	void UvTcp::connect_cb(uv_connect_t *puvcnn, int status) {
+//		ali("on connect, status=%d", status);
+//		UvTcp *ptcp = (UvTcp *) puvcnn->data;
+//		if (status == 0) {
+////			uv_read_start((uv_stream_t *)ptcp->_rawh, alloc_cb, read_cb);
+//			if (ptcp->_cnnLis) {
+//				ptcp->_cnnLis(UvEvent::CONNECTED);
+//			}
+//		} else {
+//			if (ptcp->_cnnLis) {
+//				ptcp->_cnnLis(UvEvent::DISCONNECTED);
+//			}
+//		}
+//	}
+
+
+
+
+	UvTcp *UvTcp::init(unique_ptr<UvTcp> obj) {
+		UvTcp* tcp;
+		if(!obj) {
+			tcp = new UvTcp;
+		} else {
+			tcp = obj.release();
+		}
+		tcp->setObjName();
+		tcp->_rawh = (uv_tcp_t*)tcp->getRawHandle();
+		uv_tcp_init(tcp->getLoop(), tcp->_rawh);
+		tcp->registerContext();
+		return tcp;
 	}
 
+
+	int UvTcp::bind(const struct sockaddr *addr, unsigned int flags) {
+		return uv_tcp_bind(_rawh, addr, flags);
+	}
+
+
+	int UvTcp::bind(uint16_t port, const char *ipaddr, unsigned int flags) {
+		sockaddr_in inaddr;
+		uv_ip4_addr(ipaddr, port, &inaddr);
+		return bind((sockaddr*)&inaddr, flags);
+	}
 
 }

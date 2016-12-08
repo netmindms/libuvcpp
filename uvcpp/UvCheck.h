@@ -10,18 +10,21 @@
 #include "UvHandleOwner.h"
 
 namespace uvcpp {
-	class UvCheck : public UvHandleOwner  {
+	class UvCheck : public UvHandle  {
 	public:
 		typedef std::function<void()> Lis;
-		UvCheck();
 
-		virtual ~UvCheck();
-		int open(Lis lis);
+		static UvCheck* init();
 
-		void close(UvHandle::CloseLis lis) override;
+		int start(Lis lis);
+
+		void stop();
 
 	private:
 		Lis _lis;
+
+		UvCheck();
+		virtual ~UvCheck();
 		static void check_cb(uv_check_t* handle);
 	};
 }

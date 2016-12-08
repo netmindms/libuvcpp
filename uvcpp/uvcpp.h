@@ -6,7 +6,7 @@
 #define UVCPPPRJ_UVCPP_H
 
 #include "UvContext.h"
-#include "UvEvent.h"
+#include "UvStreamEvent.h"
 #include "UvAsync.h"
 #include "UvTcp.h"
 #include "UvUdp.h"

@@ -14,8 +14,11 @@ namespace uvcpp {
 
 	}
 
-	int UvTty::open(uv_file fd, int readable) {
-		UvStream::open("tty");
-		return uv_tty_init(getLoop(), (uv_tty_t*)_rawh, fd, readable);
+	UvTty *UvTty::init(uv_file fd, int readable) {
+		UvTty* tty = new UvTty();
+		uv_tty_init(UvContext::getLoop(), (uv_tty_t*)tty->getRawHandle(), fd, readable);
+		tty->registerContext();
+		return tty;
 	}
+
 }

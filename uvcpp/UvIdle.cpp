@@ -15,24 +15,30 @@ namespace uvcpp {
 
 	}
 
-	int UvIdle::open(UvIdle::Lis lis) {
-		_lis = lis;
-		auto rawh = (uv_idle_t*)createHandle("idle");
-		uv_idle_init(getLoop(), rawh);
-		return uv_idle_start(rawh, idle_cb);
-	}
 
 	void UvIdle::idle_cb(uv_idle_t *rawh) {
-		auto pidle = UvHandleOwner::getHandleOwner<UvIdle>((uv_handle_t*)rawh);
-		pidle->_lis();
+		auto idle = (UvIdle*)rawh->data;
+		if(idle->_lis) {
+			idle->_lis();
+		}
 	}
 
-	void UvIdle::close(UvHandle::CloseLis lis) {
-		auto rawh = (uv_idle_t*)getRawHandle();
-		if(rawh) {
-			uv_idle_stop(rawh);
-		}
-		UvHandleOwner::close(lis);
+	UvIdle *UvIdle::init() {
+		auto idle = new UvIdle();
+		uv_idle_init(UvContext::getLoop(), (uv_idle_t*)idle->getRawHandle());
+		idle->registerContext();
+		return idle;
 	}
+
+	int UvIdle::start(UvIdle::Lis lis) {
+		_lis = lis;
+		return uv_idle_start((uv_idle_t*)getRawHandle(), idle_cb);
+	}
+
+	void UvIdle::stop() {
+		_lis = nullptr;
+		uv_idle_stop((uv_idle_t*)getRawHandle());
+	}
+
 
 }

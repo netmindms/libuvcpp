@@ -15,24 +15,26 @@
 #include "UvHandleOwner.h"
 
 namespace uvcpp {
-	class UvTimer : public UvHandleOwner {
+	class UvTimer : public UvHandle {
 	public:
 		typedef std::function<void()> Lis;
 
-		UvTimer();
 
-		virtual ~UvTimer();
+		static UvTimer* init();
 
 		void timerStart(uint64_t period, uint64_t first_expire, Lis lis);
 
 		void reset();
 
-		void timerStop(UvHandle::CloseLis lis=nullptr);
+		void timerStop();
 
-		void close(UvHandle::CloseLis lis) override;
 
 	private:
+		uv_timer_t* _timerHandle;
 		Lis _lis;
+
+		UvTimer();
+		virtual ~UvTimer();
 		static void timer_cb(uv_timer_t* handle);
 	};
 }

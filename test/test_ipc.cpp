@@ -85,13 +85,14 @@ TEST(basic, msgtask) {
 
 	class MyTask: public MsgTask {
 	public:
-		UvTimer _timer;
+		UvTimer* _timer;
 		int _cnt;
 		void OnMsgProc(IpcMsg& msg) {
 			if(msg.msgId == MsgTask::TM_INIT) {
 				ald("task init");
 				_cnt = 0;
-				_timer.timerStart(100, 100, [this]() {
+				_timer = UvTimer::init();
+				_timer->timerStart(100, 100, [this]() {
 					ald("task timer expired");
 					_cnt++;
 					if (_cnt == 5) {
@@ -100,7 +101,7 @@ TEST(basic, msgtask) {
 				});
 			} else if(msg.msgId == MsgTask::TM_CLOSE) {
 				ald("task closing");
-				_timer.timerStop();
+				_timer->timerStop();
 			}
 		}
 	};
@@ -113,6 +114,8 @@ TEST(basic, msgtask) {
 	ald("test end");
 }
 
+
+#if 0
 #ifdef __linux
 TEST(basic, pipe) {
 	UvContext ctx;
@@ -125,12 +128,13 @@ TEST(basic, pipe) {
 	pipes.open(fds[1]);
 	pipes.readStart([&](upUvReadBuffer upbuf) {
 		recvstr.assign(upbuf->buffer, upbuf->size);
-		pipec.closeNow();
-		pipes.closeNow();
+		pipec.close();
+		pipes.close();
 	});
 	pipec.write("1234");
 	ctx.run();
 	uv_loop_close(ctx.getLoop());
 	ASSERT_STREQ("1234", recvstr.c_str());
 }
+#endif
 #endif

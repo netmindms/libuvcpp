@@ -8,19 +8,22 @@
 #include "UvHandleOwner.h"
 
 namespace uvcpp {
-	class UvIdle : public UvHandleOwner {
+	class UvIdle : public UvHandle {
 	public:
 		typedef std::function<void()> Lis;
-		UvIdle();
 
-		virtual ~UvIdle();
+		static UvIdle* init();
 
-		int open(Lis lis);
+		int start(Lis lis);
 
-		void close(UvHandle::CloseLis lis) override;
+		void stop();
 
 	private:
 		Lis _lis;
+
+		UvIdle();
+
+		virtual ~UvIdle();
 		static void idle_cb(uv_idle_t* rawh);
 
 	};

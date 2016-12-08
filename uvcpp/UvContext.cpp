@@ -71,7 +71,7 @@ namespace uvcpp {
 
 
 	uv_loop_t *UvContext::getLoop() {
-		return _loop;
+		return _gEdContext->_loop;
 	}
 
 
@@ -89,8 +89,9 @@ namespace uvcpp {
 			handle->_next = nullptr;
 			handle->_prev = nullptr;
 		}
-		handle->init(user_data);
-//		ald("init handle, cnt=%d", _pendingHandleCnt);
+		++_pendingHandleCnt;
+//		handle->init(user_data);
+		ald("init handle, cnt=%d", _pendingHandleCnt);
 	}
 
 	int UvContext::run() {

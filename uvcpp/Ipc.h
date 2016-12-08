@@ -26,7 +26,7 @@ namespace uvcpp {
 		int sendMsg(uint32_t msgid, int p1, int p2, upUvObj userobj);
 	private:
 		Lis _lis;
-		UvAsync _async;
+		UvAsync* _async;
 		ObjQue<IpcMsg> _msgQue;
 		bool _isClosing;
 	};

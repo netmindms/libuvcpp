@@ -10,19 +10,17 @@
 
 namespace uvcpp {
 
-	class UvAsync : public UvHandleOwner {
+	class UvAsync : public UvHandle {
 	public:
 		typedef std::function<void()> Lis;
-		UvAsync();
-
-		virtual ~UvAsync();
-
-		int open(Lis lis);
-
+		static UvAsync* init(Lis lis);
 		int send();
 
 	private:
 		Lis _lis;
+
+		UvAsync();
+		virtual ~UvAsync();
 		static void async_cb(uv_async_t* handle);
 	};
 

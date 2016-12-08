@@ -19,7 +19,7 @@ namespace uvcpp {
 		ald("ipc open, ...");
 		_lis = lis;
 		_msgQue.open(10);
-		_async.open([this]() {
+		_async = UvAsync::init([this]() {
 			upIpcMsg upmsg;
 			for(;!_isClosing;) {
 				_msgQue.lock();
@@ -50,7 +50,7 @@ namespace uvcpp {
 		ald("ipc closeHandle");
 		_msgQue.lock();
 		_isClosing = true;
-		_async.close(nullptr);
+		_async->close(nullptr);
 		_msgQue.unlock();
 		alv("ipc closeHandle ok");
 	}
@@ -65,7 +65,7 @@ namespace uvcpp {
 		upmsg->_upUserObj = move(userobj);
 		upmsg->isSync = false;
 		_msgQue.push(move(upmsg));
-		_async.send();
+		_async->send();
 		_msgQue.unlock();
 		return 0;
 	}
@@ -87,7 +87,7 @@ namespace uvcpp {
 		std::unique_lock<mutex> ulock( mtx ); // lock을 거는 이유: msg큐에 push한 후 task switching 되어 wait 하기 전에 메시지 처리 되는 것을 방지 한다.
 		alv("send msgq lock ok");
 		_msgQue.push(move(upmsg));
-		_async.send();
+		_async->send();
 		_msgQue.unlock();
 		alv("send msgq unlock ok");
 		cv.wait(ulock);

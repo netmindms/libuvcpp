@@ -16,7 +16,7 @@ namespace uvcpp {
 	}
 
 	int UvPipe::open(uv_file fd) {
-		UvStream::open("pipe");
-		return uv_pipe_open((uv_pipe_t*)_rawh, fd);
+//		UvStream::open("pipe");
+		return uv_pipe_open((uv_pipe_t*)getRawHandle(), fd);
 	}
 }

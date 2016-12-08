@@ -18,43 +18,44 @@ namespace uvcpp {
 		assert(_fd<=0);
 	}
 
-	int UvPoll::open(int fd, int events, Lis lis) {
-		if(_fd <= 0) {
-			_fd =fd;
-			_lis = lis;
-			auto _rawh = (uv_poll_t*)createHandle("poll");
-			uv_poll_init(_ctx->getLoop(), _rawh, _fd);
-			uv_poll_start(_rawh, events, poll_cb);
-		} else {
-			ale("### already opened");
-			return -1;
-		}
-	}
 
-#if 0
 	int UvPoll::pollStart(int events, UvPoll::Lis lis) {
 		if(_fd > 0) {
 			_lis = lis;
-			return uv_poll_start(RAWH(), events, poll_cb);
+			return uv_poll_start((uv_poll_t*)getRawHandle(), events, poll_cb);
 		}
 		return -1;
 	}
 
-	int UvPoll::pollStop(UvHandle::CloseLis lis) {
-		close(lis);
-	}
-#endif
-	void UvPoll::poll_cb(uv_poll_t *rawh, int status, int events) {
-		ASSERT_RAW_UVHANDLE(rawh);
-		auto pollhandle = GET_UVHANDLE_OWNER(UvPoll, rawh);
-		pollhandle->_lis(events);
+	int UvPoll::pollStop() {
+		uv_poll_stop((uv_poll_t*)getRawHandle());
 	}
 
-	void UvPoll::close(UvHandle::CloseLis lis) {
-		if(_fd > 0) {
-			uv_poll_stop(RAWH());
-			::close(_fd); _fd = -1;
+
+	void UvPoll::poll_cb(uv_poll_t *rawh, int status, int events) {
+		auto *pollobj = (UvPoll*)rawh->data;
+		if(pollobj->_lis) {
+			pollobj->_lis(events);
 		}
-		UvHandleOwner::close(lis);
+	}
+
+
+	int UvPoll::getFd() {
+		return _fd;
+	}
+
+	UvPoll *UvPoll::init(int fd, std::unique_ptr<UvPoll> pollobj) {
+		if(fd<0) {
+			return nullptr;
+		}
+		UvPoll* ptr;
+		if(!pollobj) {
+			ptr = new UvPoll;
+		} else {
+			ptr = pollobj.release();
+		}
+		uv_poll_init(UvContext::getLoop(), (uv_poll_t*)ptr->getRawHandle(), fd);
+		ptr->registerContext();
+		return ptr;
 	}
 }

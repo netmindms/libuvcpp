@@ -8,6 +8,8 @@
 #include <cassert>
 #include <functional>
 #include "UvContext.h"
+#include "UvReadBuffer.h"
+#include "ObjQue.h"
 
 namespace uvcpp {
 
@@ -20,7 +22,11 @@ namespace uvcpp {
 		UvHandle();
 		virtual ~UvHandle();
 
-		void close();
+		int initHandle();
+
+		uv_loop_t* getLoop();
+
+		void close(CloseLis lis=nullptr);
 
 		uv_handle_t* getRawHandle() {
 			return &_rawHandle.handle;
@@ -29,19 +35,24 @@ namespace uvcpp {
 		void* getUserData();
 		void setOnCloseListener(CloseLis lis);
 
+		void setObjName();
+
 	private:
+		static void close_cb(uv_handle_t *phandle);
 		CloseLis _clis;
 		uv_any_handle _rawHandle;
 		UvHandle *_next;
 		UvHandle *_prev;
 		UvContext *_ctx;
+
 #ifndef NDEBUG
 		// for debugging
 		std::string _handleName;
 #endif
 		void* _userData;
 		int _status;
-		int init(void* user_data);
+	protected:
+		void registerContext();
 	};
 }
 

@@ -9,42 +9,34 @@
 namespace uvcpp {
 
 	UvPrepare::UvPrepare() {
-		_ohandle = nullptr;
 	}
 
 	UvPrepare::~UvPrepare() {
 
 	}
 
-	int UvPrepare::open(UvPrepare::Lis lis) {
-		auto ctx = UvContext::getContext();
-		int ret;
-		if(ctx) {
-			_lis = lis;
-//			_ohandle = ctx->createHandle(this);
-			auto prawh = (uv_prepare_t*)createHandle("prepare");
-//			uv_prepare_t* prawh = (uv_prepare_t*)_ohandle->getRawHandle();
-			ret = uv_prepare_init(ctx->getLoop(), prawh);
-			assert(!ret);
-			ret = uv_prepare_start(prawh, prepare_cb);
-		} else {
-			assert(ctx);
-			return -1;
-		}
-		return ret;
-	}
 
 	void UvPrepare::prepare_cb(uv_prepare_t *rawh) {
-		ASSERT_RAW_UVHANDLE(rawh);
-		auto pprepare = GET_UVHANDLE_OWNER(UvPrepare, rawh);
-		pprepare->_lis();
+		auto prepare = (UvPrepare*)rawh->data;
+		if(prepare->_lis) {
+			prepare->_lis();
+		}
 	}
 
-	void UvPrepare::close(UvHandle::CloseLis lis) {
-		auto rawh = (uv_prepare_t*)getRawHandle();
-		if(rawh) {
-			uv_prepare_stop(rawh);
-		}
-		UvHandleOwner::close(lis);
+	UvPrepare *UvPrepare::init() {
+		UvPrepare* prepare = new UvPrepare();
+		uv_prepare_init(UvContext::getLoop(), (uv_prepare_t*)prepare->getRawHandle());
+		prepare->registerContext();
+		return prepare;
 	}
+
+	int UvPrepare::start(UvPrepare::Lis lis) {
+		_lis = lis;
+		return uv_prepare_start((uv_prepare_t*)getRawHandle(), prepare_cb);
+	}
+
+	void UvPrepare::stop() {
+		uv_prepare_stop((uv_prepare_t*)getRawHandle());
+	}
+
 }

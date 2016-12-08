@@ -22,6 +22,14 @@ namespace uvcpp {
 
 		virtual ~UvContext();
 
+//		template<class T, class ... Types> static T* initHandle(Types ... args) {
+//			T* res = new T();
+////			res.init(Types ...args);
+//			int ret = res->init(args...);
+//			return res;
+//		}
+
+
 		void open(uv_loop_t *loop=nullptr);
 
 		void openWithDefaultLoop();
@@ -30,7 +38,7 @@ namespace uvcpp {
 
 		static UvContext *getContext();
 
-		uv_loop_t *getLoop();
+		static uv_loop_t *getLoop();
 
 		UvHandle* createHandle(void* user_data, const char* typestr);
 

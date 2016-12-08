@@ -10,7 +10,7 @@
 
 namespace uvcpp {
 
-	enum UvEvent {
+	enum UvStreamEvent {
 		DISCONNECTED = 0,
 		CONNECTED = 1,
 		INCOMING = 4,

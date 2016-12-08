@@ -15,22 +15,26 @@ namespace uvcpp {
 
 	}
 
-	int UvAsync::open(Lis lis) {
-		auto ctx = UvContext::getContext();
-		_lis = lis;
-		auto rawh = (uv_async_t*)createHandle("async");
-		uv_async_init(ctx->getLoop(), rawh, async_cb);
-		return 0;
-	}
 
 	void UvAsync::async_cb(uv_async_t *rawh) {
-		ASSERT_RAW_UVHANDLE(rawh);
-		auto pasync = GET_UVHANDLE_OWNER(UvAsync, rawh);
-		pasync->_lis();
+		assert(rawh->data);
+		auto async = (UvAsync*)rawh->data;
+		assert(async->_lis);
+		async->_lis();
 	}
 
 	int UvAsync::send() {
-		return uv_async_send((uv_async_t*)_ohandle->getRawHandle());
+//		return uv_async_send((uv_async_t*)_ohandle->getRawHandle());
+		return uv_async_send((uv_async_t*)getRawHandle());
+	}
+
+	UvAsync* UvAsync::init(UvAsync::Lis lis) {
+		auto async = new UvAsync;
+		auto loop = UvContext::getContext()->getLoop();
+		auto ret = uv_async_init(loop, (uv_async_t*)async->getRawHandle(), async_cb);
+		async->registerContext();
+		async->_lis = lis;
+		return async;
 	}
 
 
