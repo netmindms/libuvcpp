@@ -25,18 +25,19 @@ namespace uvcpp {
 
 		int listen(ListenLis lis, int backlogs=128);
 
+		int accept(UvStream* newtcp);
+
 		void setOnCnnLis(CnnLis lis);
 
 		void setOnReadLis(ReadLis lis);
+
+		void setConnectionReq(CnnLis lis);
 
 	private:
 		CnnLis _cnnLis;
 		ReadLis _readLis;
 		ListenLis _listenLis;
 
-		ObjQue<UvReadBuffer> _readBufQue;
-
-		static void alloc_cb(uv_handle_t *handle, size_t suggesited_size, uv_buf_t *puvbuf);
 		static void read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf);
 		static void connection_cb(uv_stream_t *server, int status);
 

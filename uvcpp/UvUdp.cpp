@@ -41,7 +41,7 @@ namespace uvcpp {
 
 	int UvUdp::recvStart(ReadLis lis) {
 		_readLis = lis;
-		return uv_udp_recv_start(RAWH(), alloc_cb, recv_cb);
+		return uv_udp_recv_start(RAWH(), UvContext::handle_read_alloc_cb, recv_cb);
 	}
 
 
@@ -75,37 +75,30 @@ namespace uvcpp {
 	}
 
 
-	void UvUdp::alloc_cb(uv_handle_t *handle, size_t suggesited_size, uv_buf_t *puvbuf) {
-		ald("alloc cb");
-		auto udp = GETOBJH(handle);
-		auto uprbuf = udp->_readBufQue.allocObj();
-		auto tbuf = uprbuf->allocBuffer(suggesited_size);
-		puvbuf->len = tbuf.first;
-		puvbuf->base = tbuf.second;
-		udp->_readBufQue.push(move(uprbuf));
-	}
+//	void UvUdp::alloc_cb(uv_handle_t *handle, size_t suggesited_size, uv_buf_t *puvbuf) {
+//		auto udp = GETOBJH(handle);
+//		auto uprbuf = udp->_readBufQue.allocObj();
+//		auto tbuf = uprbuf->allocBuffer(suggesited_size);
+//		puvbuf->len = tbuf.first;
+//		puvbuf->base = tbuf.second;
+//		udp->_readBufQue.push(move(uprbuf));
+//	}
 
 	void UvUdp::recv_cb(uv_udp_t *handle, ssize_t nread, const uv_buf_t *buf, const struct sockaddr *addr, unsigned flags) {
 		alv("readcb, nread=%d", nread);
+		auto holder = (HandleHolder*)handle->data;
+		assert(holder);
 		auto udb = GETOBJH(handle);
-//		auto phandle = (UvUdp *) handle->data;
-		auto uprbuf = udb->_readBufQue.pop();
-		if (nread > 0) {
+		auto uprbuf = holder->readBufQue.pop();
+		if (nread >= 0) { // TODO:
 			uprbuf->size = nread;
 			if (udb->_readLis) {
 				udb->_readLis(addr, move(uprbuf));
 			}
+		} else {
+			assert(0);
 		}
 	}
-
-//	void UvUdp::send_cb(uv_udp_send_t *req, int status) {
-//		alv("send cb, status=%d, psock=%0x", status, (uint64_t) req->data);
-//		auto psock = (UvUdp *) req->data;
-//		if (psock) {
-//			auto up = psock->_writeReqQue.pop();
-//			psock->_writeReqQue.recycleObj(move(up));
-//		}
-//	}
 
 	int UvUdp::recvStop() {
 		return uv_udp_recv_stop(RAWH());

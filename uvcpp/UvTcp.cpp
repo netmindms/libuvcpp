@@ -27,24 +27,25 @@ namespace uvcpp {
 	int UvTcp::connect(const char *ipaddr, uint16_t port, CnnLis lis) {
 		sockaddr_in req_addr;
 		uv_ip4_addr(ipaddr, port, &req_addr);
-		_cnnHandle.data = (void *) this;
-		setOnCnnLis(lis);
-		return uv_tcp_connect(&_cnnHandle, RAWH(), (struct sockaddr *) &req_addr, UvStream::connect_cb);
+		setConnectionReq(lis);
+//		_cnnHandle.data = (void *) this;
+//		setOnCnnLis(lis);
+		return uv_tcp_connect(&_handleHolder->cnnReq, RAWH(), (struct sockaddr *) &req_addr, UvContext::handle_connect_cb);
 	}
 
 
-	int UvTcp::accept(UvTcp* newtcp) {
-		auto newrawh = (uv_stream_t *)newtcp->getRawHandle();
-		auto ret = uv_accept((uv_stream_t *) RAWH(), newrawh);
-		if (!ret) {
-			return ret;
-		} else {
-			ale("### accept error");
-			assert(0);
-			newtcp->close();
-			return -1;
-		}
-	}
+//	int UvTcp::accept(UvTcp* newtcp) {
+//		auto newrawh = (uv_stream_t *)newtcp->getRawHandle();
+//		auto ret = uv_accept((uv_stream_t *) RAWH(), newrawh);
+//		if (!ret) {
+//			return ret;
+//		} else {
+//			ale("### accept error");
+//			assert(0);
+//			newtcp->close();
+//			return -1;
+//		}
+//	}
 
 
 	int UvTcp::bind(const struct sockaddr *addr, unsigned int flags) {

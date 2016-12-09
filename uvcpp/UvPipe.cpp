@@ -18,8 +18,18 @@ namespace uvcpp {
 
 	}
 
-	int UvPipe::open(uv_file fd) {
-//		UvStream::open("pipe");
-		return uv_pipe_open(RAWH(), fd);
+	int UvPipe::init(int ipc) {
+		initHandle();
+		return uv_pipe_init(getLoop(), RAWH(), ipc);
+	}
+
+	int UvPipe::bind(const char *name) {
+		return uv_pipe_bind(RAWH(), name);
+	}
+
+	void UvPipe::connect(const char *name, UvStream::CnnLis lis) {
+		setOnCnnLis(lis);
+		_cnnReq.data = this;
+		uv_pipe_connect(&_cnnReq, RAWH(), name, UvStream::connect_cb);
 	}
 }

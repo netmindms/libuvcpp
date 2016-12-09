@@ -16,20 +16,12 @@ namespace uvcpp {
 
 	}
 
-	void UvStream::alloc_cb(uv_handle_t *handle, size_t suggesited_size, uv_buf_t *puvbuf) {
-		auto stream = GETOBJH(handle);
-		auto uprbuf = stream->_readBufQue.allocObj();
-		auto tbuf = uprbuf->allocBuffer(suggesited_size);
-		puvbuf->len = tbuf.first;
-		puvbuf->base = tbuf.second;
-		stream->_readBufQue.push(move(uprbuf));
-	}
-
 	void UvStream::read_cb(uv_stream_t *handle, ssize_t nread, const uv_buf_t *buf) {
 		alv("readcb, nread=%d", nread);
+		auto holder = (HandleHolder*)handle->data;
 		auto stream = GETOBJH(handle);
 		assert(stream->_readLis!=nullptr);
-		auto uprbuf = stream->_readBufQue.pop();
+		auto uprbuf = holder->readBufQue.pop();
 		if (nread > 0) {
 			uprbuf->size = nread;
 			if (stream->_readLis) {
@@ -37,7 +29,7 @@ namespace uvcpp {
 			}
 		} else if(nread == UV_EOF) {
 			if(stream->_cnnLis) {
-				stream->_cnnLis(UvEvent::DISCONNECTED);
+				stream->_cnnLis(-1);
 			}
 		} else {
 			assert(0);
@@ -46,7 +38,7 @@ namespace uvcpp {
 
 	int UvStream::readStart(ReadLis lis) {
 		_readLis = lis;
-		return uv_read_start((uv_stream_t *)getRawHandle(), alloc_cb, read_cb);
+		return uv_read_start((uv_stream_t *)getRawHandle(), UvContext::handle_read_alloc_cb, read_cb);
 	}
 
 	int UvStream::readStop() {
@@ -73,6 +65,20 @@ namespace uvcpp {
 		return 0;
 	}
 
+	int UvStream::accept(UvStream* newstrm) {
+		auto newrawh = (uv_stream_t *)newstrm->getRawHandle();
+		auto ret = uv_accept(RAWH(), newrawh);
+		if (!ret) {
+			return ret;
+		} else {
+			ale("### accept error");
+			assert(0);
+			newstrm->close();
+			return -1;
+		}
+	}
+
+
 
 	void UvStream::connection_cb(uv_stream_t *server, int status) {
 		auto ptcph = GETOBJH(server);
@@ -84,11 +90,7 @@ namespace uvcpp {
 		ali("on connect, status=%d", status);
 		auto uvh = (UvStream*)puvcnn->data;
 		assert(uvh->_cnnLis);
-		if (status == 0) {
-			uvh->_cnnLis(UvEvent::CONNECTED);
-		} else {
-			uvh->_cnnLis(UvEvent::DISCONNECTED);
-		}
+		uvh->_cnnLis(status);
 	}
 
 	void UvStream::setOnReadLis(ReadLis lis) {
@@ -99,6 +101,10 @@ namespace uvcpp {
 		_cnnLis = lis;
 	}
 
+	void UvStream::setConnectionReq(UvStream::CnnLis lis) {
+		_handleHolder->cnnLis = lis;
+		_handleHolder->cnnReq.data = _handleHolder;
+	}
 
 
 }

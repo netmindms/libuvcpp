@@ -5,24 +5,18 @@
  *      Author: netmind
  */
 
+#include <atomic>
+#include <sstream>
 #include "uvcpplog.h"
 #include "UvContext.h"
 #include "UvHandle.h"
+
+std::atomic_uint _gHandleIdSeed;
 
 using namespace std;
 namespace uvcpp {
 
 	thread_local UvContext *_gEdContext;
-
-
-	void UvContext::dumpHandle(UvHandle *plast) {
-		alv("dump handles, ");
-		for (; plast;) {
-			ald(" name=%s", plast->_handleName);
-			//plast = plast->_prev;
-		}
-	}
-
 
 	UvContext::UvContext() {
 		_loop = nullptr;
@@ -91,23 +85,23 @@ namespace uvcpp {
 		holder->ctx->deleteHandle(holder);
 	}
 
-	void UvContext::deleteHandle(HandleHolder *phandle) {
-		if (!phandle) {
+	void UvContext::deleteHandle(HandleHolder *holder) {
+		if (!holder) {
 			return;
 		}
-		auto tprev = phandle->prev;
-		auto tnext = phandle->next;
+		auto tprev = holder->prev;
+		auto tnext = holder->next;
 		if (tprev) {
-			tprev->next = phandle->next;
+			tprev->next = holder->next;
 		}
 		if (tnext) {
-			tnext->prev = phandle->prev;
+			tnext->prev = holder->prev;
 		}
 		if (tprev == nullptr && tnext == nullptr) {
 			_handleLast = nullptr;
 		}
-//		ald("delete handle, name=%s, remain=%d", GET_UV_HANDLE_NAME(phandle), _pendingHandleCnt-1);
-		delete phandle;
+		ald("delete handle, name=%s, remain=%d", holder->handleName, _pendingHandleCnt-1);
+		delete holder;
 		--_pendingHandleCnt;
 	}
 
@@ -128,9 +122,13 @@ namespace uvcpp {
 			holder->prev = nullptr;
 		}
 		holder->uvh = uvh;
-		uvh->setObjName();
+#ifndef NDEBUG
+		std::stringstream ss;
+		ss << std::string(typeid(*uvh).name()) << '_' <<  _gHandleIdSeed++;
+		holder->handleName = ss.str();
+#endif
 		++_pendingHandleCnt;
-		ald("create handle holder, handle+name=%s, count=%u", uvh->_handleName, _pendingHandleCnt);
+		ald("create handle holder, handle_name=%s, count=%u", holder->handleName, _pendingHandleCnt);
 		return holder;
 	}
 
@@ -144,22 +142,41 @@ namespace uvcpp {
 		alv("write cb, status=%d, ptcp=%0x", status, (uint64_t) req->data);
 		auto holder = ((HandleHolder *) req->data);
 		assert(holder);
-		auto up =holder->_writeReqQue.pop();
+		auto up =holder->writeReqQue.pop();
 		if (holder->writeLis) {
 			holder->writeLis(status);
 		}
-		holder->_writeReqQue.recycleObj(move(up));
+		holder->writeReqQue.recycleObj(move(up));
 	}
 
 	void UvContext::handle_send_cb(uv_udp_send_t *req, int status) {
 		alv("send cb, status=%d, psock=%0x", status, (uint64_t) req->data);
 		auto holder = (HandleHolder *) req->data;
 		assert(holder);
-		auto up =holder->_sendReqQue.pop();
+		auto up =holder->sendReqQue.pop();
 		if (holder->sendLis) {
 			holder->sendLis(status);
 		}
-		holder->_sendReqQue.recycleObj(move(up));
+		holder->sendReqQue.recycleObj(move(up));
+	}
+
+	void UvContext::handle_read_alloc_cb(uv_handle_t *handle, size_t suggesited_size, uv_buf_t *puvbuf) {
+		auto holder = (HandleHolder*)handle->data;
+		assert(holder);
+		auto upbuf = holder->readBufQue.allocObj();
+		auto tbuf = upbuf->allocBuffer(suggesited_size);
+		puvbuf->len = tbuf.first;
+		puvbuf->base = tbuf.second;
+		holder->readBufQue.push(move(upbuf));
+	}
+
+	void UvContext::handle_connect_cb(uv_connect_t *req, int status) {
+		ali("on connect, status=%d", status);
+		auto holder = (HandleHolder*)req->data;
+		assert(holder);
+		if(holder->cnnLis) {
+			holder->cnnLis(status);
+		}
 	}
 
 }

@@ -11,11 +11,18 @@
 namespace uvcpp {
 	class UvPipe: public UvStream {
 	public:
+
 		virtual ~UvPipe();
 
 		UvPipe();
 
-		int open(uv_file fd);
+		int init(int ipc);
+
+		int bind(const char* name);
+
+		void connect(const char* name, UvStream::CnnLis lis);
+	private:
+		uv_connect_t _cnnReq;
 	};
 }
 

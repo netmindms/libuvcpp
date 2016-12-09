@@ -9,13 +9,9 @@
 #define RAWH() ((uv_handle_t*)(&_handleHolder->rawh.handle))
 #define GETOBJH(H) ((UvHandle*)(((HandleHolder*)H->data))->uvh)
 
-std::atomic_uint _gHandleIdSeed;
-
 namespace uvcpp {
 	UvHandle::UvHandle() {
 		_ctx = nullptr;
-		_status = 0;
-		_userData = nullptr;
 		_handleHolder = nullptr;
 	}
 
@@ -31,31 +27,18 @@ namespace uvcpp {
 	void UvHandle::close(CloseLis lis) {
 		if(_handleHolder) {
 //				ali("handle active=%d", uv_is_active(_rawhandle));
-			ald("   closeHandle handle, name=%s, cb=%x", _handleName, (long) UvContext::handle_close_cb);
+			ald("   closing handle, name=%s, cb=%x", _handleHolder->handleName, (long) UvContext::handle_close_cb);
 			_handleHolder->closeLis = lis;
 			_handleHolder->writeLis = nullptr;
 			_handleHolder->sendLis = nullptr;
-			uv_close((uv_handle_t *) &_handleHolder->rawh.handle, UvContext::handle_close_cb);
+			uv_close(&_handleHolder->rawh.handle, UvContext::handle_close_cb);
 			if(!lis) {
 				_handleHolder = nullptr;
 			}
 		}
 	}
 
-//	int UvHandle::init(void* user_data) {
-//		if (!_ctx) {
-//			_userData = user_data;
-//			_ctx = UvContext::getContext();
-//			_rawHandle.handle.data = this;
-//			return 0;
-//		} else {
-//			return -1;
-//		}
-//	}
 
-	void *UvHandle::getUserData() {
-		return _userData;
-	}
 
 
 	int UvHandle::initHandle() {
@@ -84,12 +67,12 @@ namespace uvcpp {
 
 
 	int UvHandle::write(const char *buf, size_t len) {
-		auto upwr = _handleHolder->_writeReqQue.allocObj();
+		auto upwr = _handleHolder->writeReqQue.allocObj();
 		upwr->fillBuf(buf, len);
 		upwr->req.data = _handleHolder;
 		auto ret = uv_write(&upwr->req, (uv_stream_t *) RAWH(), &upwr->uvBuf, 1, UvContext::handle_write_cb);
 		if (!ret) {
-			_handleHolder->_writeReqQue.push(move(upwr));
+			_handleHolder->writeReqQue.push(move(upwr));
 		} else {
 			ale("### uv write fail, ret=%d", ret);
 		}
@@ -97,19 +80,31 @@ namespace uvcpp {
 	}
 
 	int UvHandle::send(const char* buf, size_t len, const struct sockaddr* addr) {
-		auto upsd = _handleHolder->_sendReqQue.allocObj();
+		auto upsd = _handleHolder->sendReqQue.allocObj();
 		upsd->fillBuf(buf, len);
 		upsd->req.data = _handleHolder;
-		return uv_udp_send(&upsd->req, (uv_udp_t*)RAWH(), &upsd->uvBuf, 1, addr, UvContext::handle_send_cb);
+		auto ret = uv_udp_send(&upsd->req, (uv_udp_t*)RAWH(), &upsd->uvBuf, 1, addr, UvContext::handle_send_cb);
+		if(!ret) {
+			_handleHolder->sendReqQue.push(move(upsd));
+		} else {
+			assert(0);
+		}
+		return ret;
 	}
 
 	int UvHandle::write(const std::string &msg) {
 		return write(msg.data(), msg.size());
 	}
 
+#if 0
 	void UvHandle::setObjName() {
-
+#ifndef NDEBUG
+		std::stringstream ss;
+		ss << std::string(typeid(*this).name()) << '_' <<  _gHandleIdSeed++;
+		_handleName = ss.str();
+#endif
 	}
+#endif
 
 	uv_handle_t* UvHandle::getRawHandle() {
 		return _handleHolder ? &_handleHolder->rawh.handle : nullptr;

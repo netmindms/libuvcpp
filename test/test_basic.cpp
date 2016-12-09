@@ -14,11 +14,11 @@
 #include "../uvcpp/UvPrepare.h"
 #include "../uvcpp/UvAsync.h"
 #include "../uvcpp/UvTcp.h"
-#include "../uvcpp/UvEvent.h"
 #include "../uvcpp/UvFdTimer.h"
 #include "../uvcpp/UvIdle.h"
 #include "../uvcpp/UvPoll.h"
 #include "../uvcpp/UvTty.h"
+#include "../uvcpp/UvPipe.h"
 
 using namespace std;
 using namespace uvcpp;
@@ -107,8 +107,8 @@ TEST(basic, tcp) {
 			ald("child on read");
 			child.write(upbuf->buffer, upbuf->size);
 		});
-		child.setOnCnnLis([&](int event) {
-			if(event == UvEvent::DISCONNECTED) {
+		child.setOnCnnLis([&](int status) {
+			if(status) {
 				ald("child cnn disconnected");
 				child.close(nullptr);
 			}
@@ -116,20 +116,21 @@ TEST(basic, tcp) {
 	}, 10);
 
 	ret = client.init();
-	client.connect("127.0.0.1", 9090, [&](int event) {
-		if(event == UvEvent::CONNECTED) {
+	client.connect("127.0.0.1", 9090, [&](int status) {
+		if(!status) {
 			ald("connected");
 			client.readStart([&](upUvReadBuffer upbuf) {
 				recvstr.assign(upbuf->buffer, upbuf->size);
-				client.close(nullptr);
-				server.close(nullptr);
+				client.close();
+				server.close();
 			});
 			client.write(teststr);
-		} else if(event == UvEvent::DISCONNECTED) {
+		} else {
 			ald("disconnected");
 			client.close(nullptr);
 		}
 	});
+//	client.close();
 	ctx.run();
 	uv_loop_close(ctx.getLoop());
 	ASSERT_STREQ(teststr.c_str(), recvstr.c_str());
@@ -167,7 +168,7 @@ TEST(basic, udp) {
 	});
 
 	ctx.run();
-	ctx.close();
+//	ctx.close();
 	uv_loop_close(ctx.getLoop());
 
 	ASSERT_STREQ(testmsg.c_str(), recvstr.c_str());
@@ -334,6 +335,67 @@ TEST(basic, poll) {
 	uv_loop_close(ctx.getLoop());
 	ASSERT_EQ(1, fdTimer._fireCnt);
 
+
+}
+
+TEST(basic, pipe) {
+	std::string teststr="test";
+	std::string recvstr="test";
+
+	unlink("pipec");
+	unlink("pipes");
+
+	UvContext ctx;
+	ctx.openWithDefaultLoop();
+
+	int ret;
+	UvPipe pc;
+	UvPipe ps;
+	UvPipe child;
+
+	ps.init(0);
+	ps.bind("pipes");
+	ret = ps.listen([&]() {
+		child.init(0);
+		auto accret = ps.accept(&child);
+		assert(!accret);
+		child.setOnCnnLis([&](int status) {
+			ald("child status=%d", status);
+			if(status) {
+				ald("  child disconnected");
+				child.close();
+				ps.close();
+			}
+		});
+		child.readStart([&](upUvReadBuffer upbuf) {
+			recvstr.assign(upbuf->buffer, upbuf->size);
+			ald("recv : %s", recvstr);
+			child.write(recvstr);
+		});
+	});
+	assert(!ret);
+
+	pc.init(0);
+	pc.bind("pipec");
+	pc.connect("pipes", [&](int status) {
+		ald("pipe connect event status=%d", status);
+		if(!status) {
+			pc.readStart([&](upUvReadBuffer upbuf) {
+				ald("client received");
+				pc.close();
+			});
+			pc.write(teststr);
+		} else {
+			pc.close();
+
+		}
+	});
+
+
+	ctx.run();
+	ctx.close();
+
+	uv_loop_close(ctx.getLoop());
 
 }
 #endif

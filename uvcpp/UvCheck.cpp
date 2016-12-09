@@ -13,7 +13,6 @@
 namespace uvcpp {
 
 	UvCheck::UvCheck() {
-		ald("const uvcheck, obj=%x", (long)this);
 	}
 
 	UvCheck::~UvCheck() {
@@ -26,7 +25,6 @@ namespace uvcpp {
 	}
 
 	void UvCheck::check_cb(uv_check_t *rawh) {
-//		ald("check callback, data=%x", (long)rawh->data);
 		auto check = GETOBJH(rawh);
 		assert(check);
 		if(check) {

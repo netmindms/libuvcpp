@@ -113,6 +113,7 @@ TEST(basic, msgtask) {
 	ald("test end");
 }
 
+#if 0
 #ifdef __linux
 TEST(basic, pipe) {
 	UvContext ctx;
@@ -133,4 +134,5 @@ TEST(basic, pipe) {
 	uv_loop_close(ctx.getLoop());
 	ASSERT_STREQ("1234", recvstr.c_str());
 }
+#endif
 #endif

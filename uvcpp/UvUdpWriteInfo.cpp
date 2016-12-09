@@ -18,7 +18,7 @@ namespace uvcpp {
 
 	char *UvUdpWriteInfo::bufAlloc(size_t len) {
 		if (capacity < len) {
-			delete buf;
+			delete[] buf;
 			buf = new char[len];
 			if (buf) {
 				capacity = len;
@@ -45,6 +45,7 @@ namespace uvcpp {
 			memcpy(uvBuf.base, ptr, len);
 			uvBuf.len = len;
 		} else {
+			uvBuf.base = nullptr;
 			uvBuf.len = 0;
 		}
 		return uvBuf.len;

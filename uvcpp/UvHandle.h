@@ -29,25 +29,15 @@ namespace uvcpp {
 		uv_handle_t* getRawHandle();
 
 
-		void* getUserData();
 		uv_loop_t* getLoop();
 
-		std::unique_ptr<UvWriteInfo> allocWrite();
 		int write(const char *buf, size_t len);
 		int write(const std::string& msg);
 		int send(const char* buf, size_t len, const struct sockaddr* addr);
-
 	private:
 		CloseLis _clis;
 		UvContext *_ctx;
 
-#ifndef NDEBUG
-		// for debugging
-		std::string _handleName;
-#endif
-		void* _userData;
-		int _status;
-		void setObjName();
 	protected:
 		HandleHolder* _handleHolder;
 		int initHandle();

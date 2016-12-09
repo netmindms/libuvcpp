@@ -32,12 +32,10 @@ namespace uvcpp {
 	private:
 		sockaddr* _remoteAddr;
 		ReadLis _readLis;
-//		ObjQue<UvUdpWriteInfo> _writeReqQue;
-		ObjQue<UvReadBuffer> _readBufQue;
+//		ObjQue<UvReadBuffer> _readBufQue;
 
-		static void alloc_cb(uv_handle_t *handle, size_t suggesited_size, uv_buf_t *puvbuf);
+//		static void alloc_cb(uv_handle_t *handle, size_t suggesited_size, uv_buf_t *puvbuf);
 		static void recv_cb(uv_udp_t *handle, ssize_t nread, const uv_buf_t *buf, const struct sockaddr *addr, unsigned flags);
-//		static void send_cb(uv_udp_send_t *req, int status);
 	};
 
 }

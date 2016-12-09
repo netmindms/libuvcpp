@@ -10,13 +10,6 @@
 
 namespace uvcpp {
 
-	enum UvEvent {
-		DISCONNECTED = 0,
-		CONNECTED = 1,
-		INCOMING = 4,
-		READABLE = 2,
-		WRITABLE = 3,
-	};
 
 }
 

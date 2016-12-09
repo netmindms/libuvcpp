@@ -29,7 +29,7 @@ namespace uvcpp {
 
 		int connect(const char *ipaddr, uint16_t port, UvStream::CnnLis lis);
 
-		int accept(UvTcp *newcnn);
+//		int accept(UvTcp *newcnn);
 
 		int bind(const struct sockaddr *addr, unsigned int flags);
 
