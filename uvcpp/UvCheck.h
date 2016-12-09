@@ -7,19 +7,17 @@
 
 #include <functional>
 #include "UvHandle.h"
-#include "UvHandleOwner.h"
 
 namespace uvcpp {
-	class UvCheck : public UvHandleOwner  {
+	class UvCheck : public UvHandle  {
 	public:
 		typedef std::function<void()> Lis;
 		UvCheck();
 
 		virtual ~UvCheck();
-		int open(Lis lis);
-
-		void close(UvHandle::CloseLis lis) override;
-
+		int init();
+		int start(Lis lis);
+		void stop(bool isclose=true);
 	private:
 		Lis _lis;
 		static void check_cb(uv_check_t* handle);

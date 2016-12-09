@@ -18,7 +18,6 @@ namespace uvcpp {
 	int Ipc::open(Lis lis) {
 		ald("ipc open, ...");
 		_lis = lis;
-		_msgQue.open(10);
 		_async.init([this]() {
 			upIpcMsg upmsg;
 			for(;!_isClosing;) {

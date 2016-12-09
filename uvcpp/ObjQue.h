@@ -18,23 +18,11 @@ template<typename T>
 class ObjQue {
 public:
 	ObjQue() {
-		mMaxQue = 100;
 		mAllocCnt = 0;
 	};
 	virtual ~ObjQue() {
-		close();
-	};
-	int open(size_t maxq) {
-		mMaxQue = maxq;
-		return 0;
 	};
 
-	void close() {
-		mQue.clear();
-		mPool.clear();
-		mMemPool.clear();
-		mAllocCnt = 0;
-	}
 
 	void clear() {
 		mQue.clear();

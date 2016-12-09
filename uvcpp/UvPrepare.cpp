@@ -6,45 +6,38 @@
 #include "UvPrepare.h"
 #include "uvcpplog.h"
 
+#define RAWH() ((uv_prepare_t*)getRawHandle())
+#define GETOBJH(H) ((UvPrepare*)(((HandleHolder*)H->data))->uvh)
+
 namespace uvcpp {
 
 	UvPrepare::UvPrepare() {
-		_ohandle = nullptr;
 	}
 
 	UvPrepare::~UvPrepare() {
 
 	}
 
-	int UvPrepare::open(UvPrepare::Lis lis) {
-		auto ctx = UvContext::getContext();
-		int ret;
-		if(ctx) {
-			_lis = lis;
-//			_ohandle = ctx->createHandle(this);
-			auto prawh = (uv_prepare_t*)createHandle("prepare");
-//			uv_prepare_t* prawh = (uv_prepare_t*)_ohandle->getRawHandle();
-			ret = uv_prepare_init(ctx->getLoop(), prawh);
-			assert(!ret);
-			ret = uv_prepare_start(prawh, prepare_cb);
-		} else {
-			assert(ctx);
-			return -1;
-		}
-		return ret;
+	int UvPrepare::init() {
+		initHandle();
+		return uv_prepare_init(getLoop(), RAWH());
 	}
 
 	void UvPrepare::prepare_cb(uv_prepare_t *rawh) {
-		ASSERT_RAW_UVHANDLE(rawh);
-		auto pprepare = GET_UVHANDLE_OWNER(UvPrepare, rawh);
-		pprepare->_lis();
+		auto prepare = GETOBJH(rawh);
+		prepare->_lis();
 	}
 
-	void UvPrepare::close(UvHandle::CloseLis lis) {
-		auto rawh = (uv_prepare_t*)getRawHandle();
-		if(rawh) {
-			uv_prepare_stop(rawh);
+	void UvPrepare::stop(bool isclose) {
+		uv_prepare_stop(RAWH());
+		if(isclose) {
+			close();
 		}
-		UvHandleOwner::close(lis);
 	}
+
+	int UvPrepare::start(UvPrepare::Lis lis) {
+		_lis = lis;
+		return uv_prepare_start(RAWH(), prepare_cb);
+	}
+
 }

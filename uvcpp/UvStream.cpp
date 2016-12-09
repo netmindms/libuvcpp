@@ -4,6 +4,7 @@
 
 #include "UvStream.h"
 #include "uvcpplog.h"
+#include "UvEvent.h"
 
 #define RAWH() ((uv_stream_t*)getRawHandle())
 #define GETOBJH(H) ((UvStream*)(((HandleHolder*)H->data))->uvh)
@@ -29,11 +30,17 @@ namespace uvcpp {
 		auto stream = GETOBJH(handle);
 		assert(stream->_readLis!=nullptr);
 		auto uprbuf = stream->_readBufQue.pop();
-		if (nread >= 0) {
+		if (nread > 0) {
 			uprbuf->size = nread;
 			if (stream->_readLis) {
 				stream->_readLis(move(uprbuf));
 			}
+		} else if(nread == UV_EOF) {
+			if(stream->_cnnLis) {
+				stream->_cnnLis(UvEvent::DISCONNECTED);
+			}
+		} else {
+			assert(0);
 		}
 	}
 
@@ -50,7 +57,7 @@ namespace uvcpp {
 //		auto upwr = allocWrite();
 //		upwr->fillBuf(buf, len);
 //		upwr->req.data = this;
-//		auto ret = uv_write(&upwr->req, RAWH(), &upwr->uvBuf, 1, write_cb);
+//		auto ret = uv_write(&upwr->req, RAWH(), &upwr->uvBuf, 1, handle_write_cb);
 //		if (!ret) {
 //			_writeReqQue.push(move(upwr));
 //		} else {
@@ -72,6 +79,26 @@ namespace uvcpp {
 		assert(ptcph->_listenLis != nullptr);
 		ptcph->_listenLis();
 	}
+
+	void UvStream::connect_cb(uv_connect_t *puvcnn, int status) {
+		ali("on connect, status=%d", status);
+		auto uvh = (UvStream*)puvcnn->data;
+		assert(uvh->_cnnLis);
+		if (status == 0) {
+			uvh->_cnnLis(UvEvent::CONNECTED);
+		} else {
+			uvh->_cnnLis(UvEvent::DISCONNECTED);
+		}
+	}
+
+	void UvStream::setOnReadLis(ReadLis lis) {
+		_readLis = lis;
+	}
+
+	void UvStream::setOnCnnLis(CnnLis lis) {
+		_cnnLis = lis;
+	}
+
 
 
 }

@@ -6,17 +6,17 @@
 #define UVCPPPRJ_UVPREPARE_H
 
 #include "UvHandle.h"
-#include "UvHandleOwner.h"
 
 namespace uvcpp {
-	class UvPrepare: public UvHandleOwner {
+	class UvPrepare: public UvHandle {
 	public:
 		typedef std::function<void()> Lis;
 		UvPrepare();
 
 		virtual ~UvPrepare();
-		int open(Lis lis);
-		void close(UvHandle::CloseLis lis) override;
+		int init();
+		int start(Lis lis);
+		void stop(bool isclose=true);
 
 	private:
 		static void prepare_cb(uv_prepare_t* rawh);

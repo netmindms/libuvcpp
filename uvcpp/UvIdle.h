@@ -5,19 +5,21 @@
 #ifndef UVCPPPRJ_UVIDLE_H
 #define UVCPPPRJ_UVIDLE_H
 
-#include "UvHandleOwner.h"
+
+#include "UvHandle.h"
 
 namespace uvcpp {
-	class UvIdle : public UvHandleOwner {
+	class UvIdle : public UvHandle {
 	public:
 		typedef std::function<void()> Lis;
 		UvIdle();
 
 		virtual ~UvIdle();
 
-		int open(Lis lis);
+		int init();
 
-		void close(UvHandle::CloseLis lis) override;
+		int start(Lis lis);
+		void stop(bool isclose=true);
 
 	private:
 		Lis _lis;

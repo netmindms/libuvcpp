@@ -15,7 +15,7 @@ namespace uvcpp {
 
 		virtual ~UvTty();
 
-		int open(int readable, uv_file fd);
+		int init(uv_file fd, int readable);
 
 	};
 

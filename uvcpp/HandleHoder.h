@@ -7,8 +7,10 @@
 
 #include <uv.h>
 #include <functional>
-#include "UvWriteInfo.h"
+
 #include "ObjQue.h"
+#include "UvWriteInfo.h"
+#include "UvUdpWriteInfo.h"
 
 
 namespace uvcpp {
@@ -22,7 +24,9 @@ namespace uvcpp {
 		UvContext* ctx;
 		ObjQue<UvWriteInfo> _writeReqQue;
 		std::function<void()> closeLis;
+		ObjQue<UvUdpWriteInfo> _sendReqQue;
 		std::function<void(int status)> writeLis;
+		std::function<void(int status)> sendLis;
 	};
 }
 #endif //UVCPPPRJ_HANDLEHODER_H

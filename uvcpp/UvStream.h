@@ -15,6 +15,7 @@ namespace uvcpp {
 	public:
 		typedef std::function<void(std::unique_ptr<UvReadBuffer>)> ReadLis;
 		typedef std::function<void()> ListenLis;
+		typedef std::function<void(int)> CnnLis;
 		UvStream();
 
 		virtual ~UvStream();
@@ -24,7 +25,12 @@ namespace uvcpp {
 
 		int listen(ListenLis lis, int backlogs=128);
 
+		void setOnCnnLis(CnnLis lis);
+
+		void setOnReadLis(ReadLis lis);
+
 	private:
+		CnnLis _cnnLis;
 		ReadLis _readLis;
 		ListenLis _listenLis;
 
@@ -33,6 +39,9 @@ namespace uvcpp {
 		static void alloc_cb(uv_handle_t *handle, size_t suggesited_size, uv_buf_t *puvbuf);
 		static void read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf);
 		static void connection_cb(uv_stream_t *server, int status);
+
+	protected:
+		static void connect_cb(uv_connect_t *puvcnn, int status);
 	};
 }
 

@@ -18,41 +18,38 @@ namespace uvcpp {
 	class UvContext;
 	class UvHandle {
 		friend class UvContext;
-		friend class UvHandleOwner;
 	public:
 		typedef std::function<void()> CloseLis;
+
 		UvHandle();
 		virtual ~UvHandle();
 
 		void close(CloseLis lis=nullptr);
 
-		uv_handle_t* getRawHandle() {
-			return &_handleHolder->rawh.handle;
-		}
+		uv_handle_t* getRawHandle();
 
 
 		void* getUserData();
-		void setOnCloseListener(CloseLis lis);
 		uv_loop_t* getLoop();
 
 		std::unique_ptr<UvWriteInfo> allocWrite();
 		int write(const char *buf, size_t len);
 		int write(const std::string& msg);
+		int send(const char* buf, size_t len, const struct sockaddr* addr);
+
 	private:
 		CloseLis _clis;
-		uv_any_handle _rawHandle;
-		UvHandle *_next;
-		UvHandle *_prev;
 		UvContext *_ctx;
-		HandleHolder* _handleHolder;
+
 #ifndef NDEBUG
 		// for debugging
 		std::string _handleName;
 #endif
 		void* _userData;
 		int _status;
-//		int init(void* user_data);
+		void setObjName();
 	protected:
+		HandleHolder* _handleHolder;
 		int initHandle();
 	};
 }

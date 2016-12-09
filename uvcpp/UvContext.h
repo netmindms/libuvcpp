@@ -18,7 +18,6 @@ namespace uvcpp {
 
 	class UvContext {
 		friend class UvHandle;
-		friend class UvHandleOwner;
 	public:
 		UvContext();
 
@@ -35,14 +34,15 @@ namespace uvcpp {
 		uv_loop_t *getLoop();
 
 		UvHandle* createHandle(void* user_data, const char* typestr);
-		HandleHolder* createHandleHolder();
+		HandleHolder* createHandleHolder(UvHandle* uvh);
 
 		int handleCount();
 
 		int run();
 		static void handle_close_cb(uv_handle_t *phandle);
 		void closeHandle(HandleHolder* holder);
-		static void write_cb(uv_write_t *req, int status);
+		static void handle_write_cb(uv_write_t *req, int status);
+		static void handle_send_cb(uv_udp_send_t* req, int status);
 	private:
 		bool _createLoop;
 		uv_loop_t *_loop;

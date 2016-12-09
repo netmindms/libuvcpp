@@ -10,12 +10,10 @@
 
 #include <cstdint>
 #include <functional>
-
-#include "UvContext.h"
-#include "UvHandleOwner.h"
+#include "UvHandle.h"
 
 namespace uvcpp {
-	class UvTimer : public UvHandleOwner {
+	class UvTimer : public UvHandle {
 	public:
 		typedef std::function<void()> Lis;
 
@@ -23,13 +21,13 @@ namespace uvcpp {
 
 		virtual ~UvTimer();
 
-		void timerStart(uint64_t period, uint64_t first_expire, Lis lis);
+		int init();
+
+		int start(uint64_t period, uint64_t first_expire, Lis lis);
 
 		void reset();
 
-		void timerStop(UvHandle::CloseLis lis=nullptr);
-
-		void close(UvHandle::CloseLis lis) override;
+		void stop(bool close=true);
 
 	private:
 		Lis _lis;

@@ -11,12 +11,11 @@
 #include <sys/timerfd.h>
 
 #include "UvFdTimer.h"
-
+#define RAWH() ((uv_idle_t*)getRawHandle())
+#define GETOBJH(H) ((UvIdle*)(((HandleHolder*)H->data))->uvh)
 namespace uvcpp {
 	UvFdTimer::UvFdTimer() {
-		_fd = -1;
 		_fireCount = 0;
-		_rawh = nullptr;
 	}
 
 	UvFdTimer::~UvFdTimer() {
@@ -24,32 +23,19 @@ namespace uvcpp {
 	}
 
 	void UvFdTimer::setUsec(uint64_t usec, uint64_t first_usec, Lis lis) {
-		if (!_rawh) {
-			auto ctx = UvContext::getContext();
-			if (ctx) {
-				_rawh = (uv_poll_t*)createHandle("fdtimer");
-				auto fd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
-				ali("timerfd create fd=%d", fd);
-				if (fd > 0) {
-					uv_poll_init(_ctx->getLoop(), _rawh, fd);
-				}
-				_fd = fd;
-				_lis = lis;
+		_lis = lis;
 
-				mTimerSpec.it_interval.tv_sec = usec / 1000000;
-				mTimerSpec.it_interval.tv_nsec = (usec % 1000000) * 1000;
-				uint64_t iusec = (first_usec == 0) ? usec : first_usec;
-				mTimerSpec.it_value.tv_sec = iusec / 1000000;
-				mTimerSpec.it_value.tv_nsec = (iusec % 1000000) * 1000;
+		mTimerSpec.it_interval.tv_sec = usec / 1000000;
+		mTimerSpec.it_interval.tv_nsec = (usec % 1000000) * 1000;
+		uint64_t iusec = (first_usec == 0) ? usec : first_usec;
+		mTimerSpec.it_value.tv_sec = iusec / 1000000;
+		mTimerSpec.it_value.tv_nsec = (iusec % 1000000) * 1000;
 
-				timerfd_settime(_fd, 0, &mTimerSpec, NULL);
-				uv_poll_start(_rawh, UV_READABLE, poll_cb);
-			} else {
-				ale("### context not found");
-				assert(0);
-			}
-
-		}
+		timerfd_settime(_fd, 0, &mTimerSpec, NULL);
+		UvPoll::start(UV_READABLE, [&](int events) {
+			read(_fd, &_fireCount, sizeof(_fireCount));
+			_lis();
+		});
 	}
 
 	void UvFdTimer::set(uint64_t expire, uint64_t period, Lis lis) {
@@ -61,8 +47,8 @@ namespace uvcpp {
 		resume();
 	}
 
-	void UvFdTimer::kill(UvHandle::CloseLis lis) {
-		close(lis);
+	void UvFdTimer::kill(bool isclose) {
+		UvPoll::stop(isclose);
 	}
 
 	void UvFdTimer::pause(void) {
@@ -75,30 +61,17 @@ namespace uvcpp {
 		timerfd_settime(_fd, 0, &mTimerSpec, NULL);
 	}
 
-	void UvFdTimer::pollCb(int status, int events) {
-		read(_fd, &_fireCount, sizeof(_fireCount));
-		ald("fd count=%lu", _fireCount);
-		_lis();
-	}
 
-	void UvFdTimer::poll_cb(uv_poll_t *handle, int status, int events) {
-		ali("poll callback");
-		auto pfdtimer = UvHandleOwner::getHandleOwner<UvFdTimer>((uv_handle_t*)handle);
-		pfdtimer->pollCb(status, events);
-	}
 
 	uint64_t UvFdTimer::getFireCount() {
 		return _fireCount;
 	}
 
-	void UvFdTimer::close(UvHandle::CloseLis lis) {
-		if (_rawh) {
-			uv_poll_stop(_rawh);
-			::close(_fd);
-			_fd = -1;
-			_rawh = nullptr;
-		}
-		UvHandleOwner::close(lis);
+	int UvFdTimer::init() {
+		auto fd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
+		ali("timerfd create fd=%d", fd);
+		return UvPoll::init(fd);
 	}
+
 }
 #endif // __linux

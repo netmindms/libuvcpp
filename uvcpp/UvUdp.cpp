@@ -7,15 +7,16 @@
 
 #include "uvcppdef.h"
 
+#define RAWH() ((uv_udp_t*)getRawHandle())
+#define GETOBJH(H) ((UvUdp*)(((HandleHolder*)H->data))->uvh)
+
+
 namespace uvcpp {
 	UvUdp::UvUdp() {
-		_ohandle = nullptr;
 		_remoteAddr = nullptr;
-		_rawh = nullptr;
 	}
 
 	UvUdp::~UvUdp() {
-		closeNow();
 
 		if(_remoteAddr) {
 			free(_remoteAddr);
@@ -23,7 +24,7 @@ namespace uvcpp {
 	}
 
 	int UvUdp::bind(const struct sockaddr *addr, unsigned int flags) {
-		return uv_udp_bind(_rawh, addr, flags);
+		return uv_udp_bind(RAWH(), addr, flags);
 	}
 
 	int UvUdp::bind(const char *ipaddr, uint16_t port, unsigned int flags) {
@@ -32,50 +33,25 @@ namespace uvcpp {
 		return bind((const sockaddr*)&addr, flags);
 	}
 
-	int UvUdp::open(Lis lis) {
-		auto ctx = UvContext::getContext();
-		int ret;
-		if(ctx) {
-			_readLis = lis;
-			_rawh = (uv_udp_t*)createHandle("udp");
-			_readBufQue.open(10);
-			_writeReqQue.open(10);
-			ret = uv_udp_init(ctx->getLoop(), _rawh);
-			if(ret) {
-				ale("### udp init error");
-			}
-		} else {
-			ret = -1;
-		}
-		return ret;
+	int UvUdp::init() {
+		initHandle();
+		return uv_udp_init(getLoop(), RAWH());
 	}
 
 
-	int UvUdp::readStart() {
-		if(_ohandle) {
-			return uv_udp_recv_start(_rawh, alloc_cb, recv_cb);
-		}
-		return -1;
+	int UvUdp::recvStart(ReadLis lis) {
+		_readLis = lis;
+		return uv_udp_recv_start(RAWH(), alloc_cb, recv_cb);
 	}
+
 
 	int UvUdp::send(const char *buf, size_t len, const struct sockaddr *addr) {
-		auto upwr = _writeReqQue.allocObj();
-		upwr->fillBuf(buf, len);
-		upwr->req.data = this;
-		auto ret = uv_udp_send(&upwr->req, _rawh, &upwr->uvBuf, 1, addr, send_cb);
-		if (!ret) {
-			_writeReqQue.push(move(upwr));
-		} else {
-			ale("### uv write fail, ret=%d", ret);
-		}
-		return ret;
-
+		return UvHandle::send(buf, len, addr);
 	}
-
 
 	int UvUdp::send(const char *buf, size_t len) {
 		if(_remoteAddr) {
-			return send(buf, len, _remoteAddr);
+			return UvHandle::send(buf, len, _remoteAddr);
 		} else {
 			assert(0);
 			return -1;
@@ -101,43 +77,38 @@ namespace uvcpp {
 
 	void UvUdp::alloc_cb(uv_handle_t *handle, size_t suggesited_size, uv_buf_t *puvbuf) {
 		ald("alloc cb");
-		UvUdp* pudpch = GET_UVHANDLE_OWNER(UvUdp, handle);
-		auto uprbuf = pudpch->_readBufQue.allocObj();
+		auto udp = GETOBJH(handle);
+		auto uprbuf = udp->_readBufQue.allocObj();
 		auto tbuf = uprbuf->allocBuffer(suggesited_size);
 		puvbuf->len = tbuf.first;
 		puvbuf->base = tbuf.second;
-		pudpch->_readBufQue.push(move(uprbuf));
+		udp->_readBufQue.push(move(uprbuf));
 	}
 
 	void UvUdp::recv_cb(uv_udp_t *handle, ssize_t nread, const uv_buf_t *buf, const struct sockaddr *addr, unsigned flags) {
 		alv("readcb, nread=%d", nread);
-		auto phandle = GET_UVHANDLE_OWNER(UvUdp, handle);
+		auto udb = GETOBJH(handle);
 //		auto phandle = (UvUdp *) handle->data;
-		auto uprbuf = phandle->_readBufQue.pop();
+		auto uprbuf = udb->_readBufQue.pop();
 		if (nread > 0) {
 			uprbuf->size = nread;
-			if (phandle->_readLis) {
-				phandle->_readLis(addr, move(uprbuf));
+			if (udb->_readLis) {
+				udb->_readLis(addr, move(uprbuf));
 			}
 		}
 	}
 
-	void UvUdp::send_cb(uv_udp_send_t *req, int status) {
-		alv("send cb, status=%d, psock=%0x", status, (uint64_t) req->data);
-		auto psock = (UvUdp *) req->data;
-		if (psock) {
-			auto up = psock->_writeReqQue.pop();
-			psock->_writeReqQue.recycleObj(move(up));
-		}
-	}
+//	void UvUdp::send_cb(uv_udp_send_t *req, int status) {
+//		alv("send cb, status=%d, psock=%0x", status, (uint64_t) req->data);
+//		auto psock = (UvUdp *) req->data;
+//		if (psock) {
+//			auto up = psock->_writeReqQue.pop();
+//			psock->_writeReqQue.recycleObj(move(up));
+//		}
+//	}
 
-	void UvUdp::close(UvHandle::CloseLis lis) {
-		auto rawh = (uv_udp_t*)getRawHandle();
-		if(rawh) {
-			ald("closing udp ...");
-			uv_udp_recv_stop(rawh);
-		}
-		UvHandleOwner::close(lis);
+	int UvUdp::recvStop() {
+		return uv_udp_recv_stop(RAWH());
 	}
 
 

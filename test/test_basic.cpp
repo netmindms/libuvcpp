@@ -42,11 +42,12 @@ TEST(basic, timer) {
 		UvContext ctx;
 		ctx.open(uv_default_loop());
 		UvTimer timer;
-		timer.timerStart(100, 100, [&]() {
+		timer.init();
+		timer.start(100, 100, [&]() {
 			ald("timer expired");
 			expire_cnt++;
 			if (bexit) {
-				timer.timerStop();
+				timer.stop();
 			}
 		});
 		uv_run(uv_default_loop(), UV_RUN_DEFAULT);
@@ -102,7 +103,7 @@ TEST(basic, tcp) {
 		ald("new incoming connection");
 		child.init();
 		server.accept(&child);
-		child.setOnReadLis([&](upUvReadBuffer upbuf) {
+		child.readStart([&](upUvReadBuffer upbuf) {
 			ald("child on read");
 			child.write(upbuf->buffer, upbuf->size);
 		});
@@ -139,38 +140,35 @@ TEST(basic, udp) {
 	string recvstr;
 	string testmsg = "test message";
 
-	std::thread thr = thread([&]() {
-		UvContext ctx;
-		UvUdp senderUdp;
-		UvUdp recvUdp;
-		int ret;
-		sockaddr_in inaddr;
-		ctx.openWithDefaultLoop();
-		ret = recvUdp.open([&](const sockaddr* padr, upUvReadBuffer upbuf) {
-			string ts(upbuf->buffer, upbuf->size);
-			ald("recv str: %s", ts);
-			recvstr = ts;
-			senderUdp.closeNow();
-			recvUdp.closeNow();
-		});
-		ald("recvUdp open ret=%d", ret);
-		uv_ip4_addr("127.0.0.1", 17000, &inaddr);
-		recvUdp.bind((sockaddr*)&inaddr);
-		recvUdp.readStart();
-
-		ret = senderUdp.open([&](const sockaddr* paddr, upUvReadBuffer upbuf) {
-			assert(0);
-		});
-		senderUdp.setRemoteIpV4Addr("127.0.0.1", 17000);
-		ald("senderUdp open ret=%d", ret);
-		senderUdp.send(testmsg.data(), testmsg.size());
-		senderUdp.readStart();
-
-		ctx.run();
-		ctx.close();
-		uv_loop_close(ctx.getLoop());
+	UvContext ctx;
+	UvUdp senderUdp;
+	UvUdp recvUdp;
+	int ret;
+	sockaddr_in inaddr;
+	ctx.openWithDefaultLoop();
+	recvUdp.init();
+	uv_ip4_addr("127.0.0.1", 17000, &inaddr);
+	recvUdp.bind((sockaddr*)&inaddr);
+	ret = recvUdp.recvStart([&](const sockaddr* padr, upUvReadBuffer upbuf) {
+		string ts(upbuf->buffer, upbuf->size);
+		ald("recv str: %s", ts);
+		recvstr = ts;
+		senderUdp.close();
+		recvUdp.close();
 	});
-	thr.join();
+	ald("recvUdp open ret=%d", ret);
+
+	ret = senderUdp.init();
+	senderUdp.setRemoteIpV4Addr("127.0.0.1", 17000);
+	ald("senderUdp open ret=%d", ret);
+	senderUdp.send(testmsg.data(), testmsg.size());
+	senderUdp.recvStart([&](const sockaddr* paddr, upUvReadBuffer upbuf) {
+		assert(0);
+	});
+
+	ctx.run();
+	ctx.close();
+	uv_loop_close(ctx.getLoop());
 
 	ASSERT_STREQ(testmsg.c_str(), recvstr.c_str());
 }
@@ -181,14 +179,16 @@ TEST(basic, check) {
 	UvCheck chk;
 	UvTimer timer;
 	int ret;
-	ret = chk.open([&](){
+	timer.init();
+	ret = chk.init();
+	chk.start([&](){
 		ald("check call back");
-		chk.close(nullptr);
+		chk.stop();
 	});
 	assert(!ret);
-	timer.timerStart(1000, 1000, [&]() {
+	timer.start(1000, 1000, [&]() {
 		ald("timer expired");
-		timer.timerStop();
+		timer.stop();
 	});
 	ctx.run();
 	uv_loop_close(ctx.getLoop());
@@ -200,9 +200,10 @@ TEST(basic, prepare) {
 	ctx.openWithDefaultLoop();
 
 	UvPrepare prepare;
-	prepare.open([&]() {
+	prepare.init();
+	prepare.start([&]() {
 		ald("prepare callback");
-		prepare.close(nullptr);
+		prepare.stop();
 	});
 	ctx.run();
 	uv_loop_close(ctx.getLoop());
@@ -230,10 +231,11 @@ TEST(basic, idle) {
 	ctx.openWithDefaultLoop();
 	int cnt=0;
 	UvIdle idle;
-	idle.open([&]() {
+	idle.init();
+	idle.start([&]() {
 		ald("idle callback");
 		cnt++;
-		idle.closeNow();
+		idle.stop();
 	});
 	ctx.run();
 	uv_loop_close(ctx.getLoop());
@@ -249,13 +251,13 @@ TEST(basic, tty) {
 	std::string expectedStr="test";
 
 	ctx.openWithDefaultLoop();
-	intty.open(1, 0);
+	intty.init(0, 1);
 	intty.readStart([&](upUvReadBuffer upbuf) {
 		inputstr.assign(upbuf->buffer, expectedStr.size());
-		intty.closeNow();
-		outty.closeNow();
+		intty.close();
+		outty.close();
 	});
-	outty.open(0, 1);
+	outty.init(1, 0);
 	outty.write(std::string("Input '" + expectedStr + "' : "));
 	ctx.run();
 	uv_loop_close(ctx.getLoop());
@@ -268,13 +270,9 @@ TEST(basic, closecb) {
 	ctx.openWithDefaultLoop();
 	int cnt=0;
 	UvTimer timer;
-	timer.timerStart(100, 100, [&]() {
+	timer.start(100, 100, [&]() {
 		cnt++;
-		timer.setOnCloseListener([&]() {
-			ald("timer closeHandle callback");
-			timer.closeNow();
-		});
-		timer.timerStop();
+		timer.stop();
 	});
 	ctx.run();
 	uv_loop_close(ctx.getLoop());
@@ -297,8 +295,15 @@ TEST(basic, poll) {
 		int set() {
 			int fd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
 			if(fd>0) {
-				open(fd, UV_READABLE, [this](int events) {
-					if(events|UV_READABLE) {
+				init(fd);
+				struct itimerspec mTimerSpec;
+				mTimerSpec.it_interval.tv_sec = 1;
+				mTimerSpec.it_interval.tv_nsec = 0;
+				mTimerSpec.it_value.tv_sec = 1;
+				mTimerSpec.it_value.tv_nsec = 0;
+				timerfd_settime(_fd, 0, &mTimerSpec, NULL);
+				start(UV_READABLE, [this](int events) {
+					if(events | UV_READABLE) {
 						uint64_t cnt;
 						auto rcnt = ::read(_fd, &cnt, sizeof(cnt));
 						if(rcnt>0) {
@@ -308,18 +313,14 @@ TEST(basic, poll) {
 						}
 					}
 				});
-				struct itimerspec mTimerSpec;
-				mTimerSpec.it_interval.tv_sec = 1;
-				mTimerSpec.it_interval.tv_nsec = 0;
-				mTimerSpec.it_value.tv_sec = 1;
-				mTimerSpec.it_value.tv_nsec = 0;
-				timerfd_settime(_fd, 0, &mTimerSpec, NULL);
 			} else {
 				return -1;
 			}
 		};
 		void kill() {
-			close(nullptr);
+			auto fd = getFd();
+			stop();
+			::close(fd);
 		};
 
 		int _fireCnt;

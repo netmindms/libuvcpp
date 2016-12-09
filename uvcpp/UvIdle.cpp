@@ -2,8 +2,11 @@
 // Created by netmind on 16. 12. 1.
 //
 
-#include "UvIdle.h"
 #include "uvcpplog.h"
+#include "UvIdle.h"
+
+#define RAWH() ((uv_idle_t*)getRawHandle())
+#define GETOBJH(H) ((UvIdle*)(((HandleHolder*)H->data))->uvh)
 
 namespace uvcpp {
 
@@ -15,24 +18,26 @@ namespace uvcpp {
 
 	}
 
-	int UvIdle::open(UvIdle::Lis lis) {
-		_lis = lis;
-		auto rawh = (uv_idle_t*)createHandle("idle");
-		uv_idle_init(getLoop(), rawh);
-		return uv_idle_start(rawh, idle_cb);
+	int UvIdle::init() {
+		initHandle();
+		return uv_idle_init(getLoop(), RAWH());
 	}
 
 	void UvIdle::idle_cb(uv_idle_t *rawh) {
-		auto pidle = UvHandleOwner::getHandleOwner<UvIdle>((uv_handle_t*)rawh);
-		pidle->_lis();
+		auto idle = GETOBJH(rawh);
+		idle->_lis();
 	}
 
-	void UvIdle::close(UvHandle::CloseLis lis) {
-		auto rawh = (uv_idle_t*)getRawHandle();
-		if(rawh) {
-			uv_idle_stop(rawh);
+	int UvIdle::start(UvIdle::Lis lis) {
+		_lis = lis;
+		return uv_idle_start(RAWH(), idle_cb);
+	}
+
+	void UvIdle::stop(bool isclose) {
+		uv_idle_stop(RAWH());
+		if(isclose) {
+			close();
 		}
-		UvHandleOwner::close(lis);
 	}
 
 }

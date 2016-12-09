@@ -82,7 +82,6 @@ TEST(basic, ipc) {
 }
 
 TEST(basic, msgtask) {
-
 	class MyTask: public MsgTask {
 	public:
 		UvTimer _timer;
@@ -91,7 +90,8 @@ TEST(basic, msgtask) {
 			if(msg.msgId == MsgTask::TM_INIT) {
 				ald("task init");
 				_cnt = 0;
-				_timer.timerStart(100, 100, [this]() {
+				_timer.init();
+				_timer.start(100, 100, [this]() {
 					ald("task timer expired");
 					_cnt++;
 					if (_cnt == 5) {
@@ -100,7 +100,7 @@ TEST(basic, msgtask) {
 				});
 			} else if(msg.msgId == MsgTask::TM_CLOSE) {
 				ald("task closing");
-				_timer.timerStop();
+				_timer.stop();
 			}
 		}
 	};
