@@ -9,6 +9,7 @@
 #include "UvContext.h"
 #include "UvHandle.h"
 
+using namespace std;
 namespace uvcpp {
 
 	thread_local UvContext *_gEdContext;
@@ -79,17 +80,17 @@ namespace uvcpp {
 
 
 	void UvContext::initHandle(UvHandle *handle, void *user_data) {
-		if (_handleLast) {
-			handle->_prev = _handleLast;
-			handle->_next = nullptr;
-			_handleLast->_next = handle;
-			_handleLast = handle;
-		} else {
-			_handleLast = handle;
-			handle->_next = nullptr;
-			handle->_prev = nullptr;
-		}
-		handle->init(user_data);
+//		if (_handleLast) {
+//			handle->_prev = _handleLast;
+//			handle->_next = nullptr;
+//			_handleLast->_next = handle;
+//			_handleLast = handle;
+//		} else {
+//			_handleLast = handle;
+//			handle->_next = nullptr;
+//			handle->_prev = nullptr;
+//		}
+//		handle->init(user_data);
 //		ald("init handle, cnt=%d", _pendingHandleCnt);
 	}
 
@@ -99,29 +100,29 @@ namespace uvcpp {
 
 	void UvContext::handle_close_cb(uv_handle_t *phandle) {
 		assert(phandle->data);
-		UvHandle* ohandle = (UvHandle*)phandle->data;
-		if(ohandle->_clis) {
-			ohandle->_clis();
+		auto holder = (HandleHolder*)phandle->data;
+		if(holder->closeLis) {
+			holder->closeLis();
 		}
-		ohandle->_ctx->deleteHandle(ohandle);
+		holder->ctx->deleteHandle(holder);
 	}
 
-	void UvContext::deleteHandle(UvHandle *phandle) {
+	void UvContext::deleteHandle(HandleHolder *phandle) {
 		if (!phandle) {
 			return;
 		}
-		auto tprev = phandle->_prev;
-		auto tnext = phandle->_next;
+		auto tprev = phandle->prev;
+		auto tnext = phandle->next;
 		if (tprev) {
-			tprev->_next = phandle->_next;
+			tprev->next = phandle->next;
 		}
 		if (tnext) {
-			tnext->_prev = phandle->_prev;
+			tnext->prev = phandle->prev;
 		}
 		if (tprev == nullptr && tnext == nullptr) {
 			_handleLast = nullptr;
 		}
-		ald("delete handle, name=%s, remain=%d", GET_UV_HANDLE_NAME(phandle), _pendingHandleCnt-1);
+//		ald("delete handle, name=%s, remain=%d", GET_UV_HANDLE_NAME(phandle), _pendingHandleCnt-1);
 		delete phandle;
 		--_pendingHandleCnt;
 	}
@@ -149,5 +150,37 @@ namespace uvcpp {
 		return _pendingHandleCnt;
 	}
 
+	HandleHolder *UvContext::createHandleHolder() {
+		auto holder = new HandleHolder;
+		if (_handleLast) {
+			holder->prev = _handleLast;
+			holder->next = nullptr;
+			_handleLast->next = holder;
+			_handleLast = holder;
+		} else {
+			_handleLast = holder;
+			holder->next = nullptr;
+			holder->prev = nullptr;
+		}
+		++_pendingHandleCnt;
+		return holder;
+
+	}
+
+	void UvContext::closeHandle(HandleHolder *holder) {
+		if(uv_is_closing((uv_handle_t*)(&holder->rawh.handle)) == false) {
+			uv_close((uv_handle_t*)(&holder->rawh.handle), handle_close_cb);
+		}
+	}
+
+	void UvContext::write_cb(uv_write_t *req, int status) {
+		alv("write cb, status=%d, ptcp=%0x", status, (uint64_t) req->data);
+		auto holder = ((HandleHolder *) req->data);
+		auto up =holder->_writeReqQue.pop();
+		if (holder->writeLis) {
+			holder->writeLis(status);
+		}
+		holder->_writeReqQue.recycleObj(move(up));
+	}
 
 }

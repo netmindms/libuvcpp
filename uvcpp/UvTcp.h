@@ -13,36 +13,29 @@
 #include "ObjQue.h"
 
 
-#include "UvHandleOwner.h"
 #include "UvReadBuffer.h"
 #include "UvWriteInfo.h"
+#include "UvStream.h"
 
 namespace uvcpp {
-	class UvTcp : public UvHandleOwner {
+	class UvTcp : public UvStream {
 	public:
 		typedef std::function<void(int)> CnnLis;
-		typedef std::function<void(std::unique_ptr<UvReadBuffer>)> ReadLis;
 
 		UvTcp();
 
 		virtual ~UvTcp();
 
-		int open(CnnLis clis=nullptr, ReadLis rlis=nullptr);
+		int init();
 
-		int write(const char *buf, size_t len);
+		int connect(const char *ipaddr, uint16_t port, CnnLis lis);
 
-		int write(const std::string& msg);
-
-		int connect(const char *ipaddr, uint16_t port);
-
-		int accept(UvTcp *newcnn, CnnLis clis=nullptr, ReadLis rlis=nullptr);
+		int accept(UvTcp *newcnn);
 
 		int bind(const struct sockaddr *addr, unsigned int flags);
 
-		void close(UvHandle::CloseLis lis) override;
 
-		int listen(uint16_t port, const char *ipaddr = nullptr, int backlogs = 10);
-		int listen(int backlogs);
+		int bindAndListen(uint16_t port, const char *ipaddr, UvStream::ListenLis lis, int backlogs = 128);
 
 		size_t writeQueCnt();
 
@@ -55,7 +48,6 @@ namespace uvcpp {
 		ReadLis _readLis;
 		uv_connect_t _cnnHandle;
 		size_t _readSize;
-		uv_tcp_t* _rawh;
 		ObjQue<UvWriteInfo> _writeReqQue;
 		ObjQue<UvReadBuffer> _readBufQue;
 		//void openChild(UvTcpHandle *newhandle);

@@ -5,37 +5,34 @@
 #ifndef UVCPPPRJ_UVSTREAM_H
 #define UVCPPPRJ_UVSTREAM_H
 
-#include "UvHandleOwner.h"
 #include "UvWriteInfo.h"
 #include "UvReadBuffer.h"
 #include "ObjQue.h"
+#include "UvHandle.h"
 
 namespace uvcpp {
-	class UvStream : public UvHandleOwner {
+	class UvStream : public UvHandle {
 	public:
 		typedef std::function<void(std::unique_ptr<UvReadBuffer>)> ReadLis;
-
+		typedef std::function<void()> ListenLis;
 		UvStream();
 
 		virtual ~UvStream();
 
-		virtual int open(const char* name);
 		int readStart(ReadLis lis);
 		int readStop();
 
-		int write(const char *buf, size_t len);
-		int write(const std::string& msg);
+		int listen(ListenLis lis, int backlogs=128);
 
-	protected:
-		uv_stream_t* _rawh;
 	private:
 		ReadLis _readLis;
-		ObjQue<UvWriteInfo> _writeReqQue;
+		ListenLis _listenLis;
+
 		ObjQue<UvReadBuffer> _readBufQue;
 
 		static void alloc_cb(uv_handle_t *handle, size_t suggesited_size, uv_buf_t *puvbuf);
 		static void read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf);
-		static void write_cb(uv_write_t *req, int status);
+		static void connection_cb(uv_stream_t *server, int status);
 	};
 }
 

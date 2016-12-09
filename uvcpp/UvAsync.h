@@ -6,18 +6,17 @@
 #define UVCPPPRJ_UVASYNC_H
 
 #include "UvHandle.h"
-#include "UvHandleOwner.h"
 
 namespace uvcpp {
 
-	class UvAsync : public UvHandleOwner {
+	class UvAsync : public UvHandle {
 	public:
 		typedef std::function<void()> Lis;
 		UvAsync();
 
 		virtual ~UvAsync();
 
-		int open(Lis lis);
+		int init(Lis lis);
 
 		int send();
 

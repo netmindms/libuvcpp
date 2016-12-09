@@ -97,39 +97,38 @@ TEST(basic, tcp) {
 
 	ctx.openWithDefaultLoop();
 	int ret;
-	server.open([&](int event) {
-		if(event == UvEvent::INCOMING) {
-			server.accept(&child);
-			child.setOnReadLis([&](upUvReadBuffer upbuf) {
-				ald("child on read");
-				child.write(upbuf->buffer, upbuf->size);
-			});
-			child.setOnCnnLis([&](int event) {
-				if(event == UvEvent::DISCONNECTED) {
-					ald("child cnn disconnected");
-					child.close(nullptr);
-				}
-			});
-		}
-	}, nullptr);
-	server.listen(9090, "127.0.0.1");
+	server.init();
+	server.bindAndListen(9090, "127.0.0.1", [&]() {
+		ald("new incoming connection");
+		child.init();
+		server.accept(&child);
+		child.setOnReadLis([&](upUvReadBuffer upbuf) {
+			ald("child on read");
+			child.write(upbuf->buffer, upbuf->size);
+		});
+		child.setOnCnnLis([&](int event) {
+			if(event == UvEvent::DISCONNECTED) {
+				ald("child cnn disconnected");
+				child.close(nullptr);
+			}
+		});
+	}, 10);
 
-	ret = client.open(nullptr, nullptr);
-	client.setOnCnnLis([&](int event) {
+	ret = client.init();
+	client.connect("127.0.0.1", 9090, [&](int event) {
 		if(event == UvEvent::CONNECTED) {
 			ald("connected");
-			client.write(teststr.data());
+			client.readStart([&](upUvReadBuffer upbuf) {
+				recvstr.assign(upbuf->buffer, upbuf->size);
+				client.close(nullptr);
+				server.close(nullptr);
+			});
+			client.write(teststr);
 		} else if(event == UvEvent::DISCONNECTED) {
 			ald("disconnected");
 			client.close(nullptr);
 		}
 	});
-	client.setOnReadLis([&](upUvReadBuffer upbuf) {
-		recvstr.assign(upbuf->buffer, upbuf->size);
-		client.close(nullptr);
-		server.close(nullptr);
-	});
-	client.connect("127.0.0.1", 9090);
 	ctx.run();
 	uv_loop_close(ctx.getLoop());
 	ASSERT_STREQ(teststr.c_str(), recvstr.c_str());
@@ -214,7 +213,7 @@ TEST(basic, async) {
 	ctx.openWithDefaultLoop();
 	int cnt=0;
 	UvAsync async;
-	async.open([&]() {
+	async.init([&]() {
 		ald("async callback");
 		cnt++;
 		async.close(nullptr);

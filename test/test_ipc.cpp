@@ -125,8 +125,8 @@ TEST(basic, pipe) {
 	pipes.open(fds[1]);
 	pipes.readStart([&](upUvReadBuffer upbuf) {
 		recvstr.assign(upbuf->buffer, upbuf->size);
-		pipec.closeNow();
-		pipes.closeNow();
+		pipec.close();
+		pipes.close();
 	});
 	pipec.write("1234");
 	ctx.run();

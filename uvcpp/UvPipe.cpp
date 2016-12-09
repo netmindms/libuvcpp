@@ -4,6 +4,9 @@
 
 #include "UvPipe.h"
 
+#define RAWH() ((uv_pipe_t*)getRawHandle())
+#define GETOBJH(H) ((UvPipe*)(((HandleHolder*)H->data))->uvh)
+
 
 namespace uvcpp {
 
@@ -16,7 +19,7 @@ namespace uvcpp {
 	}
 
 	int UvPipe::open(uv_file fd) {
-		UvStream::open("pipe");
-		return uv_pipe_open((uv_pipe_t*)_rawh, fd);
+//		UvStream::open("pipe");
+		return uv_pipe_open(RAWH(), fd);
 	}
 }
