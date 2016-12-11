@@ -22,6 +22,7 @@ namespace uvcpp {
 
 	int UvPoll::init(int fd) {
 		if(_fd < 0) {
+			initHandle();
 			_fd =fd;
 			uv_poll_init(getLoop(), RAWH(), _fd);
 		} else {

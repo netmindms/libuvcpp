@@ -15,6 +15,7 @@ namespace uvcpp {
 		enum MSG {
 			TM_INIT=0,
 			TM_CLOSE=1,
+			TM_USER=1000,
 		};
 		MsgTask();
 

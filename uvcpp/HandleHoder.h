@@ -26,14 +26,16 @@ namespace uvcpp {
 		UvContext* ctx;
 		ObjQue<UvReadBuffer> readBufQue;
 		ObjQue<UvWriteInfo> writeReqQue;
-		std::function<void()> closeLis;
 		ObjQue<UvUdpWriteInfo> sendReqQue;
-		std::function<void(int status)> writeLis;
-		std::function<void(int status)> sendLis;
-		std::function<void(upUvReadBuffer)> readLis;
-		std::function<void(int)> cnnLis;
-		std::string handleName;
+//		std::function<void(int status)> writeLis;
+//		std::function<void(int status)> sendLis;
+//		std::function<void(upUvReadBuffer)> readLis;
+//		std::function<void(int)> cnnLis;
+		std::function<void()> closeLis;
+//		std::function<void()> listenLis;
 		uv_connect_t cnnReq;
+
+		std::string handleName;
 	};
 }
 #endif //UVCPPPRJ_HANDLEHODER_H

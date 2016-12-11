@@ -45,7 +45,8 @@ namespace uvcpp {
 		static void handle_send_cb(uv_udp_send_t* req, int status);
 		static void handle_read_alloc_cb(uv_handle_t *handle, size_t suggesited_size, uv_buf_t *puvbuf);
 		static void handle_connect_cb(uv_connect_t *puvcnn, int status);
-
+		static void handle_read_cb(uv_stream_t *handle, ssize_t nread, const uv_buf_t *buf);
+		static void handle_listen_cb(uv_stream_t *server, int status);
 	private:
 		bool _createLoop;
 		uv_loop_t *_loop;
@@ -59,6 +60,7 @@ namespace uvcpp {
 		void initHandle(UvHandle *handle, void *user_data);
 
 	};
+
 
 
 }

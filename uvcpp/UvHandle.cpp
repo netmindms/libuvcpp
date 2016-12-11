@@ -13,10 +13,11 @@ namespace uvcpp {
 	UvHandle::UvHandle() {
 		_ctx = nullptr;
 		_handleHolder = nullptr;
+		_status = IDLE;
 	}
 
 	UvHandle::~UvHandle() {
-		if(_handleHolder) {
+		if(_status != IDLE) {
 			ale("### handle not closed");
 			assert(0);
 			close();
@@ -25,15 +26,27 @@ namespace uvcpp {
 	}
 
 	void UvHandle::close(CloseLis lis) {
-		if(_handleHolder) {
-//				ali("handle active=%d", uv_is_active(_rawhandle));
+		if(_status == INITIALIZED) {
 			ald("   closing handle, name=%s, cb=%x", _handleHolder->handleName, (long) UvContext::handle_close_cb);
-			_handleHolder->closeLis = lis;
-			_handleHolder->writeLis = nullptr;
-			_handleHolder->sendLis = nullptr;
-			uv_close(&_handleHolder->rawh.handle, UvContext::handle_close_cb);
+			_handleHolder->uvh = nullptr;
+			if(uv_is_closing(&_handleHolder->rawh.handle)==0) {
+				uv_close(&_handleHolder->rawh.handle, UvContext::handle_close_cb);
+			}
 			if(!lis) {
+				_status = IDLE;
 				_handleHolder = nullptr;
+			} else {
+				_handleHolder->closeLis = lis;
+				_status = CLOSING;
+			}
+		} else if(_status == CLOSING) {
+			if(lis==nullptr) {
+				_handleHolder->closeLis = nullptr;
+				_handleHolder = nullptr;
+				_status = IDLE;
+			} else {
+				assert(0);
+				_handleHolder->closeLis = lis;
 			}
 		}
 	}
@@ -42,7 +55,7 @@ namespace uvcpp {
 
 
 	int UvHandle::initHandle() {
-		if(_handleHolder) {
+		if(_status != IDLE) {
 			ale("### handle already initialized");
 			assert(0);
 			return -1;
@@ -58,42 +71,12 @@ namespace uvcpp {
 			assert(0);
 			return -1;
 		}
+		_status = INITIALIZED;
 		return 0;
 	}
 
 	uv_loop_t *UvHandle::getLoop() {
 		return _ctx->getLoop();
-	}
-
-
-	int UvHandle::write(const char *buf, size_t len) {
-		auto upwr = _handleHolder->writeReqQue.allocObj();
-		upwr->fillBuf(buf, len);
-		upwr->req.data = _handleHolder;
-		auto ret = uv_write(&upwr->req, (uv_stream_t *) RAWH(), &upwr->uvBuf, 1, UvContext::handle_write_cb);
-		if (!ret) {
-			_handleHolder->writeReqQue.push(move(upwr));
-		} else {
-			ale("### uv write fail, ret=%d", ret);
-		}
-		return ret;
-	}
-
-	int UvHandle::send(const char* buf, size_t len, const struct sockaddr* addr) {
-		auto upsd = _handleHolder->sendReqQue.allocObj();
-		upsd->fillBuf(buf, len);
-		upsd->req.data = _handleHolder;
-		auto ret = uv_udp_send(&upsd->req, (uv_udp_t*)RAWH(), &upsd->uvBuf, 1, addr, UvContext::handle_send_cb);
-		if(!ret) {
-			_handleHolder->sendReqQue.push(move(upsd));
-		} else {
-			assert(0);
-		}
-		return ret;
-	}
-
-	int UvHandle::write(const std::string &msg) {
-		return write(msg.data(), msg.size());
 	}
 
 #if 0

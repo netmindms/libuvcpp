@@ -86,6 +86,7 @@ TEST(basic, msgtask) {
 	public:
 		UvTimer _timer;
 		int _cnt;
+		int startcheck=0;
 		void OnMsgProc(IpcMsg& msg) {
 			if(msg.msgId == MsgTask::TM_INIT) {
 				ald("task init");
@@ -94,10 +95,8 @@ TEST(basic, msgtask) {
 				_timer.start(100, 100, [this]() {
 					ald("task timer expired");
 					_cnt++;
-					if (_cnt == 5) {
-//						postExit();
-					}
 				});
+				startcheck = 1;
 			} else if(msg.msgId == MsgTask::TM_CLOSE) {
 				ald("task closing");
 				_timer.stop();
@@ -106,8 +105,8 @@ TEST(basic, msgtask) {
 	};
 	MyTask task;
 	task.start(nullptr);
-	this_thread::sleep_for(chrono::milliseconds(250));
-//	task.wait();
+	ASSERT_EQ(1, task.startcheck);
+	this_thread::sleep_for(chrono::milliseconds(280));
 	task.stop();
 	ASSERT_EQ(2, task._cnt);
 	ald("test end");

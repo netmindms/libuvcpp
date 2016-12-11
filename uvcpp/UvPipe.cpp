@@ -29,7 +29,7 @@ namespace uvcpp {
 
 	void UvPipe::connect(const char *name, UvStream::CnnLis lis) {
 		setOnCnnLis(lis);
-		_cnnReq.data = this;
-		uv_pipe_connect(&_cnnReq, RAWH(), name, UvStream::connect_cb);
+		auto creq = setConnectionReq(lis);
+		uv_pipe_connect(creq, RAWH(), name, UvContext::handle_connect_cb);
 	}
 }

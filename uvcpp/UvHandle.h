@@ -24,19 +24,21 @@ namespace uvcpp {
 		UvHandle();
 		virtual ~UvHandle();
 
-		void close(CloseLis lis=nullptr);
+		virtual void close(CloseLis lis=nullptr);
 
 		uv_handle_t* getRawHandle();
 
 
 		uv_loop_t* getLoop();
 
-		int write(const char *buf, size_t len);
-		int write(const std::string& msg);
-		int send(const char* buf, size_t len, const struct sockaddr* addr);
 	private:
-		CloseLis _clis;
+		enum HANDLE_STATUS {
+			IDLE,
+			INITIALIZED,
+			CLOSING,
+		};
 		UvContext *_ctx;
+		HANDLE_STATUS _status;
 
 	protected:
 		HandleHolder* _handleHolder;

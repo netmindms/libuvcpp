@@ -68,6 +68,7 @@ TEST(basic, fdtimer) {
 		UvContext ctx;
 		ctx.openWithDefaultLoop();
 		UvFdTimer timer;
+		timer.init();
 		timer.set(100, 100, [&]() {
 			ald("timer expired");
 			expire_cnt += timer.getFireCount();
@@ -110,16 +111,17 @@ TEST(basic, tcp) {
 		child.setOnCnnLis([&](int status) {
 			if(status) {
 				ald("child cnn disconnected");
-				child.close(nullptr);
+				child.close();
 			}
 		});
-	}, 10);
+	});
 
 	ret = client.init();
 	client.connect("127.0.0.1", 9090, [&](int status) {
 		if(!status) {
 			ald("connected");
 			client.readStart([&](upUvReadBuffer upbuf) {
+				ald("client on read");
 				recvstr.assign(upbuf->buffer, upbuf->size);
 				client.close();
 				server.close();
@@ -127,10 +129,10 @@ TEST(basic, tcp) {
 			client.write(teststr);
 		} else {
 			ald("disconnected");
-			client.close(nullptr);
+			client.close();
+			server.close();
 		}
 	});
-//	client.close();
 	ctx.run();
 	uv_loop_close(ctx.getLoop());
 	ASSERT_STREQ(teststr.c_str(), recvstr.c_str());
@@ -270,14 +272,21 @@ TEST(basic, closecb) {
 	UvContext ctx;
 	ctx.openWithDefaultLoop();
 	int cnt=0;
+	int closeCnt=0;
 	UvTimer timer;
+	timer.init();
 	timer.start(100, 100, [&]() {
 		cnt++;
-		timer.stop();
+		timer.stop(false);
+		timer.close([&](){
+			ald("timer closed");
+			closeCnt++;
+		});
 	});
 	ctx.run();
 	uv_loop_close(ctx.getLoop());
 	ASSERT_EQ(1, cnt);
+	ASSERT_EQ(1, closeCnt);
 }
 
 

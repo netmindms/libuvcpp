@@ -21,8 +21,6 @@ namespace uvcpp {
 		int bind(const char* name);
 
 		void connect(const char* name, UvStream::CnnLis lis);
-	private:
-		uv_connect_t _cnnReq;
 	};
 }
 

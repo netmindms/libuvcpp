@@ -32,10 +32,11 @@ namespace uvcpp {
 		mTimerSpec.it_value.tv_nsec = (iusec % 1000000) * 1000;
 
 		timerfd_settime(_fd, 0, &mTimerSpec, NULL);
-		UvPoll::start(UV_READABLE, [&](int events) {
+		auto ret = UvPoll::start(UV_READABLE, [&](int events) {
 			read(_fd, &_fireCount, sizeof(_fireCount));
 			_lis();
 		});
+		assert(!ret);
 	}
 
 	void UvFdTimer::set(uint64_t expire, uint64_t period, Lis lis) {

@@ -45,13 +45,22 @@ namespace uvcpp {
 	}
 
 
-	int UvUdp::send(const char *buf, size_t len, const struct sockaddr *addr) {
-		return UvHandle::send(buf, len, addr);
+	int UvUdp::send(const char* buf, size_t len, const struct sockaddr* addr) {
+		auto upsd = _handleHolder->sendReqQue.allocObj();
+		upsd->fillBuf(buf, len);
+		upsd->req.data = _handleHolder;
+		auto ret = uv_udp_send(&upsd->req, (uv_udp_t*)RAWH(), &upsd->uvBuf, 1, addr, UvContext::handle_send_cb);
+		if(!ret) {
+			_handleHolder->sendReqQue.push(move(upsd));
+		} else {
+			assert(0);
+		}
+		return ret;
 	}
 
 	int UvUdp::send(const char *buf, size_t len) {
 		if(_remoteAddr) {
-			return UvHandle::send(buf, len, _remoteAddr);
+			return send(buf, len, _remoteAddr);
 		} else {
 			assert(0);
 			return -1;

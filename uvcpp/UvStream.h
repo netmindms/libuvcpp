@@ -12,6 +12,7 @@
 
 namespace uvcpp {
 	class UvStream : public UvHandle {
+		friend class UvContext;
 	public:
 		typedef std::function<void(std::unique_ptr<UvReadBuffer>)> ReadLis;
 		typedef std::function<void()> ListenLis;
@@ -27,22 +28,22 @@ namespace uvcpp {
 
 		int accept(UvStream* newtcp);
 
+		int write(const char *buf, size_t len);
+
+		int write(const std::string &msg);
+
 		void setOnCnnLis(CnnLis lis);
 
-		void setOnReadLis(ReadLis lis);
-
-		void setConnectionReq(CnnLis lis);
+	protected:
+		uv_connect_t* setConnectionReq(CnnLis lis);
 
 	private:
-		CnnLis _cnnLis;
 		ReadLis _readLis;
+		CnnLis _cnnLis;
 		ListenLis _listenLis;
-
-		static void read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf);
-		static void connection_cb(uv_stream_t *server, int status);
-
-	protected:
-		static void connect_cb(uv_connect_t *puvcnn, int status);
+		void procReadCallback(upUvReadBuffer upbuf);
+		void procConnectCallback(int status);
+		void procListenCallback(int status);
 	};
 }
 
