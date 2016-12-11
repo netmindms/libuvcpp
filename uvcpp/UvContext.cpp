@@ -16,58 +16,62 @@ std::atomic_uint _gHandleIdSeed;
 using namespace std;
 namespace uvcpp {
 
-	thread_local UvContext *_gEdContext=nullptr;
+	thread_local UvContext *_gUvContext=nullptr;
 
 	UvContext::UvContext() {
 		_loop = nullptr;
 		_createLoop = false;
 		_pendingHandleCnt = 0;
 		_handleLast = nullptr;
-		_handleIdSeed = 0;
 	}
 
 	UvContext::~UvContext() {
-		close();
+
 	}
 
 
 	void UvContext::open(uv_loop_t *loop) {
-		if(_gEdContext) {
+		if(_gUvContext) {
 			alw("*** UvContext already opened. UvContext is a singletone object.");
 			return;
 		}
+		auto ctx = new UvContext();
+
 		if(!loop) {
-			_loop = new uv_loop_t;
-			_createLoop = true;
-			loop = _loop;
-			uv_loop_init(_loop);
+			ctx->_loop = new uv_loop_t;
+			ctx->_createLoop = true;
+			loop = ctx->_loop;
+			uv_loop_init(ctx->_loop);
 		}
-		_loop = loop;
-		_gEdContext = this;
-		memset(&_prepareHandle, 0, sizeof(_prepareHandle));
+		ctx->_loop = loop;
+		_gUvContext = ctx;
 	}
 
 	void UvContext::openWithDefaultLoop() {
-		open(uv_default_loop());
+		UvContext::open(uv_default_loop());
 	}
 
 
 	void UvContext::close() {
-		assert(_handleLast==nullptr);
-		if (_createLoop) {
-			if (_loop) {
-				uv_loop_close(_loop);
-				delete _loop;
-				_loop = nullptr;
+		if(_gUvContext) {
+			auto ctx = _gUvContext;
+			assert(ctx->_handleLast == nullptr);
+			if (ctx->_createLoop) {
+				if (ctx->_loop) {
+					uv_loop_close(ctx->_loop);
+					delete ctx->_loop;
+					ctx->_loop = nullptr;
+				}
+				ctx->_createLoop = false;
 			}
-			_createLoop = false;
+			delete ctx;
+			_gUvContext = nullptr;
 		}
-		_gEdContext = nullptr;
 	}
 
 	UvContext *UvContext::getContext() {
-		assert(_gEdContext);
-		return _gEdContext;
+		assert(_gUvContext);
+		return _gUvContext;
 	}
 
 
@@ -77,8 +81,9 @@ namespace uvcpp {
 
 
 
-	int UvContext::run() {
-		return uv_run(_loop, UV_RUN_DEFAULT);
+	int UvContext::run(uv_run_mode mode) {
+		assert(_gUvContext);
+		return uv_run(_gUvContext->_loop, mode);
 	}
 
 	void UvContext::handle_close_cb(uv_handle_t *phandle) {
@@ -161,8 +166,6 @@ namespace uvcpp {
 		assert(holder);
 		auto up =holder->sendReqQue.pop();
 		holder->sendReqQue.recycleObj(move(up));
-		//auto uvh = (UvUdp*)holder->uvh;
-
 	}
 
 	void UvContext::handle_read_alloc_cb(uv_handle_t *handle, size_t suggesited_size, uv_buf_t *puvbuf) {
@@ -195,16 +198,10 @@ namespace uvcpp {
 			if(holder->uvh) {
 				uprbuf->size = nread;
 				((UvStream*)holder->uvh)->procReadCallback(move(uprbuf));
-//				if (holder->readLis) {
-//					holder->readLis(move(uprbuf));
-//				}
 			}
 		} else if(nread == UV_EOF) {
 			if(holder->uvh) {
 				((UvStream*)holder->uvh)->procConnectCallback(-1);
-//				if(holder->cnnLis) {
-//					holder->cnnLis(-1);
-//				}
 			}
 		} else {
 			assert(0);

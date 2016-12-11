@@ -38,8 +38,7 @@ TEST(basic, ipc) {
 
 	Ipc ipc;
 	thread subtask = thread([&](){
-		UvContext subctx;
-		subctx.open();
+		UvContext::open();
 		ipc.open([&](IpcMsg& msg) {
 			ald("msg recv: id=%u, p1=%u, p2=%u", msg.msgId, msg.param1, msg.param2);
 			if(msg.msgId == 1000) {
@@ -60,10 +59,10 @@ TEST(basic, ipc) {
 				msg.returnValue = sendCnt;
 			}
 		});
-		subctx.run();
-		subctx.close();
+		UvContext::run();
+		UvContext::close();
 	});
-	this_thread::sleep_for(chrono::milliseconds(100));
+	this_thread::sleep_for(chrono::milliseconds(300));
 	ipc.postMsg(1000, 1, 2, unique_ptr<MyMsgObj>( new MyMsgObj(teststr)));
 	ipc.postMsg(1000, 1, 2, unique_ptr<MyMsgObj>( new MyMsgObj(teststr)));
 	ipc.postMsg(1000, 1, 2, unique_ptr<MyMsgObj>( new MyMsgObj(teststr)));
@@ -82,6 +81,9 @@ TEST(basic, ipc) {
 }
 
 TEST(basic, msgtask) {
+#define UM_POST (MsgTask::TM_USER+1)
+#define UM_SEND (MsgTask::TM_USER+2)
+
 	class MyTask: public MsgTask {
 	public:
 		UvTimer _timer;
@@ -91,21 +93,31 @@ TEST(basic, msgtask) {
 			if(msg.msgId == MsgTask::TM_INIT) {
 				ald("task init");
 				_cnt = 0;
+				this_thread::sleep_for(chrono::milliseconds(200));
+				startcheck = 1;
+			} else if(msg.msgId == MsgTask::TM_CLOSE) {
+				ald("task closing");
+				_timer.stop();
+			} else if(msg.msgId == UM_POST) {
 				_timer.init();
 				_timer.start(100, 100, [this]() {
 					ald("task timer expired");
 					_cnt++;
 				});
-				startcheck = 1;
-			} else if(msg.msgId == MsgTask::TM_CLOSE) {
-				ald("task closing");
-				_timer.stop();
+			} else if(msg.msgId == UM_SEND) {
+				this_thread::sleep_for(chrono::milliseconds(200));
+				int* psendresult = (int*)msg.sendUserData;
+				*psendresult += 100;
 			}
 		}
 	};
 	MyTask task;
 	task.start(nullptr);
 	ASSERT_EQ(1, task.startcheck);
+	int sendresult=100;
+	task.sendMsg(UM_SEND, 0, 0, &sendresult);
+	ASSERT_EQ(200, sendresult);
+	task.postMsg(UM_POST);
 	this_thread::sleep_for(chrono::milliseconds(280));
 	task.stop();
 	ASSERT_EQ(2, task._cnt);

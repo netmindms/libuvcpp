@@ -23,6 +23,10 @@ namespace uvcpp {
 
 		int start(void* arg=nullptr);
 		void stop();
+		int postMsg(uint32_t msgid, uint32_t p1=0, uint32_t p2=0, upUvObj userobj=nullptr);
+
+		int sendMsg(uint32_t msgid, uint32_t p1=0, uint32_t p2=0, void* userdata=nullptr);
+
 		void postExit();
 		void wait();
 		void setOnListener(Lis lis);

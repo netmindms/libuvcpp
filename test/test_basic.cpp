@@ -39,10 +39,10 @@ TEST(basic, timer) {
 	int expire_cnt=0;
 	bool bexit=false;
 	std::thread thr = thread([&]() {
-		UvContext ctx;
-		ctx.open(uv_default_loop());
+		UvContext::open();
 		UvTimer timer;
-		timer.init();
+		auto ret = timer.init();
+		assert(!ret);
 		timer.start(100, 100, [&]() {
 			ald("timer expired");
 			expire_cnt++;
@@ -50,12 +50,12 @@ TEST(basic, timer) {
 				timer.stop();
 			}
 		});
-		uv_run(uv_default_loop(), UV_RUN_DEFAULT);
-		uv_loop_close(uv_default_loop());
+		UvContext::run();
+		UvContext::close();
 	});
 
-	std::this_thread::sleep_for(chrono::milliseconds(550));
-	ASSERT_EQ(5, expire_cnt);
+	std::this_thread::sleep_for(chrono::milliseconds(1020));
+	ASSERT_EQ(10, expire_cnt);
 	bexit = true;
 	thr.join();
 }
@@ -65,8 +65,7 @@ TEST(basic, fdtimer) {
 	uint64_t expire_cnt=0;
 	bool bexit=false;
 	std::thread thr = thread([&]() {
-		UvContext ctx;
-		ctx.openWithDefaultLoop();
+		UvContext::openWithDefaultLoop();
 		UvFdTimer timer;
 		timer.init();
 		timer.set(100, 100, [&]() {
@@ -76,8 +75,8 @@ TEST(basic, fdtimer) {
 				timer.kill();
 			}
 		});
-		uv_run(uv_default_loop(), UV_RUN_DEFAULT);
-		uv_loop_close(ctx.getLoop());
+		UvContext::run();
+		UvContext::close();
 	});
 
 	std::this_thread::sleep_for(chrono::milliseconds(590));
@@ -90,14 +89,13 @@ TEST(basic, fdtimer) {
 #endif
 
 TEST(basic, tcp) {
-	UvContext ctx;
 	UvTcp client;
 	UvTcp server;
 	UvTcp child;
 	std::string teststr="test string";
 	std::string recvstr;
 
-	ctx.openWithDefaultLoop();
+	UvContext::open();
 	int ret;
 	server.init();
 	server.bindAndListen(9090, "127.0.0.1", [&]() {
@@ -133,8 +131,8 @@ TEST(basic, tcp) {
 			server.close();
 		}
 	});
-	ctx.run();
-	uv_loop_close(ctx.getLoop());
+	UvContext::run();
+	UvContext::close();
 	ASSERT_STREQ(teststr.c_str(), recvstr.c_str());
 }
 
@@ -143,12 +141,11 @@ TEST(basic, udp) {
 	string recvstr;
 	string testmsg = "test message";
 
-	UvContext ctx;
 	UvUdp senderUdp;
 	UvUdp recvUdp;
 	int ret;
 	sockaddr_in inaddr;
-	ctx.openWithDefaultLoop();
+	UvContext::open();
 	recvUdp.init();
 	uv_ip4_addr("127.0.0.1", 17000, &inaddr);
 	recvUdp.bind((sockaddr*)&inaddr);
@@ -169,16 +166,14 @@ TEST(basic, udp) {
 		assert(0);
 	});
 
-	ctx.run();
-//	ctx.close();
-	uv_loop_close(ctx.getLoop());
+	UvContext::run();
+	UvContext::close();
 
 	ASSERT_STREQ(testmsg.c_str(), recvstr.c_str());
 }
 
 TEST(basic, check) {
-	UvContext ctx;
-	ctx.openWithDefaultLoop();
+	UvContext::open();
 	UvCheck chk;
 	UvTimer timer;
 	int ret;
@@ -193,14 +188,13 @@ TEST(basic, check) {
 		ald("timer expired");
 		timer.stop();
 	});
-	ctx.run();
-	uv_loop_close(ctx.getLoop());
+	UvContext::run();
+	UvContext::close();
 	ald("test end");
 }
 
 TEST(basic, prepare) {
-	UvContext ctx;
-	ctx.openWithDefaultLoop();
+	UvContext::open();
 
 	UvPrepare prepare;
 	prepare.init();
@@ -208,13 +202,12 @@ TEST(basic, prepare) {
 		ald("prepare callback");
 		prepare.stop();
 	});
-	ctx.run();
-	uv_loop_close(ctx.getLoop());
+	UvContext::run();
+	UvContext::close();
 }
 
 TEST(basic, async) {
-	UvContext ctx;
-	ctx.openWithDefaultLoop();
+	UvContext::open();
 	int cnt=0;
 	UvAsync async;
 	async.init([&]() {
@@ -224,14 +217,13 @@ TEST(basic, async) {
 	});
 	auto ret = async.send();
 	assert(!ret);
-	ctx.run();
-	uv_loop_close(ctx.getLoop());
+	UvContext::run();
+	UvContext::close();
 	ASSERT_EQ(1, cnt);
 }
 
 TEST(basic, idle) {
-	UvContext ctx;
-	ctx.openWithDefaultLoop();
+	UvContext::open();
 	int cnt=0;
 	UvIdle idle;
 	idle.init();
@@ -240,8 +232,8 @@ TEST(basic, idle) {
 		cnt++;
 		idle.stop();
 	});
-	ctx.run();
-	uv_loop_close(ctx.getLoop());
+	UvContext::run();
+	UvContext::close();
 	ASSERT_EQ(1, cnt);
 }
 
@@ -269,8 +261,7 @@ TEST(basic, tty) {
 #endif
 
 TEST(basic, closecb) {
-	UvContext ctx;
-	ctx.openWithDefaultLoop();
+	UvContext::open();
 	int cnt=0;
 	int closeCnt=0;
 	UvTimer timer;
@@ -283,8 +274,8 @@ TEST(basic, closecb) {
 			closeCnt++;
 		});
 	});
-	ctx.run();
-	uv_loop_close(ctx.getLoop());
+	UvContext::run();
+	UvContext::close();
 	ASSERT_EQ(1, cnt);
 	ASSERT_EQ(1, closeCnt);
 }
@@ -336,12 +327,12 @@ TEST(basic, poll) {
 		int _fireCnt;
 	};
 
-	UvContext ctx;
-	ctx.openWithDefaultLoop();
+	UvContext::open();
+
 	PollFdTimer fdTimer;
 	fdTimer.set();
-	ctx.run();
-	uv_loop_close(ctx.getLoop());
+	UvContext::run();
+	UvContext::close();
 	ASSERT_EQ(1, fdTimer._fireCnt);
 
 
@@ -354,8 +345,7 @@ TEST(basic, pipe) {
 	unlink("pipec");
 	unlink("pipes");
 
-	UvContext ctx;
-	ctx.openWithDefaultLoop();
+	UvContext::open();
 
 	int ret;
 	UvPipe pc;
@@ -400,11 +390,7 @@ TEST(basic, pipe) {
 		}
 	});
 
-
-	ctx.run();
-	ctx.close();
-
-	uv_loop_close(ctx.getLoop());
-
+	UvContext::run();
+	UvContext::close();
 }
 #endif

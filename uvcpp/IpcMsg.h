@@ -17,7 +17,7 @@ namespace uvcpp {
 		uint32_t param1;
 		uint32_t param2;
 		std::unique_ptr<UvObj> _upUserObj;
-
+		void* sendUserData;
 		std::condition_variable* msgCv;
 		std::mutex* msgMutex;
 		bool isSync;

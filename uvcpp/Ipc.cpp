@@ -54,7 +54,7 @@ namespace uvcpp {
 		alv("ipc closeHandle ok");
 	}
 
-	int Ipc::postMsg(uint32_t msgid, int p1, int p2, upUvObj userobj) {
+	int Ipc::postMsg(uint32_t msgid, uint32_t p1, uint32_t p2, upUvObj userobj) {
 		ald("postMsg, msgid=%u, p1=%d, p2=%d", msgid, p1, p2);
 		_msgQue.lock();
 		auto upmsg = _msgQue.allocObj();
@@ -69,7 +69,7 @@ namespace uvcpp {
 		return 0;
 	}
 
-	int Ipc::sendMsg(uint32_t msgid, int p1, int p2, upUvObj userobj) {
+	int Ipc::sendMsg(uint32_t msgid, uint32_t p1, uint32_t p2, void* userdata) {
 		upIpcMsg upmsg;
 		_msgQue.lock();
 
@@ -77,7 +77,8 @@ namespace uvcpp {
 		upmsg->msgId = msgid;
 		upmsg->param1 = p1;
 		upmsg->param2 = p2;
-		upmsg->_upUserObj = move(userobj);
+//		upmsg->_upUserObj = move(userobj);
+		upmsg->sendUserData = userdata;
 		std::mutex mtx;
 		std::condition_variable cv;
 		upmsg->msgMutex = &mtx;

@@ -25,8 +25,7 @@ namespace uvcpp {
 
 		std::unique_lock<mutex> ulock(startMutex);
 		_msgThread = thread([&, this]() {
-			UvContext ctx;
-			ctx.open();
+			UvContext::open();
 			std::unique_lock<mutex> tlock(startMutex);
 			_ipc.open([&](IpcMsg& msg) {
 				OnMsgProc(msg);
@@ -42,8 +41,8 @@ namespace uvcpp {
 			startSync.notify_one();
 			tlock.unlock();
 
-			ctx.run();
-			ctx.close();
+			UvContext::run();
+			UvContext::close();
 		});
 		startSync.wait(ulock);
 		ald("task starting sync ok");
@@ -76,5 +75,13 @@ namespace uvcpp {
 
 	void MsgTask::setOnListener(MsgTask::Lis lis) {
 		_lis = lis;
+	}
+
+	int MsgTask::postMsg(uint32_t msgid, uint32_t p1, uint32_t p2, upUvObj userobj) {
+		return _ipc.postMsg(msgid, p1, p2, move(userobj));
+	}
+
+	int MsgTask::sendMsg(uint32_t msgid, uint32_t p1, uint32_t p2, void* userdata) {
+		return _ipc.sendMsg(msgid, p1, p2, userdata);
 	}
 }
