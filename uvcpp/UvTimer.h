@@ -29,6 +29,8 @@ namespace uvcpp {
 
 		void stop(bool close=true);
 
+		void setRepeat(uint64_t repeat);
+
 	private:
 		Lis _lis;
 		static void timer_cb(uv_timer_t* handle);

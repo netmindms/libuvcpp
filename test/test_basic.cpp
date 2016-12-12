@@ -19,9 +19,11 @@
 #include "../uvcpp/UvPoll.h"
 #include "../uvcpp/UvTty.h"
 #include "../uvcpp/UvPipe.h"
+#include "../uvcpp/PeriodicTimer.h"
 
 using namespace std;
 using namespace uvcpp;
+using namespace chrono;
 
 static void test_close_cb(uv_handle_t* handle) {
 	ald("test close callback");
@@ -40,22 +42,31 @@ TEST(basic, timer) {
 	bool bexit=false;
 	std::thread thr = thread([&]() {
 		UvContext ctx;
+		std::chrono::system_clock::time_point prefire;
 		ctx.open(uv_default_loop());
 		UvTimer timer;
 		timer.init();
-		timer.start(100, 100, [&]() {
+		prefire = std::chrono::system_clock::now();
+		timer.start(1000, 1000, [&]() {
 			ald("timer expired");
 			expire_cnt++;
 			if (bexit) {
 				timer.stop();
 			}
+			auto ct = system_clock::now();
+			auto dur = (ct - prefire);
+			auto msec = (dur.count()/1000000 - 1000);
+			ald("timer diff=%lld", msec);
+			timer.setRepeat(1000 - msec);
+			prefire += system_clock::duration(1000000000);
+
 		});
 		uv_run(uv_default_loop(), UV_RUN_DEFAULT);
 		uv_loop_close(uv_default_loop());
 	});
 
-	std::this_thread::sleep_for(chrono::milliseconds(550));
-	ASSERT_EQ(5, expire_cnt);
+	std::this_thread::sleep_for(chrono::milliseconds(105000));
+	ASSERT_EQ(10, expire_cnt);
 	bexit = true;
 	thr.join();
 }
@@ -338,6 +349,8 @@ TEST(basic, poll) {
 
 }
 
+#endif
+
 TEST(basic, pipe) {
 	std::string teststr="test";
 	std::string recvstr="test";
@@ -398,4 +411,30 @@ TEST(basic, pipe) {
 	uv_loop_close(ctx.getLoop());
 
 }
-#endif
+
+
+TEST(basic, periodictimer) {
+	int fireCnt=0;
+	bool bexit=false;
+	std::thread thr = thread([&]() {
+		UvContext ctx;
+		ctx.openWithDefaultLoop();
+		PeriodicTimer timer;
+		int ret = timer.start(100, [&]() {
+			ald("timer expired...");
+			if(bexit) {
+				timer.stop();
+			} else {
+				fireCnt++;
+			}
+		});
+		ASSERT_EQ(0, ret);
+		ctx.run();
+		ctx.close();
+		uv_loop_close(uv_default_loop());
+	});
+	std::this_thread::sleep_for(chrono::milliseconds(5080));
+	bexit = true;
+	thr.join();
+	ASSERT_EQ(50, fireCnt);
+}
