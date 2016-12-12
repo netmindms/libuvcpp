@@ -29,16 +29,9 @@ namespace uvcpp {
 
 		int connect(const char *ipaddr, uint16_t port, UvStream::CnnLis lis);
 
-//		int accept(UvTcp *newcnn);
-
 		int bind(const struct sockaddr *addr, unsigned int flags);
 
-
 		int bindAndListen(uint16_t port, const char *ipaddr, UvStream::ListenLis lis, int backlogs = 128);
-
-
-	private:
-		uv_connect_t _cnnHandle;
 
 	};
 }

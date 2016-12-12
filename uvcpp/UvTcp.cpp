@@ -7,7 +7,6 @@
 
 #include "UvTcp.h"
 #include "uvcpplog.h"
-#include "UvEvent.h"
 
 using namespace std;
 
@@ -16,7 +15,6 @@ using namespace std;
 
 namespace uvcpp {
 	UvTcp::UvTcp() {
-		_cnnHandle.data = nullptr;
 	}
 
 	UvTcp::~UvTcp() {
@@ -28,24 +26,8 @@ namespace uvcpp {
 		sockaddr_in req_addr;
 		uv_ip4_addr(ipaddr, port, &req_addr);
 		setConnectionReq(lis);
-//		_cnnHandle.data = (void *) this;
-//		setOnCnnLis(lis);
 		return uv_tcp_connect(&_handleHolder->cnnReq, RAWH(), (struct sockaddr *) &req_addr, UvContext::handle_connect_cb);
 	}
-
-
-//	int UvTcp::accept(UvTcp* newtcp) {
-//		auto newrawh = (uv_stream_t *)newtcp->getRawHandle();
-//		auto ret = uv_accept((uv_stream_t *) RAWH(), newrawh);
-//		if (!ret) {
-//			return ret;
-//		} else {
-//			ale("### accept error");
-//			assert(0);
-//			newtcp->close();
-//			return -1;
-//		}
-//	}
 
 
 	int UvTcp::bind(const struct sockaddr *addr, unsigned int flags) {
@@ -60,10 +42,11 @@ namespace uvcpp {
 	}
 
 	int UvTcp::init() {
-		initHandle();
-		return uv_tcp_init(getLoop(), RAWH());
+		auto ret = initHandle();
+		if(!ret) {
+			return uv_tcp_init(getLoop(), RAWH());
+		} else {
+			return ret;
+		}
 	}
-
-
-
 }

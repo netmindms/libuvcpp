@@ -34,14 +34,18 @@ namespace uvcpp {
 	}
 
 	int UvUdp::init() {
-		initHandle();
-		return uv_udp_init(getLoop(), RAWH());
+		auto ret = initHandle();
+		if(!ret) {
+			return uv_udp_init(getLoop(), RAWH());
+		} else {
+			return ret;
+		}
 	}
 
 
-	int UvUdp::recvStart(ReadLis lis) {
-		_readLis = lis;
-		return uv_udp_recv_start(RAWH(), UvContext::handle_read_alloc_cb, recv_cb);
+	int UvUdp::recvStart(RecvLis lis) {
+		_recvLis = lis;
+		return uv_udp_recv_start(RAWH(), UvContext::handle_read_alloc_cb, UvContext::handle_recv_cb);
 	}
 
 
@@ -83,34 +87,14 @@ namespace uvcpp {
 		uv_ip4_addr(ipaddr, port, (sockaddr_in*)_remoteAddr);
 	}
 
-
-//	void UvUdp::alloc_cb(uv_handle_t *handle, size_t suggesited_size, uv_buf_t *puvbuf) {
-//		auto udp = GETOBJH(handle);
-//		auto uprbuf = udp->_readBufQue.allocObj();
-//		auto tbuf = uprbuf->allocBuffer(suggesited_size);
-//		puvbuf->len = tbuf.first;
-//		puvbuf->base = tbuf.second;
-//		udp->_readBufQue.push(move(uprbuf));
-//	}
-
-	void UvUdp::recv_cb(uv_udp_t *handle, ssize_t nread, const uv_buf_t *buf, const struct sockaddr *addr, unsigned flags) {
-		alv("readcb, nread=%d", nread);
-		auto holder = (HandleHolder*)handle->data;
-		assert(holder);
-		auto udb = GETOBJH(handle);
-		auto uprbuf = holder->readBufQue.pop();
-		if (nread >= 0) { // TODO:
-			uprbuf->size = nread;
-			if (udb->_readLis) {
-				udb->_readLis(addr, move(uprbuf));
-			}
-		} else {
-			assert(0);
-		}
-	}
-
 	int UvUdp::recvStop() {
 		return uv_udp_recv_stop(RAWH());
+	}
+
+	void UvUdp::procRecvCallback(upUvReadBuffer upbuf, const struct sockaddr *addr, unsigned flags) {
+		if(_status == UvHandle::INITIALIZED) {
+			_recvLis(move(upbuf), addr, flags);
+		}
 	}
 
 

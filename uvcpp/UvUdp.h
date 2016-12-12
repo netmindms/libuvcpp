@@ -15,8 +15,9 @@
 namespace uvcpp {
 
 	class UvUdp : public UvHandle {
+		friend class UvContext;
 	public:
-		typedef std::function<void(const struct sockaddr *, std::unique_ptr<UvReadBuffer>)> ReadLis;
+		typedef std::function<void(std::unique_ptr<UvReadBuffer>, const struct sockaddr *, unsigned)> RecvLis;
 		UvUdp();
 		virtual ~UvUdp();
 		int init();
@@ -27,15 +28,13 @@ namespace uvcpp {
 		int send(const std::string& msg);
 		int send(const std::string& msg, const sockaddr* addr);
 		void setRemoteIpV4Addr(const char* ipaddr, uint16_t port);
-		int recvStart(ReadLis lis);
+		int recvStart(RecvLis lis);
 		int recvStop();
 	private:
 		sockaddr* _remoteAddr;
-		ReadLis _readLis;
-//		ObjQue<UvReadBuffer> _readBufQue;
+		RecvLis _recvLis;
 
-//		static void alloc_cb(uv_handle_t *handle, size_t suggesited_size, uv_buf_t *puvbuf);
-		static void recv_cb(uv_udp_t *handle, ssize_t nread, const uv_buf_t *buf, const struct sockaddr *addr, unsigned flags);
+		void procRecvCallback(upUvReadBuffer upbuf, const struct sockaddr *addr, unsigned flags);
 	};
 
 }

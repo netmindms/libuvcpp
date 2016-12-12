@@ -20,11 +20,13 @@ namespace uvcpp {
 	}
 
 	int UvAsync::init(Lis lis) {
-		initHandle();
-		auto ctx = UvContext::getContext();
-		_lis = lis;
-		uv_async_init(getLoop(), RAWH(), async_cb);
-		return 0;
+		auto ret = initHandle();
+		if(!ret) {
+			_lis = lis;
+			return uv_async_init(getLoop(), RAWH(), async_cb);
+		} else {
+			return ret;
+		}
 	}
 
 	void UvAsync::async_cb(uv_async_t *rawh) {
@@ -33,6 +35,7 @@ namespace uvcpp {
 	}
 
 	int UvAsync::send() {
+
 		return uv_async_send(RAWH());
 	}
 

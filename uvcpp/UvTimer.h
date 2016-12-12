@@ -25,7 +25,7 @@ namespace uvcpp {
 
 		int start(uint64_t period, uint64_t first_expire, Lis lis);
 
-		void reset();
+		void again();
 
 		void stop(bool close=true);
 

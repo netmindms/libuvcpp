@@ -30,7 +30,7 @@ namespace uvcpp {
 		std::function<void()> closeLis;
 		uv_connect_t cnnReq;
 
-		std::string handleName;
+		std::string handleName; // for debugging
 	};
 }
 #endif //UVCPPPRJ_HANDLEHODER_H

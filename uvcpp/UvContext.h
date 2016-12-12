@@ -38,15 +38,15 @@ namespace uvcpp {
 		int handleCount();
 
 
-		static void handle_close_cb(uv_handle_t *phandle);
 		void closeHandle(HandleHolder* holder);
-
+		static void handle_close_cb(uv_handle_t *phandle);
 		static void handle_write_cb(uv_write_t *req, int status);
 		static void handle_send_cb(uv_udp_send_t* req, int status);
 		static void handle_read_alloc_cb(uv_handle_t *handle, size_t suggesited_size, uv_buf_t *puvbuf);
 		static void handle_connect_cb(uv_connect_t *puvcnn, int status);
 		static void handle_read_cb(uv_stream_t *handle, ssize_t nread, const uv_buf_t *buf);
 		static void handle_listen_cb(uv_stream_t *server, int status);
+		static void handle_recv_cb(uv_udp_t *handle, ssize_t nread, const uv_buf_t *buf, const struct sockaddr *addr, unsigned flags);
 
 	private:
 		bool _createLoop;

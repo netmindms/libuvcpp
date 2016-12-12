@@ -19,7 +19,11 @@ namespace uvcpp {
 	}
 
 	int UvTty::init(uv_file fd, int readable) {
-		initHandle();
-		return uv_tty_init(getLoop(), RAWH(), fd, readable);
+		auto ret = initHandle();
+		if(!ret) {
+			return uv_tty_init(getLoop(), RAWH(), fd, readable);
+		} else {
+			return ret;
+		}
 	}
 }

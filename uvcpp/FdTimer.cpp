@@ -10,19 +10,19 @@
 #include "uvcpplog.h"
 #include <sys/timerfd.h>
 
-#include "UvFdTimer.h"
+#include "FdTimer.h"
 #define RAWH() ((uv_idle_t*)getRawHandle())
 #define GETOBJH(H) ((UvIdle*)(((HandleHolder*)H->data))->uvh)
 namespace uvcpp {
-	UvFdTimer::UvFdTimer() {
+	FdTimer::FdTimer() {
 		_fireCount = 0;
 	}
 
-	UvFdTimer::~UvFdTimer() {
+	FdTimer::~FdTimer() {
 		kill();
 	}
 
-	void UvFdTimer::setUsec(uint64_t usec, uint64_t first_usec, Lis lis) {
+	void FdTimer::setUsec(uint64_t usec, uint64_t first_usec, Lis lis) {
 		_lis = lis;
 
 		mTimerSpec.it_interval.tv_sec = usec / 1000000;
@@ -39,36 +39,36 @@ namespace uvcpp {
 		assert(!ret);
 	}
 
-	void UvFdTimer::set(uint64_t expire, uint64_t period, Lis lis) {
+	void FdTimer::set(uint64_t expire, uint64_t period, Lis lis) {
 		setUsec(expire * 1000, period * 1000, lis);
 	}
 
-	void UvFdTimer::reset() {
+	void FdTimer::reset() {
 		pause();
 		resume();
 	}
 
-	void UvFdTimer::kill(bool isclose) {
+	void FdTimer::kill(bool isclose) {
 		UvPoll::stop(isclose);
 	}
 
-	void UvFdTimer::pause(void) {
+	void FdTimer::pause(void) {
 		struct itimerspec ts;
 		memset(&ts, 0, sizeof(ts));
 		timerfd_settime(_fd, 0, &ts, NULL);
 	}
 
-	void UvFdTimer::resume(void) {
+	void FdTimer::resume(void) {
 		timerfd_settime(_fd, 0, &mTimerSpec, NULL);
 	}
 
 
 
-	uint64_t UvFdTimer::getFireCount() {
+	uint64_t FdTimer::getFireCount() {
 		return _fireCount;
 	}
 
-	int UvFdTimer::init() {
+	int FdTimer::init() {
 		auto fd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
 		ali("timerfd create fd=%d", fd);
 		return UvPoll::init(fd);

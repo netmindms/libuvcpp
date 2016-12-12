@@ -73,19 +73,19 @@ namespace uvcpp {
 	}
 
 	void UvStream::procReadCallback(upUvReadBuffer upbuf) {
-		if(_readLis) {
+		if(_status == UvHandle::INITIALIZED) {
 			_readLis(move(upbuf));
 		}
 	}
 
 	void UvStream::procConnectCallback(int status) {
-		if(_cnnLis) {
+		if(_status == UvHandle::INITIALIZED) {
 			_cnnLis(status);
 		}
 	}
 	void UvStream::procListenCallback(int status) {
 		ald("listen callback, status=%d", status);
-		if(_listenLis) {
+		if(_status == UvHandle::INITIALIZED) {
 			_listenLis();
 		}
 	}

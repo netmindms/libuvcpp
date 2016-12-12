@@ -22,6 +22,7 @@ namespace uvcpp {
 		virtual ~UvStream();
 
 		int readStart(ReadLis lis);
+
 		int readStop();
 
 		int listen(ListenLis lis, int backlogs=128);
@@ -41,6 +42,7 @@ namespace uvcpp {
 		ReadLis _readLis;
 		CnnLis _cnnLis;
 		ListenLis _listenLis;
+
 		void procReadCallback(upUvReadBuffer upbuf);
 		void procConnectCallback(int status);
 		void procListenCallback(int status);

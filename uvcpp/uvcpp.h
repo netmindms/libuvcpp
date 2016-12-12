@@ -6,22 +6,17 @@
 #define UVCPPPRJ_UVCPP_H
 
 #include "UvContext.h"
-#include "UvEvent.h"
 #include "UvAsync.h"
+#include "UvStream.h"
 #include "UvTcp.h"
 #include "UvUdp.h"
 #include "UvCheck.h"
 #include "UvIdle.h"
 #include "UvPoll.h"
 #include "UvTimer.h"
-#include "Ipc.h"
-#include "MsgTask.h"
 #include "UvPrepare.h"
-#include "ObjQue.h"
-
-#ifdef __linux
-#include "UvFdTimer.h"
-#endif
+#include "UvPipe.h"
+#include "UvTty.h"
 
 namespace uvcpp {
 	void SetLogLevel(int level);

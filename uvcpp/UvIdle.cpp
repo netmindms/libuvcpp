@@ -19,8 +19,12 @@ namespace uvcpp {
 	}
 
 	int UvIdle::init() {
-		initHandle();
-		return uv_idle_init(getLoop(), RAWH());
+		auto ret = initHandle();
+		if(!ret) {
+			return uv_idle_init(getLoop(), RAWH());
+		} else {
+			return ret;
+		}
 	}
 
 	void UvIdle::idle_cb(uv_idle_t *rawh) {

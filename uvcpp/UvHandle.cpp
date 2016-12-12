@@ -28,12 +28,13 @@ namespace uvcpp {
 	void UvHandle::close(CloseLis lis) {
 		if(_status == INITIALIZED) {
 			ald("   closing handle, name=%s, cb=%x", _handleHolder->handleName, (long) UvContext::handle_close_cb);
-			_handleHolder->uvh = nullptr;
+
 			if(uv_is_closing(&_handleHolder->rawh.handle)==0) {
 				uv_close(&_handleHolder->rawh.handle, UvContext::handle_close_cb);
 			}
 			if(!lis) {
 				_status = IDLE;
+				_handleHolder->uvh = nullptr;
 				_handleHolder = nullptr;
 			} else {
 				_handleHolder->closeLis = lis;

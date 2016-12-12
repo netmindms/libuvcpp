@@ -19,6 +19,11 @@ namespace uvcpp {
 	class UvHandle {
 		friend class UvContext;
 	public:
+		enum HANDLE_STATUS {
+			IDLE,
+			INITIALIZED,
+			CLOSING,
+		};
 		typedef std::function<void()> CloseLis;
 
 		UvHandle();
@@ -32,15 +37,10 @@ namespace uvcpp {
 		uv_loop_t* getLoop();
 
 	private:
-		enum HANDLE_STATUS {
-			IDLE,
-			INITIALIZED,
-			CLOSING,
-		};
-		UvContext *_ctx;
-		HANDLE_STATUS _status;
 
+		UvContext *_ctx;
 	protected:
+		HANDLE_STATUS _status;
 		HandleHolder* _handleHolder;
 		int initHandle();
 	};

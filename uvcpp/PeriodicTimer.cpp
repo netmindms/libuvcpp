@@ -24,11 +24,12 @@ namespace uvcpp {
 			_fireTime = system_clock::now();
 			_period = system_clock::duration(chrono::milliseconds(msec));
 			_timer.start(msec, msec, [this]() {
+
+				_lis();
 				_fireTime += _period;
 				auto timediff = system_clock::now() - _fireTime;
-//				ald("timediff=%lld", duration_cast<chrono::milliseconds>(timediff).count());
+				ald("timediff=%lld", duration_cast<chrono::milliseconds>(timediff).count());
 				_timer.setRepeat(duration_cast<milliseconds>(_period - timediff).count());
-				_lis();
 
 			});
 		}

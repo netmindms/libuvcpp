@@ -19,8 +19,12 @@ namespace uvcpp {
 	}
 
 	int UvPrepare::init() {
-		initHandle();
-		return uv_prepare_init(getLoop(), RAWH());
+		auto ret = initHandle();
+		if(!ret) {
+			return uv_prepare_init(getLoop(), RAWH());
+		} else {
+			return ret;
+		}
 	}
 
 	void UvPrepare::prepare_cb(uv_prepare_t *rawh) {

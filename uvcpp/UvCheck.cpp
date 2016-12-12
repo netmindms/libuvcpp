@@ -16,12 +16,15 @@ namespace uvcpp {
 	}
 
 	UvCheck::~UvCheck() {
-		close();
 	}
 
 	int UvCheck::init() {
-		initHandle();
-		return uv_check_init(getLoop(), (uv_check_t*)getRawHandle());
+		auto ret = initHandle();
+		if(!ret) {
+			return uv_check_init(getLoop(), (uv_check_t*)getRawHandle());
+		} else {
+			return ret;
+		}
 	}
 
 	void UvCheck::check_cb(uv_check_t *rawh) {
@@ -35,7 +38,6 @@ namespace uvcpp {
 	}
 
 	int UvCheck::start(UvCheck::Lis lis) {
-		assert(_handleHolder);
 		_lis = lis;
 		return uv_check_start((uv_check_t*)getRawHandle(), check_cb);
 	}

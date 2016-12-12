@@ -10,6 +10,7 @@
 #include "uvcpplog.h"
 #include "UvContext.h"
 #include "UvStream.h"
+#include "UvUdp.h"
 
 std::atomic_uint _gHandleIdSeed;
 
@@ -86,14 +87,7 @@ namespace uvcpp {
 		return uv_run(_gUvContext->_loop, mode);
 	}
 
-	void UvContext::handle_close_cb(uv_handle_t *phandle) {
-		assert(phandle->data);
-		auto holder = (HandleHolder*)phandle->data;
-		if(holder->closeLis) {
-			holder->closeLis();
-		}
-		holder->ctx->deleteHandle(holder);
-	}
+
 
 	void UvContext::deleteHandle(HandleHolder *holder) {
 		if (!holder) {
@@ -214,6 +208,35 @@ namespace uvcpp {
 		if(strm) {
 			strm->procListenCallback(status);
 		}
+	}
+
+	void UvContext::handle_recv_cb(uv_udp_t *handle, ssize_t nread, const uv_buf_t *buf, const struct sockaddr *addr, unsigned flags) {
+		alv("readcb, nread=%d", nread);
+		auto holder = (HandleHolder*)handle->data;
+		assert(holder);
+		auto udp = (UvUdp*)(holder->uvh);
+		auto uprbuf = holder->readBufQue.pop();
+		uprbuf->size = nread;
+		if (nread >= 0) { // TODO:
+			if (udp) {
+				udp->procRecvCallback(move(uprbuf), addr, flags);
+			}
+		} else {
+			assert(0);
+		}
+	}
+
+	void UvContext::handle_close_cb(uv_handle_t *phandle) {
+		assert(phandle->data);
+		auto holder = (HandleHolder*)phandle->data;
+		auto uvh = (UvHandle*)holder->uvh;
+		if(uvh) {
+			uvh->_status = UvHandle::IDLE;
+		}
+		if(holder->closeLis) {
+			holder->closeLis();
+		}
+		holder->ctx->deleteHandle(holder);
 	}
 
 }

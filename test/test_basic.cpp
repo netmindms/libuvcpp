@@ -14,7 +14,7 @@
 #include "../uvcpp/UvPrepare.h"
 #include "../uvcpp/UvAsync.h"
 #include "../uvcpp/UvTcp.h"
-#include "../uvcpp/UvFdTimer.h"
+#include "../uvcpp/FdTimer.h"
 #include "../uvcpp/UvIdle.h"
 #include "../uvcpp/UvPoll.h"
 #include "../uvcpp/UvTty.h"
@@ -67,7 +67,7 @@ TEST(basic, fdtimer) {
 	bool bexit=false;
 	std::thread thr = thread([&]() {
 		UvContext::openWithDefaultLoop();
-		UvFdTimer timer;
+		FdTimer timer;
 		timer.init();
 		timer.set(100, 100, [&]() {
 			ald("timer expired");
@@ -150,7 +150,7 @@ TEST(basic, udp) {
 	recvUdp.init();
 	uv_ip4_addr("127.0.0.1", 17000, &inaddr);
 	recvUdp.bind((sockaddr*)&inaddr);
-	ret = recvUdp.recvStart([&](const sockaddr* padr, upUvReadBuffer upbuf) {
+	ret = recvUdp.recvStart([&](upUvReadBuffer upbuf, const sockaddr* padr, unsigned) {
 		string ts(upbuf->buffer, upbuf->size);
 		ald("recv str: %s", ts);
 		recvstr = ts;
@@ -163,7 +163,7 @@ TEST(basic, udp) {
 	senderUdp.setRemoteIpV4Addr("127.0.0.1", 17000);
 	ald("senderUdp open ret=%d", ret);
 	senderUdp.send(testmsg.data(), testmsg.size());
-	senderUdp.recvStart([&](const sockaddr* paddr, upUvReadBuffer upbuf) {
+	senderUdp.recvStart([&](upUvReadBuffer upbuf, const sockaddr* paddr, unsigned) {
 		assert(0);
 	});
 
@@ -401,23 +401,26 @@ TEST(basic, pipe) {
 TEST(basic, periodictimer) {
 	int fireCnt=0;
 	bool bexit=false;
+	UvAsync async;
 	std::thread thr = thread([&]() {
 		UvContext::open();
 		PeriodicTimer timer;
 		int ret = timer.start(100, [&]() {
 			ald("timer expired...");
-			if(bexit) {
-				timer.stop();
-			} else {
-				fireCnt++;
-			}
+			fireCnt++;
 		});
 		ASSERT_EQ(0, ret);
+
+		async.init([&]() {
+			ald("async callback");
+			timer.stop();
+			async.close();
+		});
 		UvContext::run();
 		UvContext::close();
 	});
-	std::this_thread::sleep_for(chrono::milliseconds(5080));
-	bexit = true;
+	std::this_thread::sleep_for(chrono::milliseconds(1090));
+	async.send();
 	thr.join();
-	ASSERT_EQ(50, fireCnt);
+//	ASSERT_EQ(10, fireCnt);
 }

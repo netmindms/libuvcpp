@@ -19,8 +19,12 @@ namespace uvcpp {
 	}
 
 	int UvPipe::init(int ipc) {
-		initHandle();
-		return uv_pipe_init(getLoop(), RAWH(), ipc);
+		auto ret = initHandle();
+		if(!ret) {
+			return uv_pipe_init(getLoop(), RAWH(), ipc);
+		} else {
+			return ret;
+		}
 	}
 
 	int UvPipe::bind(const char *name) {

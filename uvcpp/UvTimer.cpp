@@ -15,11 +15,9 @@ using namespace uvcpp;
 
 namespace uvcpp {
 	UvTimer::UvTimer() {
-
 	}
 
 	UvTimer::~UvTimer() {
-		close();
 	}
 
 	int UvTimer::start(uint64_t period, uint64_t first_expire, Lis lis) {
@@ -28,7 +26,7 @@ namespace uvcpp {
 		return uv_timer_start(RAWH(), timer_cb, first_expire, period);
 	}
 
-	void UvTimer::reset() {
+	void UvTimer::again() {
 		uv_timer_again((uv_timer_t*)getRawHandle());
 	}
 

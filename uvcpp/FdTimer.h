@@ -19,11 +19,11 @@
 
 
 namespace uvcpp {
-	class UvFdTimer: public UvPoll {
+	class FdTimer: public UvPoll {
 	public:
 		typedef std::function<void()> Lis;
-		UvFdTimer();
-		virtual ~UvFdTimer();
+		FdTimer();
+		virtual ~FdTimer();
 		int init();
 		void setUsec(uint64_t expire, uint64_t period, Lis lis);
 		void set(uint64_t expire, uint64_t period, Lis lis);
