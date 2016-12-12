@@ -19,9 +19,11 @@
 #include "../uvcpp/UvPoll.h"
 #include "../uvcpp/UvTty.h"
 #include "../uvcpp/UvPipe.h"
+#include "../uvcpp/PeriodicTimer.h"
 
 using namespace std;
 using namespace uvcpp;
+using namespace chrono;
 
 static void test_close_cb(uv_handle_t* handle) {
 	ald("test close callback");
@@ -53,7 +55,6 @@ TEST(basic, timer) {
 		UvContext::run();
 		UvContext::close();
 	});
-
 	std::this_thread::sleep_for(chrono::milliseconds(1020));
 	ASSERT_EQ(10, expire_cnt);
 	bexit = true;
@@ -338,6 +339,8 @@ TEST(basic, poll) {
 
 }
 
+#endif
+
 TEST(basic, pipe) {
 	std::string teststr="test";
 	std::string recvstr="test";
@@ -393,4 +396,28 @@ TEST(basic, pipe) {
 	UvContext::run();
 	UvContext::close();
 }
-#endif
+
+
+TEST(basic, periodictimer) {
+	int fireCnt=0;
+	bool bexit=false;
+	std::thread thr = thread([&]() {
+		UvContext::open();
+		PeriodicTimer timer;
+		int ret = timer.start(100, [&]() {
+			ald("timer expired...");
+			if(bexit) {
+				timer.stop();
+			} else {
+				fireCnt++;
+			}
+		});
+		ASSERT_EQ(0, ret);
+		UvContext::run();
+		UvContext::close();
+	});
+	std::this_thread::sleep_for(chrono::milliseconds(5080));
+	bexit = true;
+	thr.join();
+	ASSERT_EQ(50, fireCnt);
+}
