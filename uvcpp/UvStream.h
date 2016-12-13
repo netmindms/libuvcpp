@@ -21,7 +21,7 @@ namespace uvcpp {
 
 		virtual ~UvStream();
 
-		int readStart(ReadLis lis);
+		int readStart(ReadLis lis=nullptr);
 
 		int readStop();
 
@@ -36,6 +36,8 @@ namespace uvcpp {
 		void recycleReadBuffer(upReadBuffer upbuf);
 
 		void setOnCnnLis(CnnLis lis);
+
+		void setOnReadLis(ReadLis lis);
 
 	protected:
 		uv_connect_t* setConnectionReq(CnnLis lis);

@@ -188,7 +188,7 @@ namespace uvcpp {
 	 * uv_read_cb is not called after read_stop()
 	 */
 	void UvContext::handle_read_cb(uv_stream_t *handle, ssize_t nread, const uv_buf_t *buf) {
-		ald("readcb, nread=%d, buf_base=%x", nread, (long)buf->base);
+		alv("readcb, nread=%d, buf_base=%x", nread, (long)buf->base);
 		auto holder = (HandleHolder*)handle->data;
 		auto uprbuf = holder->readBufQue.pop();
 		assert(buf->base==uprbuf->buffer);
@@ -222,7 +222,9 @@ namespace uvcpp {
 		auto uprbuf = holder->readBufQue.pop();
 		assert(buf->base==uprbuf->buffer);
 		uprbuf->size = nread;
-		if (nread >= 0) { // TODO:
+		if (nread >= 0) {
+			// nread==0 && buf->base != nullptr  ==> empty udp packet recevied.
+			// nread==0 && buf->base == nullptr  ==> threre is nothing to read.
 			if (udp) {
 				udp->procRecvCallback(move(uprbuf), addr, flags);
 			}

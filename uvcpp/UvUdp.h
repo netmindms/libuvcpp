@@ -28,8 +28,9 @@ namespace uvcpp {
 		int send(const std::string& msg);
 		int send(const std::string& msg, const sockaddr* addr);
 		void setRemoteIpV4Addr(const char* ipaddr, uint16_t port);
-		int recvStart(RecvLis lis);
+		int recvStart(RecvLis lis=nullptr);
 		int recvStop();
+		void setOnRecvLis(RecvLis lis);
 	private:
 		sockaddr* _remoteAddr;
 		RecvLis _recvLis;

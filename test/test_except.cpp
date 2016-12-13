@@ -7,6 +7,7 @@
 #include "../uvcpp/UvTcp.h"
 #include "tlog.h"
 #include "../uvcpp/UvTimer.h"
+#include "../uvcpp/TimerManager.h"
 
 using namespace uvcpp;
 
@@ -56,4 +57,36 @@ TEST(except, timer) {
 	UvContext::run();
 	UvContext::close();
 	ASSERT_EQ(0, callbackCnt);
+}
+
+TEST(except, timerrep) {
+	UvContext::open();
+	UvTimer timer;
+	timer.init();
+	int callbackCnt=0;
+	timer.start(100, 100, [&]() {
+		ald("expired");
+		callbackCnt++;
+		timer.setRepeat(50);
+		if(callbackCnt>=3) {
+			timer.stop();
+		}
+	});
+	UvContext::run();
+	UvContext::close();
+}
+
+TEST(except, tmanager) {
+	UvContext::open();
+
+	TimerManager tm;
+	tm.open();
+	EvTimer timer;
+	timer.setTimerManager(&tm);
+	timer.set(1000, 1000, [&](uint64_t cnt) {
+		ald("timer expired");
+	});
+
+	UvContext::run();
+	UvContext::close();
 }

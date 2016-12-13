@@ -44,7 +44,9 @@ namespace uvcpp {
 
 
 	int UvUdp::recvStart(RecvLis lis) {
-		_recvLis = lis;
+		if(lis) {
+			_recvLis = lis;
+		}
 		return uv_udp_recv_start(RAWH(), UvContext::handle_read_alloc_cb, UvContext::handle_recv_cb);
 	}
 
@@ -92,9 +94,12 @@ namespace uvcpp {
 	}
 
 	void UvUdp::procRecvCallback(upReadBuffer upbuf, const struct sockaddr *addr, unsigned flags) {
-		if(_status == UvHandle::INITIALIZED) {
-			_recvLis(move(upbuf), addr, flags);
-		}
+		assert(_recvLis != nullptr);
+		_recvLis(move(upbuf), addr, flags);
+	}
+
+	void UvUdp::setOnRecvLis(UvUdp::RecvLis lis) {
+		_recvLis = lis;
 	}
 
 

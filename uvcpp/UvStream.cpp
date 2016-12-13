@@ -16,7 +16,9 @@ namespace uvcpp {
 	}
 
 	int UvStream::readStart(ReadLis lis) {
-		_readLis = lis;
+		if(lis) {
+			_readLis = lis;
+		}
 		return uv_read_start((uv_stream_t *)getRawHandle(), UvContext::handle_read_alloc_cb, UvContext::handle_read_cb);
 	}
 
@@ -74,6 +76,8 @@ namespace uvcpp {
 	}
 
 	void UvStream::procReadCallback(upReadBuffer upbuf) {
+		alv("stream read callback");
+		assert(_readLis != nullptr);
 		_readLis(move(upbuf));
 	}
 
@@ -90,6 +94,10 @@ namespace uvcpp {
 
 	void UvStream::recycleReadBuffer(upReadBuffer upbuf) {
 		_handleHolder->readBufQue.recycleObj(move(upbuf));
+	}
+
+	void UvStream::setOnReadLis(UvStream::ReadLis lis) {
+		_readLis = lis;
 	}
 
 
