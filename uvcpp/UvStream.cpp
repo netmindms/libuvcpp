@@ -61,21 +61,20 @@ namespace uvcpp {
 
 
 	void UvStream::setOnCnnLis(CnnLis lis) {
-		if(!_cnnLis) {
-			_cnnLis = lis;
-		}
+		_cnnLis = lis;
 	}
 
 	uv_connect_t* UvStream::setConnectionReq(UvStream::CnnLis lis) {
-		_cnnLis = lis;
+		if(lis) {
+			_cnnLis = lis;
+		}
+		assert(_cnnLis != nullptr);
 		_handleHolder->cnnReq.data = _handleHolder;
 		return &_handleHolder->cnnReq;
 	}
 
-	void UvStream::procReadCallback(upUvReadBuffer upbuf) {
-		if(_status == UvHandle::INITIALIZED) {
-			_readLis(move(upbuf));
-		}
+	void UvStream::procReadCallback(upReadBuffer upbuf) {
+		_readLis(move(upbuf));
 	}
 
 	void UvStream::procConnectCallback(int status) {
@@ -84,10 +83,13 @@ namespace uvcpp {
 		}
 	}
 	void UvStream::procListenCallback(int status) {
-		ald("listen callback, status=%d", status);
 		if(_status == UvHandle::INITIALIZED) {
 			_listenLis();
 		}
+	}
+
+	void UvStream::recycleReadBuffer(upReadBuffer upbuf) {
+		_handleHolder->readBufQue.recycleObj(move(upbuf));
 	}
 
 

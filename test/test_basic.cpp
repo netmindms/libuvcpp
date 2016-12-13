@@ -39,26 +39,18 @@ TEST(testuv, handle) {
 
 TEST(basic, timer) {
 	int expire_cnt=0;
-	bool bexit=false;
-	std::thread thr = thread([&]() {
-		UvContext::open();
-		UvTimer timer;
-		auto ret = timer.init();
-		assert(!ret);
-		timer.start(100, 100, [&]() {
-			ald("timer expired");
-			expire_cnt++;
-			if (bexit) {
-				timer.stop();
-			}
-		});
-		UvContext::run();
-		UvContext::close();
+	UvContext::open();
+	UvTimer timer;
+	auto ret = timer.init();
+	assert(!ret);
+	timer.start(100, 100, [&]() {
+		ald("timer expired");
+		expire_cnt++;
+		timer.stop();
 	});
-	std::this_thread::sleep_for(chrono::milliseconds(1020));
-	ASSERT_EQ(10, expire_cnt);
-	bexit = true;
-	thr.join();
+	UvContext::run();
+	UvContext::close();
+	ASSERT_EQ(1, expire_cnt);
 }
 
 #ifdef __linux
@@ -69,11 +61,11 @@ TEST(basic, fdtimer) {
 		UvContext::openWithDefaultLoop();
 		FdTimer timer;
 		timer.init();
-		timer.set(100, 100, [&]() {
+		timer.start(100, 100, [&]() {
 			ald("timer expired");
 			expire_cnt += timer.getFireCount();
 			if(bexit) {
-				timer.kill();
+				timer.stop();
 			}
 		});
 		UvContext::run();
@@ -103,7 +95,7 @@ TEST(basic, tcp) {
 		ald("new incoming connection");
 		child.init();
 		server.accept(&child);
-		child.readStart([&](upUvReadBuffer upbuf) {
+		child.readStart([&](upReadBuffer upbuf) {
 			ald("child on read");
 			child.write(upbuf->buffer, upbuf->size);
 		});
@@ -119,7 +111,7 @@ TEST(basic, tcp) {
 	client.connect("127.0.0.1", 9090, [&](int status) {
 		if(!status) {
 			ald("connected");
-			client.readStart([&](upUvReadBuffer upbuf) {
+			client.readStart([&](upReadBuffer upbuf) {
 				ald("client on read");
 				recvstr.assign(upbuf->buffer, upbuf->size);
 				client.close();
@@ -150,7 +142,7 @@ TEST(basic, udp) {
 	recvUdp.init();
 	uv_ip4_addr("127.0.0.1", 17000, &inaddr);
 	recvUdp.bind((sockaddr*)&inaddr);
-	ret = recvUdp.recvStart([&](upUvReadBuffer upbuf, const sockaddr* padr, unsigned) {
+	ret = recvUdp.recvStart([&](upReadBuffer upbuf, const sockaddr* padr, unsigned) {
 		string ts(upbuf->buffer, upbuf->size);
 		ald("recv str: %s", ts);
 		recvstr = ts;
@@ -163,7 +155,7 @@ TEST(basic, udp) {
 	senderUdp.setRemoteIpV4Addr("127.0.0.1", 17000);
 	ald("senderUdp open ret=%d", ret);
 	senderUdp.send(testmsg.data(), testmsg.size());
-	senderUdp.recvStart([&](upUvReadBuffer upbuf, const sockaddr* paddr, unsigned) {
+	senderUdp.recvStart([&](upReadBuffer upbuf, const sockaddr* paddr, unsigned) {
 		assert(0);
 	});
 
@@ -369,7 +361,7 @@ TEST(basic, pipe) {
 				ps.close();
 			}
 		});
-		child.readStart([&](upUvReadBuffer upbuf) {
+		child.readStart([&](upReadBuffer upbuf) {
 			recvstr.assign(upbuf->buffer, upbuf->size);
 			ald("recv : %s", recvstr);
 			child.write(recvstr);
@@ -382,7 +374,7 @@ TEST(basic, pipe) {
 	pc.connect("pipes", [&](int status) {
 		ald("pipe connect event status=%d", status);
 		if(!status) {
-			pc.readStart([&](upUvReadBuffer upbuf) {
+			pc.readStart([&](upReadBuffer upbuf) {
 				ald("client received");
 				pc.close();
 			});

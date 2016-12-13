@@ -6,22 +6,22 @@
  */
 
 #include <cstring>
-#include "UvReadBuffer.h"
+#include "ReadBuffer.h"
 
 namespace uvcpp {
-	UvReadBuffer::UvReadBuffer() {
+	ReadBuffer::ReadBuffer() {
 		size = 0;
 		capacity = 0;
 		buffer = nullptr;
 	}
 
-	UvReadBuffer::~UvReadBuffer() {
+	ReadBuffer::~ReadBuffer() {
 		if (buffer) {
 			delete[] buffer;
 		}
 	}
 
-	int UvReadBuffer::fillBuffer(const char *ptr, size_t len) {
+	int ReadBuffer::fillBuffer(const char *ptr, size_t len) {
 		if (capacity < len) {
 			delete[] buffer;
 			buffer = new char[len];
@@ -39,7 +39,7 @@ namespace uvcpp {
 		}
 	}
 
-	std::pair<size_t, char *> UvReadBuffer::allocBuffer(size_t size) {
+	std::pair<size_t, char *> ReadBuffer::allocBuffer(size_t size) {
 		if (size > capacity) {
 			auto tbuf = new char[size];
 			if (tbuf) {

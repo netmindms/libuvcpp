@@ -12,7 +12,7 @@
 #include "ObjQue.h"
 #include "UvWriteInfo.h"
 #include "UvUdpWriteInfo.h"
-#include "UvReadBuffer.h"
+#include "ReadBuffer.h"
 
 
 namespace uvcpp {
@@ -24,7 +24,7 @@ namespace uvcpp {
 		uv_any_handle rawh;
 		UvHandle* uvh;
 		UvContext* ctx;
-		ObjQue<UvReadBuffer> readBufQue;
+		ObjQue<ReadBuffer> readBufQue;
 		ObjQue<UvWriteInfo> writeReqQue;
 		ObjQue<UvUdpWriteInfo> sendReqQue;
 		std::function<void()> closeLis;

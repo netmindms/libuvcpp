@@ -6,7 +6,7 @@
 #define UVCPPPRJ_UVSTREAM_H
 
 #include "UvWriteInfo.h"
-#include "UvReadBuffer.h"
+#include "ReadBuffer.h"
 #include "ObjQue.h"
 #include "UvHandle.h"
 
@@ -14,7 +14,7 @@ namespace uvcpp {
 	class UvStream : public UvHandle {
 		friend class UvContext;
 	public:
-		typedef std::function<void(std::unique_ptr<UvReadBuffer>)> ReadLis;
+		typedef std::function<void(std::unique_ptr<ReadBuffer>)> ReadLis;
 		typedef std::function<void()> ListenLis;
 		typedef std::function<void(int)> CnnLis;
 		UvStream();
@@ -33,6 +33,8 @@ namespace uvcpp {
 
 		int write(const std::string &msg);
 
+		void recycleReadBuffer(upReadBuffer upbuf);
+
 		void setOnCnnLis(CnnLis lis);
 
 	protected:
@@ -43,7 +45,7 @@ namespace uvcpp {
 		CnnLis _cnnLis;
 		ListenLis _listenLis;
 
-		void procReadCallback(upUvReadBuffer upbuf);
+		void procReadCallback(upReadBuffer upbuf);
 		void procConnectCallback(int status);
 		void procListenCallback(int status);
 	};

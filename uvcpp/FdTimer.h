@@ -25,10 +25,10 @@ namespace uvcpp {
 		FdTimer();
 		virtual ~FdTimer();
 		int init();
-		void setUsec(uint64_t expire, uint64_t period, Lis lis);
-		void set(uint64_t expire, uint64_t period, Lis lis);
-		void reset();
-		void kill(bool isclose=true);
+		void startUsec(uint64_t expire, uint64_t period, Lis lis);
+		void start(uint64_t expire, uint64_t period, Lis lis);
+		void again();
+		void stop(bool isclose=true);
 		void pause();
 		void resume();
 		uint64_t getFireCount();

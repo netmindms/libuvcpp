@@ -31,7 +31,7 @@ namespace uvcpp {
 	}
 
 	void UvTimer::stop(bool bclose) {
-		if(RAWH()) {
+		if(_status == UvHandle::INITIALIZED) {
 			uv_timer_stop((uv_timer_t*)getRawHandle());
 		}
 		if(bclose) {

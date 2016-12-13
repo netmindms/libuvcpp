@@ -13,7 +13,7 @@
 #include "ObjQue.h"
 
 
-#include "UvReadBuffer.h"
+#include "ReadBuffer.h"
 #include "UvWriteInfo.h"
 #include "UvStream.h"
 
@@ -27,7 +27,7 @@ namespace uvcpp {
 
 		int init();
 
-		int connect(const char *ipaddr, uint16_t port, UvStream::CnnLis lis);
+		int connect(const char *ipaddr, uint16_t port, UvStream::CnnLis lis=nullptr);
 
 		int bind(const struct sockaddr *addr, unsigned int flags);
 

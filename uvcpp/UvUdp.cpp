@@ -91,7 +91,7 @@ namespace uvcpp {
 		return uv_udp_recv_stop(RAWH());
 	}
 
-	void UvUdp::procRecvCallback(upUvReadBuffer upbuf, const struct sockaddr *addr, unsigned flags) {
+	void UvUdp::procRecvCallback(upReadBuffer upbuf, const struct sockaddr *addr, unsigned flags) {
 		if(_status == UvHandle::INITIALIZED) {
 			_recvLis(move(upbuf), addr, flags);
 		}

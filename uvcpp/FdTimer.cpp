@@ -19,10 +19,9 @@ namespace uvcpp {
 	}
 
 	FdTimer::~FdTimer() {
-		kill();
 	}
 
-	void FdTimer::setUsec(uint64_t usec, uint64_t first_usec, Lis lis) {
+	void FdTimer::startUsec(uint64_t usec, uint64_t first_usec, Lis lis) {
 		_lis = lis;
 
 		mTimerSpec.it_interval.tv_sec = usec / 1000000;
@@ -39,16 +38,16 @@ namespace uvcpp {
 		assert(!ret);
 	}
 
-	void FdTimer::set(uint64_t expire, uint64_t period, Lis lis) {
-		setUsec(expire * 1000, period * 1000, lis);
+	void FdTimer::start(uint64_t expire, uint64_t period, Lis lis) {
+		startUsec(expire * 1000, period * 1000, lis);
 	}
 
-	void FdTimer::reset() {
+	void FdTimer::again() {
 		pause();
 		resume();
 	}
 
-	void FdTimer::kill(bool isclose) {
+	void FdTimer::stop(bool isclose) {
 		UvPoll::stop(isclose);
 	}
 

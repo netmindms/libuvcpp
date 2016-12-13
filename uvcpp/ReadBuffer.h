@@ -5,8 +5,8 @@
  *      Author: netmind
  */
 
-#ifndef UVREADBUFFER_H_
-#define UVREADBUFFER_H_
+#ifndef UVCPPPRJ_READBUFFER_H_
+#define UVCPPPRJ_READBUFFER_H_
 
 #include <cstdlib>
 #include <cstdint>
@@ -14,11 +14,11 @@
 #include <memory>
 
 namespace uvcpp {
-	class UvReadBuffer {
+	class ReadBuffer {
 	public:
-		UvReadBuffer();
+		ReadBuffer();
 
-		virtual ~UvReadBuffer();
+		virtual ~ReadBuffer();
 
 		int fillBuffer(const char *ptr, size_t len);
 
@@ -29,6 +29,6 @@ namespace uvcpp {
 		size_t size;
 	};
 
-	typedef std::unique_ptr<UvReadBuffer> upUvReadBuffer;
+	typedef std::unique_ptr<ReadBuffer> upReadBuffer;
 }
-#endif /* UVREADBUFFER_H_ */
+#endif /* UVCPPPRJ_READBUFFER_H_ */

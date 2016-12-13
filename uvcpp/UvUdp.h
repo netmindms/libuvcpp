@@ -8,7 +8,7 @@
 #include <cstdint>
 #include <functional>
 #include "ObjQue.h"
-#include "UvReadBuffer.h"
+#include "ReadBuffer.h"
 #include "UvUdpWriteInfo.h"
 #include "UvHandle.h"
 
@@ -17,7 +17,7 @@ namespace uvcpp {
 	class UvUdp : public UvHandle {
 		friend class UvContext;
 	public:
-		typedef std::function<void(std::unique_ptr<UvReadBuffer>, const struct sockaddr *, unsigned)> RecvLis;
+		typedef std::function<void(std::unique_ptr<ReadBuffer>, const struct sockaddr *, unsigned)> RecvLis;
 		UvUdp();
 		virtual ~UvUdp();
 		int init();
@@ -34,7 +34,7 @@ namespace uvcpp {
 		sockaddr* _remoteAddr;
 		RecvLis _recvLis;
 
-		void procRecvCallback(upUvReadBuffer upbuf, const struct sockaddr *addr, unsigned flags);
+		void procRecvCallback(upReadBuffer upbuf, const struct sockaddr *addr, unsigned flags);
 	};
 
 }

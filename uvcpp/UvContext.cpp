@@ -184,10 +184,14 @@ namespace uvcpp {
 		}
 	}
 
+	/*
+	 * uv_read_cb is not called after read_stop()
+	 */
 	void UvContext::handle_read_cb(uv_stream_t *handle, ssize_t nread, const uv_buf_t *buf) {
 		ald("readcb, nread=%d, buf_base=%x", nread, (long)buf->base);
 		auto holder = (HandleHolder*)handle->data;
 		auto uprbuf = holder->readBufQue.pop();
+		assert(buf->base==uprbuf->buffer);
 		if (nread > 0) {
 			if(holder->uvh) {
 				uprbuf->size = nread;
@@ -216,6 +220,7 @@ namespace uvcpp {
 		assert(holder);
 		auto udp = (UvUdp*)(holder->uvh);
 		auto uprbuf = holder->readBufQue.pop();
+		assert(buf->base==uprbuf->buffer);
 		uprbuf->size = nread;
 		if (nread >= 0) { // TODO:
 			if (udp) {
