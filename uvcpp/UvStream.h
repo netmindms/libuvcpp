@@ -39,6 +39,10 @@ namespace uvcpp {
 
 		void setOnReadLis(ReadLis lis);
 
+		uint32_t getWriteQueCnt();
+
+		uint32_t getSendQueCnt();
+
 	protected:
 		uv_connect_t* setConnectionReq(CnnLis lis);
 

@@ -100,5 +100,13 @@ namespace uvcpp {
 		_readLis = lis;
 	}
 
+	uint32_t UvStream::getWriteQueCnt() {
+		return _handleHolder->writeReqQue.getQueCnt();
+	}
+
+	uint32_t UvStream::getSendQueCnt() {
+		return _handleHolder->sendReqQue.getQueCnt();
+	}
+
 
 }
