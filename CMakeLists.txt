@@ -27,3 +27,9 @@ install(DIRECTORY ${PROJECT_SOURCE_DIR}/uvcpp/ DESTINATION include/uvcpp
 file(GLOB TESTSRCS "test/*.cpp")
 add_executable(testuvcpp EXCLUDE_FROM_ALL ${SOURCE_FILES} ${TESTSRCS} test/test_basic.cpp test/test_ipc.cpp)
 target_link_libraries(testuvcpp pthread uv gtest)
+
+add_executable(chatsvr EXCLUDE_FROM_ALL ${UVCPPSRCS} "samples/chatserver.cpp" )
+target_link_libraries(chatsvr pthread uv )
+
+add_executable(chatclient EXCLUDE_FROM_ALL ${UVCPPSRCS} "samples/chatclient.cpp" )
+target_link_libraries(chatclient pthread uv )
