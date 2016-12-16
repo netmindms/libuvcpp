@@ -11,7 +11,9 @@ Feature
 
 Coding Style
 ------------
-```cpp
+```bash
+using namespace uvcpp;
+// ...
 UvContext::open(); // make a context instance in thread local storage.
 UvTcp tcp;
 tcp.init();
