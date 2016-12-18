@@ -102,5 +102,19 @@ namespace uvcpp {
 		_recvLis = lis;
 	}
 
+	int UvUdp::getsSockName(struct sockaddr *name, int *namelen) {
+		return uv_udp_getsockname(RAWH(), name, namelen);
+	}
+
+	int UvUdp::trySend(const char *buf, size_t len, const struct sockaddr *addr) {
+		if(_handleHolder->sendReqQue.getQueCnt() == 0 ) {
+			uv_buf_t uvbuf;
+			uvbuf.base = (char*)buf;
+			uvbuf.len = len;
+			return uv_udp_try_send(RAWH(), &uvbuf, 1, addr);
+		}
+		return UV_EAGAIN ;
+	}
+
 
 }

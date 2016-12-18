@@ -5,6 +5,7 @@
 #include <chrono>
 #include <thread>
 #include <gtest/gtest.h>
+#include <fstream>
 #include "tlog.h"
 #include "../uvcpp/UvContext.h"
 #include "../uvcpp/UvTimer.h"
@@ -19,6 +20,8 @@
 #include "../uvcpp/UvPoll.h"
 #include "../uvcpp/UvTty.h"
 #include "../uvcpp/UvPipe.h"
+#include "../uvcpp/UvFsEvent.h"
+#include "../uvcpp/UvFsPoll.h"
 
 using namespace std;
 using namespace uvcpp;
@@ -387,4 +390,41 @@ TEST(basic, pipe) {
 	UvContext::run();
 	UvContext::close();
 }
+
+
+TEST(basic, fspoll) {
+	uint64_t chgsize=0;
+	std::ofstream ofs;
+	ofs.open ("test.txt");
+	UvContext::open();
+	UvFsPoll fspoll;
+	fspoll.init();
+	fspoll.start("test.txt", 1000 , [&](int status, const uv_stat_t *prev, const uv_stat_t* curr) {
+		chgsize = curr->st_size;
+		fspoll.stop();
+	});
+	ofs << "1234";
+	ofs.flush();
+	UvContext::run();
+	UvContext::close();
+	ofs.close();
+	ASSERT_EQ(4, chgsize);
+}
+
+#if 0
+TEST(basic, fsevent) {
+	std::ofstream ofs;
+	ofs.open ("test.txt");
+	UvContext::open();
+
+	UvFsEvent fse;
+	fse.init();
+	fse.start("test.txt", UV_FS_EVENT_RECURSIVE ,  [&](const char* fname, int event, int status) {
+
+	});
+	UvContext::run();
+	UvContext::close();
+	ofs.close();
+}
+#endif
 

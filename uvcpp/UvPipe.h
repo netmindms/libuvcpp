@@ -21,6 +21,16 @@ namespace uvcpp {
 		int bind(const char* name);
 
 		void connect(const char* name, UvStream::CnnLis lis);
+
+		int getSockName(char* buffer, size_t* size);
+
+		int getPeerName(char* buffer, size_t* size);
+
+		void pendingInstances(int count);
+
+		int pendingCount();
+
+		uv_handle_type pendingType();
 	};
 }
 

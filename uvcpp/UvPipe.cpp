@@ -36,4 +36,24 @@ namespace uvcpp {
 		auto creq = setConnectionReq(lis);
 		uv_pipe_connect(creq, RAWH(), name, UvContext::handle_connect_cb);
 	}
+
+	int UvPipe::getSockName(char *buffer, size_t *size) {
+		return uv_pipe_getsockname(RAWH(), buffer, size);
+	}
+
+	int UvPipe::getPeerName(char *buffer, size_t *size) {
+		return uv_pipe_getpeername(RAWH(), buffer, size);
+	}
+
+	void UvPipe::pendingInstances(int count) {
+		uv_pipe_pending_instances(RAWH(), count);
+	}
+
+	int UvPipe::pendingCount() {
+		return uv_pipe_pending_count(RAWH());
+	}
+
+	uv_handle_type UvPipe::pendingType() {
+		return uv_pipe_pending_type(RAWH());
+	}
 }

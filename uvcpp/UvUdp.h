@@ -31,6 +31,8 @@ namespace uvcpp {
 		int recvStart(RecvLis lis=nullptr);
 		int recvStop();
 		void setOnRecvLis(RecvLis lis);
+		int trySend(const char* bufs, size_t len, const struct sockaddr* addr);
+		int getsSockName(struct sockaddr* name, int* namelen);
 	private:
 		sockaddr* _remoteAddr;
 		RecvLis _recvLis;

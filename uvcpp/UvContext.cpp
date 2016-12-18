@@ -11,6 +11,7 @@
 #include "UvContext.h"
 #include "UvStream.h"
 #include "UvUdp.h"
+#include "UvFsEvent.h"
 
 std::atomic_uint _gHandleIdSeed;
 
@@ -245,5 +246,6 @@ namespace uvcpp {
 		}
 		holder->ctx->deleteHandle(holder);
 	}
+
 
 }
