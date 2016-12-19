@@ -33,6 +33,8 @@ namespace uvcpp {
 
 		int write(const std::string &msg);
 
+		int write2(UvStream* send_handle);
+
 		void recycleReadBuffer(upReadBuffer upbuf);
 
 		void setOnCnnLis(CnnLis lis);

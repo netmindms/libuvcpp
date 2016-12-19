@@ -18,6 +18,8 @@ namespace uvcpp {
 
 		int init(int ipc);
 
+		int open(uv_file file);
+
 		int bind(const char* name);
 
 		void connect(const char* name, UvStream::CnnLis lis);

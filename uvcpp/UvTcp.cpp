@@ -43,6 +43,7 @@ namespace uvcpp {
 
 	int UvTcp::init() {
 		auto ret = initHandle();
+		ald("##### rawh ptr=%x", (long)getRawHandle());
 		if(!ret) {
 			return uv_tcp_init(getLoop(), RAWH());
 		} else {

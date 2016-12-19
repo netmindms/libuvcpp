@@ -76,6 +76,7 @@ namespace uvcpp {
 		return 0;
 	}
 
+
 	uv_loop_t *UvHandle::getLoop() {
 		return _ctx->getLoop();
 	}

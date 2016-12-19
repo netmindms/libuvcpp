@@ -61,6 +61,22 @@ namespace uvcpp {
 		return write(msg.data(), msg.size());
 	}
 
+	int UvStream::write2(UvStream* send_handle) {
+		auto upwr = _handleHolder->writeReqQue.allocObj();
+		upwr->fillBuf(".", 1);
+		upwr->req.data = _handleHolder;
+		auto ret = uv_write2(&upwr->req, RAWH(), &upwr->uvBuf, 1, (uv_stream_t*)send_handle->getRawHandle(), UvContext::handle_write_cb);
+		if (!ret) {
+			_handleHolder->writeReqQue.push(move(upwr));
+//			send_handle->releaseRawHandle();
+			send_handle->close();
+		} else {
+			ale("### uv write fail, ret=%d", ret);
+		}
+		return ret;
+	}
+
+
 
 	void UvStream::setOnCnnLis(CnnLis lis) {
 		_cnnLis = lis;
@@ -107,6 +123,7 @@ namespace uvcpp {
 	uint32_t UvStream::getSendQueCnt() {
 		return _handleHolder->sendReqQue.getQueCnt();
 	}
+
 
 
 }

@@ -56,4 +56,8 @@ namespace uvcpp {
 	uv_handle_type UvPipe::pendingType() {
 		return uv_pipe_pending_type(RAWH());
 	}
+
+	int UvPipe::open(uv_file file) {
+		return uv_pipe_open(RAWH(), file);
+	}
 }

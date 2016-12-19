@@ -10,6 +10,7 @@
 #include "../uvcpp/MsgTask.h"
 #include "../uvcpp/UvTimer.h"
 #include "../uvcpp/UvPipe.h"
+#include "../uvcpp/UvTcp.h"
 
 using namespace std;
 using namespace uvcpp;
@@ -123,6 +124,106 @@ TEST(basic, msgtask) {
 	ASSERT_EQ(2, task._cnt);
 	ald("test end");
 }
+
+
+
+class WorkerTask: public MsgTask {
+public:
+	UvPipe pipe;
+	void OnMsgProc(IpcMsg &msg)	override {
+		if(msg.msgId == TM_INIT) {
+			pipe.init(1);
+			pipe.readStart([this](upReadBuffer upbuf) {
+
+			});
+		} else if(msg.msgId == TM_CLOSE) {
+			pipe.close();
+		}
+	}
+};
+TEST(basic, handlepass) {
+	int ret;
+	std::string teststr="1234";
+	std::string recvstr;
+	std::string echostr;
+	UvContext::open();
+	int fds[2]; // fds[0] read end, fds[1] is write end
+	pipe(fds);
+
+	UvTcp server;
+	UvPipe pips;
+	UvPipe pipc;
+	UvTcp client;
+	UvTcp child;
+	socketpair(AF_UNIX, SOCK_STREAM, 0, fds);
+	pips.init(1);
+	ret = pips.open(fds[1]);
+	assert(!ret && "server pipe open error");
+//	pips.bind("pipes");
+
+	pips.readStart([&](upReadBuffer upbuf) {
+		auto cnt = pips.pendingCount();
+		ald("pending count=%d", cnt);
+		if(cnt>0) {
+			child.init();
+			pips.accept(&child);
+			child.readStart([&](upReadBuffer upbuf) {
+				recvstr.assign(upbuf->buffer, upbuf->size);
+				ald("recv: %s", recvstr);
+				child.write(recvstr);
+			});
+			child.setOnCnnLis([&](int status) {
+				if(status) {
+					ald("child disconnected");
+					pips.close();
+					child.close();
+				}
+			});
+
+		}
+	});
+
+	pipc.init(1);
+	ret = pipc.open(fds[0]);
+	assert(!ret && "client pipe open error");
+
+	server.init();
+	server.bindAndListen(9090, "0.0.0.0", [&]() {
+		ald("incoming tcp cnn");
+		UvTcp temptcp;
+		temptcp.init();
+		server.accept(&temptcp);
+		ret = pipc.write2(&temptcp);
+		assert(!ret && "write2 error");
+	});
+
+	client.init();
+	client.connect("127.0.0.1", 9090, [&](int status) {
+		if(!status) {
+			ald("client connected");
+			client.readStart([&](upReadBuffer upbuf) {
+				ald("client read,...");
+				echostr.assign(upbuf->buffer, upbuf->size);
+				client.close();
+				pipc.close();
+				server.close();
+			});
+			client.write(teststr);
+		} else {
+			ald("client disconnected");
+			assert(0 && "client disconnected");
+		}
+	});
+	UvContext::run();
+	UvContext::close();
+
+	::close(fds[0]);
+	::close(fds[1]);
+
+	ASSERT_STREQ(teststr.c_str(), recvstr.c_str());
+	ASSERT_STREQ(teststr.c_str(), echostr.c_str());
+}
+
 
 #if 0
 #ifdef __linux

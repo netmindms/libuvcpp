@@ -43,6 +43,7 @@ namespace uvcpp {
 		HANDLE_STATUS _status;
 		HandleHolder* _handleHolder;
 		int initHandle();
+
 	};
 }
 

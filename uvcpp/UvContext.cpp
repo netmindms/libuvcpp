@@ -99,12 +99,17 @@ namespace uvcpp {
 		if (tprev) {
 			tprev->next = holder->next;
 		}
+
 		if (tnext) {
 			tnext->prev = holder->prev;
+		} else {
+			_handleLast = tprev;
 		}
-		if (tprev == nullptr && tnext == nullptr) {
-			_handleLast = nullptr;
-		}
+
+
+//		if (tprev == nullptr && tnext == nullptr) {
+//			_handleLast = nullptr;
+//		}
 
 		if(holder->uvh) {
 			holder->uvh->_handleHolder = nullptr;
