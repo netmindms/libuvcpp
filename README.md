@@ -33,3 +33,7 @@ tcp.connect("127.0.0.1", 80, [&](int status) {
 UvContext::run(); // start event loop.
 UvContext::close();
 ```
+
+Documentation
+-------------
+Refer to wiki.
