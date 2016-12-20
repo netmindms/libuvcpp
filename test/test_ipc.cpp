@@ -11,6 +11,7 @@
 #include "../uvcpp/UvTimer.h"
 #include "../uvcpp/UvPipe.h"
 #include "../uvcpp/UvTcp.h"
+#include "../uvcpp/StreamIpc.h"
 
 using namespace std;
 using namespace uvcpp;
@@ -90,7 +91,7 @@ TEST(basic, msgtask) {
 		UvTimer _timer;
 		int _cnt;
 		int startcheck=0;
-		void OnMsgProc(IpcMsg& msg) {
+		virtual void OnMsgProc(IpcMsg& msg) {
 			if(msg.msgId == MsgTask::TM_INIT) {
 				ald("task init");
 				_cnt = 0;
@@ -224,6 +225,85 @@ TEST(basic, handlepass) {
 	ASSERT_STREQ(teststr.c_str(), echostr.c_str());
 }
 
+
+
+
+TEST(basic, streamipc) {
+	class ChildTask: public MsgTask {
+	public:
+		StreamIpc strmipc;
+		UvTcp childCnn;
+		virtual void OnMsgProc(IpcMsg &msg)  {
+			if(msg.msgId == TM_INIT) {
+				ali("tast init....");
+				auto ret = strmipc.open([this]() {
+					ali("child incoming");
+					childCnn.init();
+					strmipc.accept(&childCnn);
+					childCnn.readStart([this](upReadBuffer upbuf) {
+						childCnn.write(upbuf->buffer, upbuf->size);
+					});
+					childCnn.setOnCnnLis([this](int status) {
+						if(status) {
+							ali("child disconnected");
+							childCnn.close();
+							postExit();
+							ali("posting exit");
+						}
+					});
+				});
+			} else if(msg.msgId == TM_CLOSE) {
+				ali("task closing");
+				strmipc.close();
+			}
+		}
+	};
+
+	std::string echostr;
+	std::string teststr="1234";
+	UvTcp server;
+	UvTcp client;
+	ChildTask childtask;
+	int ret;
+
+	UvContext::open();
+
+	childtask.start();
+	ret = childtask.strmipc.connectIpc();
+	assert(!ret && "connectip ipc error");
+
+	server.init();
+	server.bindAndListen(9090, "0.0.0.0", [&]() {
+		ali("incoming");
+		UvTcp temptcp;
+		temptcp.init();
+		server.accept(&temptcp);
+		auto ret = childtask.strmipc.sendUvStream(&temptcp);
+		assert(!ret);
+	});
+	client.init();
+	client.connect("127.0.0.1",  9090, [&](int status) {
+		if(!status) {
+			client.readStart([&](upReadBuffer upbuf) {
+				echostr.assign(upbuf->buffer, upbuf->size);
+				ali("client read str=%s", echostr);
+				client.close();
+				server.close();
+				childtask.strmipc.disconnectIpc();
+			});
+			client.write(teststr);
+		} else {
+			assert(0 && "### unexpected client disconnection");
+		}
+	});
+
+	UvContext::run();
+	childtask.wait();
+	UvContext::close();
+
+
+	ASSERT_STREQ(teststr.c_str(), echostr.c_str());
+}
 
 #if 0
 #ifdef __linux

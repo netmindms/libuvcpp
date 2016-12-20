@@ -9,7 +9,7 @@
 
 int main(int argc, char* argv[]) {
 
-	NMDU_SET_LOG_LEVEL(LOG_VERBOSE);
+	NMDU_SET_LOG_LEVEL(LOG_INFO);
 //	NMDU_SET_LOG_FILE("log.txt");
 //	NMDU_SET_LOG_LEVEL_FILE(LOG_VERBOSE);
 	ald("uv vesion: %s", uv_version_string());

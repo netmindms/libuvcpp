@@ -48,7 +48,7 @@ namespace uvcpp {
 		auto upwr = _handleHolder->writeReqQue.allocObj();
 		upwr->fillBuf(buf, len);
 		upwr->req.data = _handleHolder;
-		auto ret = uv_write(&upwr->req, (uv_stream_t *) RAWH(), &upwr->uvBuf, 1, UvContext::handle_write_cb);
+		auto ret = uv_write(&upwr->req, RAWH(), &upwr->uvBuf, 1, UvContext::handle_write_cb);
 		if (!ret) {
 			_handleHolder->writeReqQue.push(move(upwr));
 		} else {
@@ -99,7 +99,9 @@ namespace uvcpp {
 
 	void UvStream::procConnectCallback(int status) {
 		if(_status == UvHandle::INITIALIZED) {
-			_cnnLis(status);
+			if(_cnnLis) {
+				_cnnLis(status);
+			}
 		}
 	}
 	void UvStream::procListenCallback(int status) {

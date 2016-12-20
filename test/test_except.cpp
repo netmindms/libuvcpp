@@ -3,11 +3,15 @@
 //
 
 #include <gtest/gtest.h>
+#include <unordered_map>
 #include "../uvcpp/UvContext.h"
 #include "../uvcpp/UvTcp.h"
 #include "tlog.h"
 #include "../uvcpp/UvTimer.h"
 #include "../uvcpp/UvPoll.h"
+#include "../uvcpp/MsgTask.h"
+#include "../uvcpp/UvPipe.h"
+#include "../uvcpp/StreamIpc.h"
 
 using namespace uvcpp;
 
@@ -75,6 +79,150 @@ TEST(except, timerrep) {
 	UvContext::run();
 	UvContext::close();
 }
+
+#ifdef __linux
+namespace {
+	class ChildCnn : public UvTcp {
+	public:
+		ChildCnn() {
+			id = 0;
+		}
+
+		uint32_t id;
+	};
+
+	class TcpClient : public UvTcp {
+	public:
+		std::list<TcpClient>::iterator iditr;
+	};
+
+	TEST(except, tcpmassive) {
+		class ChildTask : public MsgTask {
+		public:
+			virtual void OnMsgProc(IpcMsg &msg) {
+				if (msg.msgId == TM_INIT) {
+					ali("child task init...");
+					_idSeed = 0;
+					_strmIpc.open([this]() {
+						auto id = ++_idSeed;
+						if (id == 0) id = ++_idSeed;
+						auto &cnn = _childCnnMap[id];
+						cnn.init();
+						_strmIpc.accept(&cnn);
+						cnn.id = id;
+						activeChild(cnn);
+					});
+				} else if (msg.msgId == TM_CLOSE) {
+					ali("task closing...");
+					_strmIpc.close();
+				}
+			}
+
+			void connectStreamIpc() {
+				_strmIpc.connectIpc();
+			}
+
+			StreamIpc _strmIpc;
+		private:
+			uint32_t _idSeed;
+
+			std::unordered_map<uint32_t, ChildCnn> _childCnnMap;
+
+			void activeChild(ChildCnn &cnn) {
+				ald("new child cnn,...id=%d", cnn.id);
+				cnn.readStart([this, &cnn](upReadBuffer upbuf) {
+					cnn.write(upbuf->buffer, upbuf->size); // echo message
+				});
+				cnn.setOnCnnLis([this, &cnn](int status) {
+					if (status) {
+						ald("child disconnected");
+						cnn.close();
+						_childCnnMap.erase(cnn.id);
+						// dead zone from here
+						// WARN: do not add any code from here
+					}
+				});
+			}
+		};
+
+		int ret;
+		uint32_t rrobin = 0;
+		std::string teststr = "1234";
+		UvTcp server;
+		ChildTask childtasks[4];
+
+		UvContext::open();
+
+		for (int i = 0; i < 4; i++) {
+			childtasks[i].start();
+			ret = childtasks[i]._strmIpc.connectIpc();
+			assert(!ret && "### stream ipc connect error");
+		}
+
+		server.init();
+		server.bindAndListen(9090, "127.0.0.1", [&]() {
+			UvTcp temptcp;
+			temptcp.init();
+			server.accept(&temptcp);
+			auto taskid = (rrobin++) % 4;
+			childtasks[taskid]._strmIpc.sendUvStream(&temptcp);
+		});
+
+		// all clients
+
+
+		std::list<TcpClient> clientlist;
+		UvTimer itertimer;
+		int clientConnectCnt = 0;
+		int trycnt = 0;
+		itertimer.init();
+		itertimer.start(1, 1, [&]() {
+			if (trycnt >= 100) {
+				ald("iter timer stop");
+				itertimer.stop();
+			} else {
+				clientlist.emplace_front();
+				auto itr = clientlist.begin();
+				itr->iditr = itr;
+				trycnt++;
+				auto client = &(*itr);
+				itr->init();
+				itr->connect("127.0.0.1", 9090, [&, client](int status) {
+					if (!status) {
+						clientConnectCnt++;
+						if(clientConnectCnt==100) {
+							ali("100th connected");
+						}
+						client->readStart([&](upReadBuffer upbuf) {
+							std::string ts(upbuf->buffer, upbuf->size);
+							assert(ts == teststr);
+							client->close();
+						});
+						client->write(teststr);
+					} else {
+						assert(0);
+					}
+				});
+			}
+		});
+
+		UvTimer serverTimer;
+		serverTimer.init();
+		serverTimer.start(3000, 3000, [&]() {
+			serverTimer.stop();
+			server.close();
+			for (int i = 0; i < 4; i++) {
+				childtasks[i]._strmIpc.disconnectIpc();
+				childtasks[i].stop();
+			}
+		});
+		UvContext::run();
+		UvContext::close();
+		ASSERT_EQ(100, clientConnectCnt);
+	}
+}
+#endif
+
 
 #ifdef __linux
 #include <sys/inotify.h>
