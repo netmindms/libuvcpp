@@ -8,6 +8,9 @@ Feature
 * Event handling with lambda function(c++11) as like javascript callback style
 * Recycling read/write buffer memory for io
 
+Requirements
+------------
+* libuv v1.0 or later
 
 Coding Style
 ------------
