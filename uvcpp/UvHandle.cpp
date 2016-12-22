@@ -95,4 +95,8 @@ namespace uvcpp {
 		return _handleHolder ? &_handleHolder->rawh.handle : nullptr;
 	}
 
+	UvHandle::HANDLE_STATUS UvHandle::getHandleStatus() {
+		return _status;
+	}
+
 }

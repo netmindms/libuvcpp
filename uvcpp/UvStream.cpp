@@ -61,6 +61,17 @@ namespace uvcpp {
 		return write(msg.data(), msg.size());
 	}
 
+	int UvStream::tryWrite(const char *buf, size_t len) {
+		if(_handleHolder->writeReqQue.getQueCnt() == 0 ) {
+			uv_buf_t uvbuf;
+			uvbuf.base = (char*)buf;
+			uvbuf.len = len;
+			return uv_try_write(RAWH(), &uvbuf, 1);
+		}
+		return UV_EAGAIN ;
+	}
+
+
 	int UvStream::write2(UvStream* send_handle) {
 		auto upwr = _handleHolder->writeReqQue.allocObj();
 		upwr->fillBuf(".", 1);
@@ -126,6 +137,29 @@ namespace uvcpp {
 		return _handleHolder->sendReqQue.getQueCnt();
 	}
 
+	int UvStream::isReadable() {
+		return uv_is_readable(RAWH());
+	}
+
+	int UvStream::isWritable() {
+		return uv_is_writable(RAWH());
+	}
+
+	int UvStream::setBlocking(int blocking) {
+		return uv_stream_set_blocking(RAWH(), blocking);
+	}
+
+	int UvStream::shutDown(UvStream::ShutdownLis lis) {
+		_shutdownLis = lis;
+		_handleHolder->shutdownReq.data = _handleHolder;
+		return uv_shutdown(&(_handleHolder->shutdownReq), RAWH(), UvContext::handle_shutdown_cb);
+	}
+
+	void UvStream::procShutdownCallback(int status) {
+		if(_shutdownLis) {
+			_shutdownLis(status);
+		}
+	}
 
 
 }

@@ -42,6 +42,16 @@ namespace uvcpp {
 		}
 	}
 
+	int UvUdp::initEx(unsigned int flags) {
+		auto ret = initHandle();
+		if(!ret) {
+			return uv_udp_init_ex(getLoop(), RAWH(), flags);
+		} else {
+			return ret;
+		}
+	}
+
+
 
 	int UvUdp::recvStart(RecvLis lis) {
 		if(lis) {
@@ -114,6 +124,30 @@ namespace uvcpp {
 			return uv_udp_try_send(RAWH(), &uvbuf, 1, addr);
 		}
 		return UV_EAGAIN ;
+	}
+
+	int UvUdp::setMemberShip(const char *multicast_addr, const char *interface_addr, uv_membership membership) {
+		return uv_udp_set_membership(RAWH(), multicast_addr, interface_addr, membership);
+	}
+
+	int UvUdp::setMulticastLoop(int on) {
+		return uv_udp_set_multicast_loop(RAWH(), on);
+	}
+
+	int UvUdp::setMulticastTtl(int ttl) {
+		return uv_udp_set_multicast_ttl(RAWH(), ttl);
+	}
+
+	int UvUdp::setMulticastInterface(const char *interface_addr) {
+		return uv_udp_set_multicast_interface(RAWH(), interface_addr);
+	}
+
+	int UvUdp::setBroadcast(int on) {
+		return uv_udp_set_broadcast(RAWH(), on);
+	}
+
+	int UvUdp::setTtl(int ttl) {
+		return uv_udp_set_ttl(RAWH(), ttl);
 	}
 
 

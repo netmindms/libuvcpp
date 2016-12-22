@@ -61,15 +61,13 @@ namespace uvcpp {
 		timerfd_settime(_fd, 0, &mTimerSpec, NULL);
 	}
 
-
-
 	uint64_t FdTimer::getFireCount() {
 		return _fireCount;
 	}
 
 	int FdTimer::init() {
 		auto fd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
-		ali("timerfd create fd=%d", fd);
+		ald("timerfd create fd=%d", fd);
 		return UvPoll::init(fd);
 	}
 

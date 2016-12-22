@@ -114,7 +114,7 @@ namespace uvcpp {
 		if(holder->uvh) {
 			holder->uvh->_handleHolder = nullptr;
 		}
-		ald("delete handle, name=%s, remain=%d", holder->handleName, _pendingHandleCnt-1);
+		alv("delete handle, name=%s, remain=%d", holder->handleName, _pendingHandleCnt-1);
 		delete holder;
 		--_pendingHandleCnt;
 	}
@@ -142,7 +142,7 @@ namespace uvcpp {
 		holder->handleName = ss.str();
 #endif
 		++_pendingHandleCnt;
-		ald("create handle holder, handle_name=%s, count=%u", holder->handleName, _pendingHandleCnt);
+		alv("create handle holder, handle_name=%s, count=%u", holder->handleName, _pendingHandleCnt);
 		return holder;
 	}
 
@@ -181,7 +181,7 @@ namespace uvcpp {
 	}
 
 	void UvContext::handle_connect_cb(uv_connect_t *req, int status) {
-		ali("on connect, status=%d", status);
+		ald("on connect, status=%d", status);
 		auto holder = (HandleHolder*)req->data;
 		assert(holder);
 		auto strm = (UvStream*)(holder->uvh);
@@ -250,6 +250,15 @@ namespace uvcpp {
 			holder->closeLis();
 		}
 		holder->ctx->deleteHandle(holder);
+	}
+
+	void UvContext::handle_shutdown_cb(uv_shutdown_t *req, int status) {
+		auto holder = (HandleHolder*)req->data;
+		assert(holder);
+		auto strm = (UvStream*)(holder->uvh);
+		if(strm) {
+			strm->procShutdownCallback(status);
+		}
 	}
 
 

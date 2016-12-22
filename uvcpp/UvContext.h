@@ -47,6 +47,7 @@ namespace uvcpp {
 		static void handle_read_cb(uv_stream_t *handle, ssize_t nread, const uv_buf_t *buf);
 		static void handle_listen_cb(uv_stream_t *server, int status);
 		static void handle_recv_cb(uv_udp_t *handle, ssize_t nread, const uv_buf_t *buf, const struct sockaddr *addr, unsigned flags);
+		static void handle_shutdown_cb(uv_shutdown_t* req, int status);
 
 	private:
 		bool _createLoop;

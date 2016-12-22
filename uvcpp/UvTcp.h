@@ -27,6 +27,18 @@ namespace uvcpp {
 
 		int init();
 
+		int initEx(unsigned int flags);
+
+		int noDelay(int enable);
+
+		int keepAlive(int enable, unsigned int delay);
+
+		int simultaneousAccepts(int enable);
+
+		int getSockName(struct sockaddr* name, int* namelen);
+
+		int getPeerName(struct sockaddr* name, int* namelen);
+
 		int connect(const char *ipaddr, uint16_t port, UvStream::CnnLis lis=nullptr);
 
 		int bind(const struct sockaddr *addr, unsigned int flags);

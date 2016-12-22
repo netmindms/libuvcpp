@@ -49,4 +49,33 @@ namespace uvcpp {
 			return ret;
 		}
 	}
+
+	int UvTcp::initEx(unsigned int flags) {
+		auto ret = initHandle();
+		if(!ret) {
+			return uv_tcp_init_ex(getLoop(), RAWH(), flags);
+		} else {
+			return ret;
+		}
+	}
+
+	int UvTcp::noDelay(int enable) {
+		return uv_tcp_nodelay(RAWH(), enable);
+	}
+
+	int UvTcp::keepAlive(int enable, unsigned int delay) {
+		return uv_tcp_keepalive(RAWH(), enable, delay);
+	}
+
+	int UvTcp::simultaneousAccepts(int enable) {
+		return uv_tcp_simultaneous_accepts(RAWH(), enable);
+	}
+
+	int UvTcp::getSockName(struct sockaddr *name, int *namelen) {
+		return uv_tcp_getsockname(RAWH(), name, namelen);
+	}
+
+	int UvTcp::getPeerName(struct sockaddr *name, int *namelen) {
+		return uv_tcp_getpeername(RAWH(), name, namelen);
+	}
 }

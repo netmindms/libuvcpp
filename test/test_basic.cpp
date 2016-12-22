@@ -6,6 +6,7 @@
 #include <thread>
 #include <gtest/gtest.h>
 #include <fstream>
+#include <uv.h>
 #include "tlog.h"
 #include "../uvcpp/UvContext.h"
 #include "../uvcpp/UvTimer.h"
@@ -23,6 +24,7 @@
 #include "../uvcpp/UvFsEvent.h"
 #include "../uvcpp/UvFsPoll.h"
 #include "../uvcpp/UvSignal.h"
+#include "../uvcpp/UvSpawn.h"
 
 using namespace std;
 using namespace uvcpp;
@@ -131,6 +133,42 @@ TEST(basic, tcp) {
 	UvContext::close();
 	ASSERT_STREQ(teststr.c_str(), recvstr.c_str());
 }
+
+
+TEST(basic, shutdown) {
+	UvContext::open();
+	UvTcp tcp;
+	UvTcp server;
+	UvTcp child;
+	server.init();
+	server.bindAndListen(9090, "127.0.0.1", [&]() {
+		child.init();
+		server.accept(&child);
+	});
+
+	tcp.init();
+	tcp.connect("127.0.0.1", 9090, [&](int status) {
+		ASSERT_EQ(0, status);
+		char tmp[1024];
+		memset(tmp, 0, sizeof(tmp));
+		for(int i=0;i<1024;i++) {
+			tcp.write(tmp, 1024);
+		}
+		tcp.shutDown([&](int status) {
+			ali("shutdown callback");
+		});
+		tcp.close([&](){
+			ali("close callback");
+			child.close();
+			server.close();
+		});
+	});
+
+
+	UvContext::run();
+	UvContext::close();
+}
+
 
 TEST(basic, udp) {
 	bool bexit=false;
@@ -411,6 +449,48 @@ TEST(basic, fspoll) {
 	ofs.close();
 	ASSERT_EQ(4, chgsize);
 }
+
+#ifdef __linux
+TEST(basic, spawn) {
+	UvContext::open();
+	UvSpawn sph;
+	UvPipe pipe;
+	UvPipe in;
+	int ret;
+
+	pipe.init(0);
+	uv_process_options_t options;
+	uv_stdio_container_t child_stdios[3];
+	memset(&options, 0, sizeof(options));
+	child_stdios[0].flags = UV_IGNORE;
+	child_stdios[1].flags = (uv_stdio_flags)(UV_CREATE_PIPE | UV_WRITABLE_PIPE); // child process's perspective
+	child_stdios[1].data.stream = (uv_stream_t*)pipe.getRawHandle();
+	char cmdpath[128]= "/bin/uname";
+	char* args[3];
+	args[0] = cmdpath;
+	args[1] = NULL;
+	args[2] = NULL;
+	options.args = args;
+	options.file = "/bin/uname";
+	options.stdio = child_stdios;
+	options.stdio_count = 2;
+
+	ret = sph.spawn(&options, [&](int64_t exit_status, int term_signal) {
+		ASSERT_EQ(0, exit_status);
+		sph.close();
+	});
+	ASSERT_EQ(0, ret);
+	ret = pipe.readStart([&](upReadBuffer upbuf) {
+		std::string ts(upbuf->buffer, upbuf->size);
+		ASSERT_STREQ("Linux\n", ts.c_str());
+		pipe.close();
+
+	});
+	ASSERT_EQ(0, ret);
+	UvContext::run();
+	UvContext::close();
+}
+#endif
 
 #if 0
 TEST(basic, signal) {

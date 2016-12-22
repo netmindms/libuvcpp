@@ -26,4 +26,16 @@ namespace uvcpp {
 			return ret;
 		}
 	}
+
+	int UvTty::setMode(uv_tty_mode_t mode) {
+		return uv_tty_set_mode(RAWH(), mode);
+	}
+
+	int UvTty::resetMode(void) {
+		return uv_tty_reset_mode();
+	}
+
+	int UvTty::getWinSize(int *width, int *height) {
+		return uv_tty_get_winsize(RAWH(), width, height);
+	}
 }

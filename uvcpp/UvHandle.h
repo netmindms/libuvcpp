@@ -33,8 +33,9 @@ namespace uvcpp {
 
 		uv_handle_t* getRawHandle();
 
-
 		uv_loop_t* getLoop();
+
+		HANDLE_STATUS getHandleStatus();
 
 	private:
 

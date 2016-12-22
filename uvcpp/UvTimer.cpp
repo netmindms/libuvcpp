@@ -56,4 +56,8 @@ namespace uvcpp {
 		uv_timer_set_repeat(RAWH(), repeat);
 	}
 
+	uint64_t UvTimer::getRepeat() {
+		return uv_timer_get_repeat(RAWH());
+	}
+
 }

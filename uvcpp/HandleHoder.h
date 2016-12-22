@@ -29,6 +29,7 @@ namespace uvcpp {
 		ObjQue<UvUdpWriteInfo> sendReqQue;
 		std::function<void()> closeLis;
 		uv_connect_t cnnReq;
+		uv_shutdown_t shutdownReq;
 
 		std::string handleName; // for debugging
 	};

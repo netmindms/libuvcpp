@@ -31,6 +31,8 @@ namespace uvcpp {
 
 		void setRepeat(uint64_t repeat);
 
+		uint64_t getRepeat();
+
 	private:
 		Lis _lis;
 		static void timer_cb(uv_timer_t* handle);

@@ -17,6 +17,12 @@ namespace uvcpp {
 
 		int init(uv_file fd, int readable);
 
+		int setMode(uv_tty_mode_t mode);
+
+		int resetMode(void);
+
+		int getWinSize(int* width, int* height);
+
 	};
 
 }

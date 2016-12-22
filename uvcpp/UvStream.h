@@ -17,6 +17,8 @@ namespace uvcpp {
 		typedef std::function<void(std::unique_ptr<ReadBuffer>)> ReadLis;
 		typedef std::function<void()> ListenLis;
 		typedef std::function<void(int)> CnnLis;
+		typedef std::function<void(int)> ShutdownLis;
+
 		UvStream();
 
 		virtual ~UvStream();
@@ -35,6 +37,16 @@ namespace uvcpp {
 
 		int write2(UvStream* send_handle);
 
+		int tryWrite(const char *buf, size_t len);
+
+		int shutDown(ShutdownLis lis);
+
+		int isReadable();
+
+		int isWritable();
+
+		int setBlocking(int blocking);
+
 		void recycleReadBuffer(upReadBuffer upbuf);
 
 		void setOnCnnLis(CnnLis lis);
@@ -52,10 +64,12 @@ namespace uvcpp {
 		ReadLis _readLis;
 		CnnLis _cnnLis;
 		ListenLis _listenLis;
+		ShutdownLis _shutdownLis;
 
 		void procReadCallback(upReadBuffer upbuf);
 		void procConnectCallback(int status);
 		void procListenCallback(int status);
+		void procShutdownCallback(int status);
 	};
 }
 

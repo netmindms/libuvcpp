@@ -21,6 +21,7 @@ namespace uvcpp {
 		UvUdp();
 		virtual ~UvUdp();
 		int init();
+		int initEx(unsigned int flags);
 		int bind(const struct sockaddr *addr, unsigned int flags=UV_UDP_REUSEADDR);
 		int bind(const char *ipaddr, uint16_t port, unsigned int flags=UV_UDP_REUSEADDR);
 		int send(const char* buf, size_t len, const sockaddr* addr);
@@ -33,6 +34,12 @@ namespace uvcpp {
 		void setOnRecvLis(RecvLis lis);
 		int trySend(const char* bufs, size_t len, const struct sockaddr* addr);
 		int getsSockName(struct sockaddr* name, int* namelen);
+		int setMemberShip(const char* multicast_addr, const char* interface_addr, uv_membership membership);
+		int setMulticastLoop(int on);
+		int setMulticastTtl(int ttl);
+		int setMulticastInterface(const char* interface_addr);
+		int setBroadcast(int on);
+		int setTtl(int ttl);
 	private:
 		sockaddr* _remoteAddr;
 		RecvLis _recvLis;
