@@ -22,6 +22,7 @@
 #include "../uvcpp/UvPipe.h"
 #include "../uvcpp/UvFsEvent.h"
 #include "../uvcpp/UvFsPoll.h"
+#include "../uvcpp/UvSignal.h"
 
 using namespace std;
 using namespace uvcpp;
@@ -410,6 +411,23 @@ TEST(basic, fspoll) {
 	ofs.close();
 	ASSERT_EQ(4, chgsize);
 }
+
+#if 0
+TEST(basic, signal) {
+	UvContext::open();
+	UvSignal sig;
+	int ret;
+	ret = sig.init();
+	ASSERT_EQ(0, ret);
+	ret = sig.start(SIGINT, [&](){
+		ali("sigint event");
+		sig.stop();
+	});
+	ASSERT_EQ(0, ret);
+	UvContext::run();
+	UvContext::close();
+}
+#endif
 
 #if 0
 TEST(basic, fsevent) {
