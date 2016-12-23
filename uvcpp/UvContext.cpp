@@ -12,6 +12,8 @@
 #include "UvStream.h"
 #include "UvUdp.h"
 #include "UvFsEvent.h"
+#include "UvGetAddrInfo.h"
+#include "UvGetNameInfo.h"
 
 std::atomic_uint _gHandleIdSeed;
 
@@ -259,6 +261,43 @@ namespace uvcpp {
 		if(strm) {
 			strm->procShutdownCallback(status);
 		}
+	}
+
+	AddrInfoReq *UvContext::allocAddrInfoReq() {
+		_addrReqList.emplace_front();
+		auto itr = _addrReqList.begin();
+		itr->req.data = &(*itr);
+		itr->itr = itr;
+		itr->ctx = this;
+		return &(*itr);
+	}
+
+	void UvContext::req_getaddrinfo_cb(uv_getaddrinfo_t *req, int status, struct addrinfo *res) {
+		auto addr = (AddrInfoReq*)req->data;
+		if(addr->obj) {
+			UvGetAddrInfo* uvaddrinfo = ((UvGetAddrInfo*)addr->obj);
+			((UvGetAddrInfo*)addr->obj)->procCallback(status, res);
+		}
+		uv_freeaddrinfo(res);
+		addr->ctx->_addrReqList.erase(addr->itr);
+	}
+
+	NameInfoReq *UvContext::allocNameInfoReq() {
+		_nameReqList.emplace_front();
+		auto itr = _nameReqList.begin();
+		itr->req.data = &(*itr);
+		itr->itr = itr;
+		itr->ctx = this;
+		return &(*itr);
+	}
+
+	void UvContext::req_getnameinfo_cb(uv_getnameinfo_t *req, int status, const char *hostname, const char *service) {
+		auto namereq = (NameInfoReq*)req->data;
+		if(namereq->obj) {
+			UvGetNameInfo* uvnameinfo = ((UvGetNameInfo*)namereq->obj);
+			uvnameinfo->procCallback(status, hostname, service);
+		}
+		namereq->ctx->_nameReqList.erase(namereq->itr);
 	}
 
 

@@ -11,6 +11,7 @@
 #include <uv.h>
 #include "UvHandle.h"
 #include "HandleHoder.h"
+#include "AddrInfoReq.h"
 
 namespace uvcpp {
 
@@ -18,6 +19,8 @@ namespace uvcpp {
 
 	class UvContext {
 		friend class UvHandle;
+		friend class UvGetAddrInfo;
+		friend class UvGetNameInfo;
 	public:
 
 		static void open(uv_loop_t *loop=nullptr);
@@ -50,14 +53,23 @@ namespace uvcpp {
 		static void handle_shutdown_cb(uv_shutdown_t* req, int status);
 
 	private:
+
 		bool _createLoop;
 		uv_loop_t *_loop;
 		HandleHolder *_handleLast;
 		int _pendingHandleCnt;
+		std::list<AddrInfoReq> _addrReqList;
+		std::list<NameInfoReq> _nameReqList;
 
 		void dumpHandle(UvHandle *plast);
 		void deleteHandle(HandleHolder *holder);
 		void initHandle(UvHandle *handle, void *user_data);
+
+		AddrInfoReq* allocAddrInfoReq();
+		static void req_getaddrinfo_cb(uv_getaddrinfo_t* req, int status, struct addrinfo* res);
+
+		NameInfoReq* allocNameInfoReq();
+		static void req_getnameinfo_cb(uv_getnameinfo_t* req, int status, const char* hostname, const char* service);
 
 		UvContext();
 
