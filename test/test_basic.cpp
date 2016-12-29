@@ -75,6 +75,8 @@ TEST(basic, fdtimer) {
 		});
 		UvContext::run();
 		UvContext::close();
+
+		uv_loop_close(uv_default_loop());
 	});
 
 	std::this_thread::sleep_for(chrono::milliseconds(790));
@@ -298,14 +300,15 @@ TEST(basic, closecb) {
 	UvContext::open();
 	int cnt=0;
 	int closeCnt=0;
-	UvTimer timer;
-	timer.init();
-	timer.start(100, 100, [&]() {
+	UvTimer* timer = new UvTimer;
+	timer->init();
+	timer->start(100, 100, [&]() {
 		cnt++;
-		timer.stop(false);
-		timer.close([&](UvHandle*){
+		timer->stop(false);
+		timer->close([&](UvHandle* uvh){
 			ald("timer closed");
 			closeCnt++;
+			delete uvh;
 		});
 	});
 	UvContext::run();
@@ -431,6 +434,7 @@ TEST(basic, pipe) {
 }
 
 
+#if 0
 TEST(basic, fspoll) {
 	uint64_t chgsize=0;
 	std::ofstream ofs;
@@ -449,6 +453,7 @@ TEST(basic, fspoll) {
 	ofs.close();
 	ASSERT_EQ(4, chgsize);
 }
+#endif
 
 #ifdef __linux
 TEST(basic, spawn) {

@@ -108,14 +108,6 @@ namespace uvcpp {
 			_handleLast = tprev;
 		}
 
-
-//		if (tprev == nullptr && tnext == nullptr) {
-//			_handleLast = nullptr;
-//		}
-
-		if(holder->uvh) {
-			holder->uvh->_handleHolder = nullptr;
-		}
 		alv("delete handle, name=%s, remain=%d", holder->handleName, _pendingHandleCnt-1);
 		delete holder;
 		--_pendingHandleCnt;
