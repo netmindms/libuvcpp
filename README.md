@@ -39,4 +39,4 @@ UvContext::close();
 
 Documentation
 -------------
-Refer to wiki.
+Refer to [wiki](https://github.com/netmindms/libuvcpp/wiki).
