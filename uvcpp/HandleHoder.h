@@ -27,7 +27,7 @@ namespace uvcpp {
 		ObjQue<ReadBuffer> readBufQue;
 		ObjQue<UvWriteInfo> writeReqQue;
 		ObjQue<UvUdpWriteInfo> sendReqQue;
-		std::function<void()> closeLis;
+		std::function<void(UvHandle*)> closeLis;
 		uv_connect_t cnnReq;
 		uv_shutdown_t shutdownReq;
 

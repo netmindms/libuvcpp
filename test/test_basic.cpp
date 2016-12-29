@@ -49,9 +49,9 @@ TEST(basic, timer) {
 	auto ret = timer.init();
 	assert(!ret);
 	timer.start(100, 100, [&]() {
-		ald("timer expired");
+		ali("timer expired");
 		expire_cnt++;
-		//timer.stop();
+		timer.stop();
 	});
 	UvContext::run();
 	UvContext::close();
@@ -157,7 +157,7 @@ TEST(basic, shutdown) {
 		tcp.shutDown([&](int status) {
 			ali("shutdown callback");
 		});
-		tcp.close([&](){
+		tcp.close([&](UvHandle*){
 			ali("close callback");
 			child.close();
 			server.close();
@@ -303,7 +303,7 @@ TEST(basic, closecb) {
 	timer.start(100, 100, [&]() {
 		cnt++;
 		timer.stop(false);
-		timer.close([&](){
+		timer.close([&](UvHandle*){
 			ald("timer closed");
 			closeCnt++;
 		});

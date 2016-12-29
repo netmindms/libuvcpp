@@ -24,7 +24,7 @@ namespace uvcpp {
 			INITIALIZED,
 			CLOSING,
 		};
-		typedef std::function<void()> CloseLis;
+		typedef std::function<void(UvHandle*)> CloseLis;
 
 		UvHandle();
 		virtual ~UvHandle();
@@ -36,6 +36,8 @@ namespace uvcpp {
 		uv_loop_t* getLoop();
 
 		HANDLE_STATUS getHandleStatus();
+
+		void* userData;
 
 	private:
 

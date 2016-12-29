@@ -249,7 +249,7 @@ namespace uvcpp {
 			uvh->_status = UvHandle::IDLE;
 		}
 		if(holder->closeLis) {
-			holder->closeLis();
+			holder->closeLis(uvh);
 		}
 		holder->ctx->deleteHandle(holder);
 	}

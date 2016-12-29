@@ -14,6 +14,7 @@ namespace uvcpp {
 		_ctx = nullptr;
 		_handleHolder = nullptr;
 		_status = IDLE;
+		userData = nullptr;
 	}
 
 	UvHandle::~UvHandle() {
