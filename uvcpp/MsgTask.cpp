@@ -37,6 +37,7 @@ namespace uvcpp {
 			IpcMsg msg;
 			msg.msgId = TM_INIT;
 			msg.isSync = false;
+			msg.sendUserData = arg;
 			OnMsgProc(msg);
 			startSync.notify_one();
 			tlock.unlock();
