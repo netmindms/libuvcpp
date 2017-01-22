@@ -5,7 +5,8 @@
 #include <atomic>
 #include <sstream>
 #include "UvHandle.h"
-#include "../test/tlog.h"
+#include "uvcpplog.h"
+
 #define RAWH() ((uv_handle_t*)(&_handleHolder->rawh.handle))
 #define GETOBJH(H) ((UvHandle*)(((HandleHolder*)H->data))->uvh)
 
