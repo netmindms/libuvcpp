@@ -20,10 +20,10 @@ namespace uvcpp {
 	UvTimer::~UvTimer() {
 	}
 
-	int UvTimer::start(uint64_t period, uint64_t first_expire, Lis lis) {
+	int UvTimer::start(uint64_t timeout, uint64_t repeat, Lis lis) {
 		assert(RAWH());
 		_lis = lis;
-		return uv_timer_start(RAWH(), timer_cb, first_expire, period);
+		return uv_timer_start(RAWH(), timer_cb, timeout, repeat);
 	}
 
 	void UvTimer::again() {
@@ -47,6 +47,7 @@ namespace uvcpp {
 	int UvTimer::init() {
 		auto ret = initHandle();
 		if(!ret) {
+//			_period = 0;
 			return uv_timer_init(getLoop(), (uv_timer_t*)getRawHandle());
 		}
 		return ret;
