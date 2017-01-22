@@ -8,6 +8,7 @@
 #ifndef UVCPPPRJ_UVCONTEXT_H_
 #define UVCPPPRJ_UVCONTEXT_H_
 
+#include <cstdint>
 #include <uv.h>
 #include "UvHandle.h"
 #include "HandleHoder.h"
@@ -32,6 +33,8 @@ namespace uvcpp {
 		static UvContext *getContext();
 
 		static int run(uv_run_mode mode=UV_RUN_DEFAULT);
+
+		static uint32_t newCommonHandle();
 
 		uv_loop_t *getLoop();
 
@@ -60,6 +63,7 @@ namespace uvcpp {
 		int _pendingHandleCnt;
 		std::list<AddrInfoReq> _addrReqList;
 		std::list<NameInfoReq> _nameReqList;
+		uint32_t _commonHandleSeed;
 
 		void dumpHandle(UvHandle *plast);
 		void deleteHandle(HandleHolder *holder);

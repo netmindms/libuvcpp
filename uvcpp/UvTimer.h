@@ -23,7 +23,7 @@ namespace uvcpp {
 
 		int init();
 
-		int start(uint64_t period, uint64_t first_expire, Lis lis);
+		int start(uint64_t timeout, uint64_t repeat, Lis lis);
 
 		void again();
 
@@ -35,6 +35,7 @@ namespace uvcpp {
 
 	private:
 		Lis _lis;
+//		uint64_t _period;
 		static void timer_cb(uv_timer_t* handle);
 	};
 }

@@ -11,8 +11,9 @@
 #include "../uvcpp/UvPoll.h"
 #include "../uvcpp/MsgTask.h"
 #include "../uvcpp/UvPipe.h"
+#ifdef __linux
 #include "../uvcpp/StreamIpc.h"
-
+#endif
 using namespace uvcpp;
 
 TEST(except, connect) {

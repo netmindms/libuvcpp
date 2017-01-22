@@ -2,9 +2,9 @@
 // Created by netmind on 16. 12. 20.
 //
 
+#ifdef __linux
 #include <unistd.h>
 #include "StreamIpc.h"
-
 namespace uvcpp {
 	StreamIpc::StreamIpc() {
 		_fds[0] = _fds[1] = -1;
@@ -59,6 +59,6 @@ namespace uvcpp {
 		}
 		return ret;
 	}
-
-
 }
+
+#endif

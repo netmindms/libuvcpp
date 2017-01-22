@@ -16,7 +16,9 @@
 #include "../uvcpp/UvPrepare.h"
 #include "../uvcpp/UvAsync.h"
 #include "../uvcpp/UvTcp.h"
+#ifdef __linux
 #include "../uvcpp/FdTimer.h"
+#endif
 #include "../uvcpp/UvIdle.h"
 #include "../uvcpp/UvPoll.h"
 #include "../uvcpp/UvTty.h"
@@ -29,6 +31,8 @@
 using namespace std;
 using namespace uvcpp;
 using namespace chrono;
+
+#define logflush() fflush(stdout)
 
 static void test_close_cb(uv_handle_t* handle) {
 	ald("test close callback");
@@ -48,8 +52,9 @@ TEST(basic, timer) {
 	UvTimer timer;
 	auto ret = timer.init();
 	assert(!ret);
-	timer.start(100, 100, [&]() {
+	timer.start(100, 0, [&]() {
 		ali("timer expired");
+		logflush();
 		expire_cnt++;
 		timer.stop();
 	});
@@ -380,6 +385,8 @@ TEST(basic, poll) {
 TEST(basic, pipe) {
 	std::string teststr="test";
 	std::string recvstr="test";
+	std::string svr_pipename="//./pipe/svr";
+	std::string client_pipename="//./pipe/client";
 
 	unlink("pipec");
 	unlink("pipes");
@@ -392,7 +399,7 @@ TEST(basic, pipe) {
 	UvPipe child;
 
 	ps.init(0);
-	ps.bind("pipes");
+	ps.bind(svr_pipename.c_str());
 	ret = ps.listen([&]() {
 		child.init(0);
 		auto accret = ps.accept(&child);
@@ -411,16 +418,19 @@ TEST(basic, pipe) {
 			child.write(recvstr);
 		});
 	});
-	assert(!ret);
+	ASSERT_EQ(0, ret);
 
 	pc.init(0);
-	pc.bind("pipec");
-	pc.connect("pipes", [&](int status) {
+	ret = pc.bind(client_pipename.c_str());
+	ASSERT_EQ(0, ret);
+	pc.connect(svr_pipename.c_str(), [&](int status) {
 		ald("pipe connect event status=%d", status);
 		if(!status) {
 			pc.readStart([&](upReadBuffer upbuf) {
-				ald("client received");
+				ald("client received"); logflush();
 				pc.close();
+				child.close();
+				ps.close();
 			});
 			pc.write(teststr);
 		} else {
@@ -428,7 +438,6 @@ TEST(basic, pipe) {
 
 		}
 	});
-
 	UvContext::run();
 	UvContext::close();
 }
@@ -531,3 +540,12 @@ TEST(basic, fsevent) {
 }
 #endif
 
+TEST(basic, commonhandle) {
+	UvContext::open();
+	auto id = UvContext::newCommonHandle();
+	ASSERT_EQ(1, id);
+	id = UvContext::newCommonHandle();
+	ASSERT_EQ(2, id);
+	UvContext::run();
+	UvContext::close();
+}

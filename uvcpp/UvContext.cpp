@@ -48,6 +48,7 @@ namespace uvcpp {
 			uv_loop_init(ctx->_loop);
 		}
 		ctx->_loop = loop;
+		ctx->_commonHandleSeed = 0;
 		_gUvContext = ctx;
 	}
 
@@ -290,6 +291,14 @@ namespace uvcpp {
 			uvnameinfo->procCallback(status, hostname, service);
 		}
 		namereq->ctx->_nameReqList.erase(namereq->itr);
+	}
+
+	uint32_t UvContext::newCommonHandle() {
+		auto &seed = _gUvContext->_commonHandleSeed;
+		if(++seed==0) {
+			seed++;
+		}
+		return seed;
 	}
 
 

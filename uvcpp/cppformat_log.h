@@ -146,8 +146,13 @@ constexpr int  comp_checkdot(const char* str, const int p, const int n) {
 	return (p<=0)?n: str[p]=='.'?p:comp_checkdot(str, p-1, n+1);
 }
 constexpr int comp_checkslash(const char* str, const int p, const int n) {
+#ifdef __WIN32
+	return p<0?0: str[p]=='\\'?p+1:comp_checkslash(str, p-1, n+1);
+#else
 	return p<0?0: str[p]=='/'?p+1:comp_checkslash(str, p-1, n+1);
+#endif
 }
+
 //void NmduMemPrintf(uvcppfmt::MemoryWriter& w, uvcppfmt::StringRef sref, uvcppfmt::ArgList args);
 inline void NmduMemPrintf(uvcppfmt::MemoryWriter& w, const char* sref, uvcppfmt::ArgList args) {
 	uvcppfmt::printf<char>(w, sref, args);

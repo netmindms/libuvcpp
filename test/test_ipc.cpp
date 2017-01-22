@@ -11,8 +11,13 @@
 #include "../uvcpp/UvTimer.h"
 #include "../uvcpp/UvPipe.h"
 #include "../uvcpp/UvTcp.h"
-#include "../uvcpp/StreamIpc.h"
+#include "../uvcpp/HandleReceiver.h"
+#include "../uvcpp/HandleSender.h"
+#include "testmain.h"
 
+#ifdef __linux
+#include "../uvcpp/StreamIpc.h"
+#endif
 using namespace std;
 using namespace uvcpp;
 
@@ -142,6 +147,8 @@ public:
 		}
 	}
 };
+
+#ifdef __linux
 TEST(basic, handlepass) {
 	int ret;
 	std::string teststr="1234";
@@ -224,10 +231,9 @@ TEST(basic, handlepass) {
 	ASSERT_STREQ(teststr.c_str(), recvstr.c_str());
 	ASSERT_STREQ(teststr.c_str(), echostr.c_str());
 }
+#endif
 
-
-
-
+#ifdef __linux
 TEST(basic, streamipc) {
 	class ChildTask: public MsgTask {
 	public:
@@ -304,6 +310,7 @@ TEST(basic, streamipc) {
 
 	ASSERT_STREQ(teststr.c_str(), echostr.c_str());
 }
+#endif
 
 #if 0
 #ifdef __linux
@@ -328,3 +335,80 @@ TEST(basic, pipe) {
 }
 #endif
 #endif
+
+TEST(ipc, sender) {
+	UvContext::open();
+	MsgTask _task;
+	HandleReceiver _receiver;
+	HandleSender _sender;
+
+	UvTcp _child;
+	UvTcp _client;
+	UvTcp _server;
+
+#ifdef _WIN32
+	std::string pipename = "//./pipe/worker_01";
+#else
+	std::string piepname = "worker_01";
+#endif
+
+	_task.setOnListener([&](IpcMsg &msg) {
+		if(msg.msgId==MsgTask::TM_INIT) {
+			int ret;
+			ali("task init");
+			ret = _receiver.open(pipename, [&](UvPipe* pipe, uv_handle_type type) {
+				ali("receiver on");
+				ASSERT_EQ(uv_handle_type::UV_TCP, type);
+				_child.init();
+				pipe->accept(&_child);
+				_child.readStart([&](upReadBuffer upbuf) {
+					string rs(upbuf->buffer, upbuf->size);
+					_child.write(rs);
+				});
+			});
+			ASSERT_EQ(0, ret);
+		} else if(msg.msgId == MsgTask::TM_CLOSE) {
+			ali("task closing");
+			_child.close();
+			_receiver.close();
+		}
+	});
+	_task.start();
+	_sender.connect(pipename.c_str());
+
+	_server.init();
+	_server.bindAndListen(9090, "0.0.0.0", [&]() {
+		ali("incoming connection");
+		logflush();
+		UvTcp tmptcp;
+		tmptcp.init();
+		int  ret = _server.accept(&tmptcp);
+		assert(ret==0);
+		ret = _sender.sendHandle(&tmptcp);
+		assert(ret==0);
+		tmptcp.close();
+	});
+
+	UvTimer _timer;
+	_timer.init();
+	_timer.start(100, 0, [&](){
+		ali("timer on");
+		logflush();
+		_client.init();
+		_client.connect("127.0.0.1", 9090, [&](int status) {
+			if(!status) {
+				_client.readStart([&](upReadBuffer upbuf) {
+					_client.close();
+					_sender.close();
+					_task.postExit();
+
+				});
+			}
+		});
+		_timer.close();
+	});
+
+
+	UvContext::run();
+	UvContext::close();
+}

@@ -21,6 +21,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <assert.h>
+#include <fileapi.h>
 
 #include "uvcpplog.h"
 #include "uvcpp_format.h"
@@ -126,7 +127,12 @@ int LogInst::setLogFile(const char* path, size_t max) {
 		mFd = open(path, flag, mode);
 	}
 	if(mFd>=0) {
+#ifdef __linux
 		char* fullpath = realpath(path, nullptr);
+#elif _WIN32
+		char fullpath[512];
+		GetFullPathName(path, 512, fullpath, nullptr);
+#endif
 		if(fullpath) {
 			mMaxFileSize = max;
 			mFilePath = fullpath;
@@ -174,7 +180,11 @@ int LogInst::backupFile() {
 		struct stat s;
 		auto ret = stat(mBackupFolder.data(), &s);
 		if(ret) {
+#ifdef __linux
 			ret = mkdir(mBackupFolder.data(), 0775);
+#elif _WIN32
+			ret = mkdir(mBackupFolder.data());
+#endif
 			if(ret) return -1;
 		}
 
