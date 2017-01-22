@@ -11,8 +11,9 @@
 #include "../uvcpp/UvTimer.h"
 #include "../uvcpp/UvPipe.h"
 #include "../uvcpp/UvTcp.h"
+#ifdef __linux
 #include "../uvcpp/StreamIpc.h"
-
+#endif
 using namespace std;
 using namespace uvcpp;
 
@@ -142,6 +143,8 @@ public:
 		}
 	}
 };
+
+#ifdef __linux
 TEST(basic, handlepass) {
 	int ret;
 	std::string teststr="1234";
@@ -224,10 +227,9 @@ TEST(basic, handlepass) {
 	ASSERT_STREQ(teststr.c_str(), recvstr.c_str());
 	ASSERT_STREQ(teststr.c_str(), echostr.c_str());
 }
+#endif
 
-
-
-
+#ifdef __linux
 TEST(basic, streamipc) {
 	class ChildTask: public MsgTask {
 	public:
@@ -304,6 +306,7 @@ TEST(basic, streamipc) {
 
 	ASSERT_STREQ(teststr.c_str(), echostr.c_str());
 }
+#endif
 
 #if 0
 #ifdef __linux

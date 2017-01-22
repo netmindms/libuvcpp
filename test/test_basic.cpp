@@ -16,7 +16,9 @@
 #include "../uvcpp/UvPrepare.h"
 #include "../uvcpp/UvAsync.h"
 #include "../uvcpp/UvTcp.h"
+#ifdef __linux
 #include "../uvcpp/FdTimer.h"
+#endif
 #include "../uvcpp/UvIdle.h"
 #include "../uvcpp/UvPoll.h"
 #include "../uvcpp/UvTty.h"
