@@ -52,6 +52,7 @@ TEST(basic, timer) {
 	UvTimer timer;
 	auto ret = timer.init();
 	assert(!ret);
+	ali("timer starting...");
 	timer.start(100, 0, [&]() {
 		ali("timer expired");
 		logflush();

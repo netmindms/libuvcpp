@@ -2,9 +2,15 @@
 // Created by netmind on 17. 1. 23.
 //
 
+#ifdef _WIN32
+#include <winsock2.h>
+#endif
+
 #include <gtest/gtest.h>
+
 #include "../uvcpp/uvcpp.h"
 #include "tlog.h"
+
 
 using namespace std;
 using namespace uvcpp;
@@ -24,7 +30,7 @@ TEST(perf, udp) {
 	_recv.bind("0.0.0.0", 9090);
 	_recv.recvStart([&](upReadBuffer upbuf, const sockaddr*, unsigned) {
 		if(upbuf->size>0) {
-			uint16_t seq = ntohs(*(uint16_t *) upbuf->buffer);
+			uint16_t seq = ntohs(*((uint16_t *) upbuf->buffer));
 			int16_t diffseq = seq - _preRecvSeq;
 			if (diffseq != 1) {
 				alw("*** recv seq error, cur_seq=%d, pre_seq=%d", seq, _preRecvSeq);

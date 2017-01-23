@@ -412,3 +412,54 @@ TEST(ipc, sender) {
 	UvContext::run();
 	UvContext::close();
 }
+
+TEST(ipc, handlereceiver) {
+	UvContext::open();
+	HandleReceiver _recv;
+	UvPipe _pipe;
+	UvTcp _client;
+	UvTcp _svr;
+	UvTcp _child;
+	_svr.init();
+	_svr.bindAndListen(9090, "0.0.0.0", [&](){
+		ali("on incoming");
+		_child.init();
+		_svr.accept(&_child);
+//		_pipe.write2(&_child);
+//		_child.close();
+	});
+
+	_recv.open("//./pipe/recv", [&](UvPipe* pipe, uv_handle_type type) {
+		ali("recv handle");
+	});
+
+	_pipe.init(1);
+	ali("pipe connecting...");
+	_pipe.connect("//./pipe/recv", [&](int status) {
+		if(!status) {
+			ali("pipe connected");
+			logflush();
+		}
+	});
+
+
+	UvTimer _timer;
+	_timer.init();
+	ali("timer starting...");
+	_timer.start(100, 0, [&]() {
+		ali("on timer");
+		_timer.stop();
+		_client.init();
+		_client.connect("127.0.0.1", 9090, [&](int status) {
+			if(!status) {
+				ali("client connected");
+				logflush();
+			}
+		});
+
+	});
+
+
+	UvContext::run();
+	UvContext::close();
+}
