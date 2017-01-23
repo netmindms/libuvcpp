@@ -463,3 +463,78 @@ TEST(ipc, handlereceiver) {
 	UvContext::run();
 	UvContext::close();
 }
+
+TEST(ipc, write2) {
+	class Worker: public MsgTask {
+		UvPipe _svr;
+		UvPipe _child;
+		UvTcp _jobTcp;
+		void OnMsgProc(IpcMsg& msg) {
+			if(msg.msgId == TM_INIT) {
+				initIpc();
+			} else if(msg.msgId == TM_CLOSE) {
+				ali("task closing");
+			}
+		}
+
+		void initIpc() {
+			ali("init ipc");
+			int ret;
+			_svr.init(0);
+			unlink("worker_pipe_server");
+			ret = _svr.bind("worker_pipe_server");
+			ASSERT_EQ(0, ret);
+			ret = _svr.listen([this](){
+				_child.init(1);
+				_svr.accept(&_child);
+				_child.readStart([this](upReadBuffer upbuf) {
+					if(_child.pendingCount()>0) {
+						ali("pending count...");
+						_jobTcp.init();
+						_child.accept(&_jobTcp);
+						_jobTcp.readStart([this](upReadBuffer upbuf) {
+							ali("job read event");
+							std::string rs(upbuf->buffer, upbuf->size);
+							ali("   rs=%s", rs);
+						});
+						_jobTcp.setOnCnnLis([this](int status) {
+							if(status) {
+								ali("job tcp disconnected");
+								_jobTcp.close();
+							}
+						});
+					}
+				});
+				_child.setOnCnnLis([this](int status) {
+					if(status) {
+						ali("child pipe disconnected");
+					}
+				});
+			});
+			ASSERT_EQ(0, ret);
+
+		}
+	};
+	Worker _worker;
+	_worker.start();
+
+	UvContext::open();
+	UvPipe _pipec;
+	_pipec.init(1);
+	_pipec.connect("worker_pipe_server", [&](int status) {
+		if(!status) {
+			ali("client pipe connected");
+		}
+	});
+	UvTcp _server;
+	_server.init();
+	_server.bindAndListen(9090, "0.0.0.0", [&](){
+		UvTcp tmptcp;
+		tmptcp.init();
+		_server.accept(&tmptcp);
+		_pipec.write2(&tmptcp);
+		tmptcp.close();
+	});
+	UvContext::run();
+	UvContext::close();
+}
