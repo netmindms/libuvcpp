@@ -21,7 +21,9 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <assert.h>
+#ifdef _WIN32
 #include <fileapi.h>
+#endif
 
 #include "uvcpplog.h"
 #include "uvcpp_format.h"

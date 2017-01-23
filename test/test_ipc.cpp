@@ -349,7 +349,7 @@ TEST(ipc, sender) {
 #ifdef _WIN32
 	std::string pipename = "//./pipe/worker_01";
 #else
-	std::string piepname = "worker_01";
+	std::string pipename = "worker_01";
 #endif
 
 	_task.setOnListener([&](IpcMsg &msg) {
