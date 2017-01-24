@@ -5,7 +5,7 @@
 #ifndef UVCPPPRJ_UVCPPLOG_H_H
 #define UVCPPPRJ_UVCPPLOG_H_H
 
-#define LOG_LEVEL_VERBOSE
+#define LOG_LEVEL_WARN
 
 #include "cppformat_log.h"
 

@@ -336,183 +336,36 @@ TEST(basic, pipe) {
 #endif
 #endif
 
-TEST(ipc, sender) {
-	UvContext::open();
-	MsgTask _task;
-	HandleReceiver _receiver;
-	HandleSender _sender;
-
-	UvTcp _child;
-	UvTcp _client;
-	UvTcp _server;
-
-#ifdef _WIN32
-	std::string pipename = "//./pipe/worker_01";
-#else
-	std::string pipename = "worker_01";
-#endif
-
-	_task.setOnListener([&](IpcMsg &msg) {
-		if(msg.msgId==MsgTask::TM_INIT) {
-			int ret;
-			ali("task init");
-			ret = _receiver.open(pipename, [&](UvPipe* pipe, uv_handle_type type) {
-				ali("receiver on");
-				ASSERT_EQ(uv_handle_type::UV_TCP, type);
-				_child.init();
-				pipe->accept(&_child);
-				_child.readStart([&](upReadBuffer upbuf) {
-					string rs(upbuf->buffer, upbuf->size);
-					_child.write(rs);
-				});
-			});
-			ASSERT_EQ(0, ret);
-		} else if(msg.msgId == MsgTask::TM_CLOSE) {
-			ali("task closing");
-			_child.close();
-			_receiver.close();
-		}
-	});
-	_task.start();
-	_sender.connect(pipename.c_str());
-
-	_server.init();
-	_server.bindAndListen(9090, "0.0.0.0", [&]() {
-		ali("incoming connection");
-		logflush();
-		UvTcp tmptcp;
-		tmptcp.init();
-		int  ret = _server.accept(&tmptcp);
-		assert(ret==0);
-		ret = _sender.sendHandle(&tmptcp);
-		assert(ret==0);
-		tmptcp.close();
-	});
-
-	UvTimer _timer;
-	_timer.init();
-	_timer.start(100, 0, [&](){
-		ali("timer on");
-		logflush();
-		_client.init();
-		_client.connect("127.0.0.1", 9090, [&](int status) {
-			if(!status) {
-				_client.readStart([&](upReadBuffer upbuf) {
-					_client.close();
-					_sender.close();
-					_task.postExit();
-
-				});
-			}
-		});
-		_timer.close();
-	});
-
-
-	UvContext::run();
-	UvContext::close();
-}
-
 TEST(ipc, handlereceiver) {
-	UvContext::open();
-	HandleReceiver _recv;
-	UvPipe _pipe;
-	UvTcp _client;
-	UvTcp _svr;
-	UvTcp _child;
-	_svr.init();
-	_svr.bindAndListen(9090, "0.0.0.0", [&](){
-		ali("on incoming");
-		_child.init();
-		_svr.accept(&_child);
-//		_pipe.write2(&_child);
-//		_child.close();
-	});
-
-	_recv.open("//./pipe/recv", [&](UvPipe* pipe, uv_handle_type type) {
-		ali("recv handle");
-	});
-
-	_pipe.init(1);
-	ali("pipe connecting...");
-	_pipe.connect("//./pipe/recv", [&](int status) {
-		if(!status) {
-			ali("pipe connected");
-			logflush();
-		}
-	});
-
-
-	UvTimer _timer;
-	_timer.init();
-	ali("timer starting...");
-	_timer.start(100, 0, [&]() {
-		ali("on timer");
-		_timer.stop();
-		_client.init();
-		_client.connect("127.0.0.1", 9090, [&](int status) {
-			if(!status) {
-				ali("client connected");
-				logflush();
-			}
-		});
-
-	});
-
-
-	UvContext::run();
-	UvContext::close();
-}
-
-TEST(ipc, write2) {
 	class Worker: public MsgTask {
-		UvPipe _svr;
-		UvPipe _child;
 		UvTcp _jobTcp;
+		HandleReceiver _hrecv;
+
 		void OnMsgProc(IpcMsg& msg) {
 			if(msg.msgId == TM_INIT) {
-				initIpc();
+				unlink("hrecv");
+				_hrecv.open("hrecv", [this](UvPipe* pipe, uv_handle_type type) {
+					ali("handle recv");
+					_jobTcp.init();
+					int ret = pipe->accept(&_jobTcp);
+					assert(ret==0);
+					_jobTcp.setOnCnnLis([this](int status) {
+						if(status) {
+							ali("tcp job disconnected");
+							_jobTcp.close();
+						}
+					});
+					_jobTcp.readStart([this](upReadBuffer upbuf) {
+						std::string rs(upbuf->buffer, upbuf->size);
+						ali("recv job2: %s", rs);
+						_jobTcp.write(rs);
+					});
+				});
 			} else if(msg.msgId == TM_CLOSE) {
 				ali("task closing");
+				_hrecv.close();
+
 			}
-		}
-
-		void initIpc() {
-			ali("init ipc");
-			int ret;
-			_svr.init(0);
-			unlink("worker_pipe_server");
-			ret = _svr.bind("worker_pipe_server");
-			ASSERT_EQ(0, ret);
-			ret = _svr.listen([this](){
-				_child.init(1);
-				_svr.accept(&_child);
-				_child.readStart([this](upReadBuffer upbuf) {
-					if(_child.pendingCount()>0) {
-						ali("pending count...");
-						_jobTcp.init();
-						_child.accept(&_jobTcp);
-						_jobTcp.readStart([this](upReadBuffer upbuf) {
-							ali("job read event");
-							std::string rs(upbuf->buffer, upbuf->size);
-							ali("   rs=%s", rs);
-						});
-						_jobTcp.setOnCnnLis([this](int status) {
-							if(status) {
-								ali("job tcp disconnected");
-								_jobTcp.close();
-							}
-						});
-					}
-				});
-				_child.setOnCnnLis([this](int status) {
-					if(status) {
-						ali("child pipe disconnected");
-					}
-				});
-			});
-			ASSERT_EQ(0, ret);
-
 		}
 	};
 	Worker _worker;
@@ -521,11 +374,14 @@ TEST(ipc, write2) {
 	UvContext::open();
 	UvPipe _pipec;
 	_pipec.init(1);
-	_pipec.connect("worker_pipe_server", [&](int status) {
+	_pipec.connect("hrecv", [&](int status) {
+//	_pipec.connect("worker_pipe_server", [&](int status) {
 		if(!status) {
 			ali("client pipe connected");
+			logflush();
 		}
 	});
+
 	UvTcp _server;
 	_server.init();
 	_server.bindAndListen(9090, "0.0.0.0", [&](){
@@ -535,6 +391,31 @@ TEST(ipc, write2) {
 		_pipec.write2(&tmptcp);
 		tmptcp.close();
 	});
+
+	UvTimer _timer;
+	UvTcp _client;
+	_timer.init();
+	_timer.start(100, 0, [&](){
+		_timer.stop();
+		_client.init();
+		_client.connect("127.0.0.", 9090, [&](int status) {
+			if(!status) {
+				_client.readStart([&](upReadBuffer upbuf) {
+					std::string rs(upbuf->buffer, upbuf->size);
+					ASSERT_STREQ("1234", rs.c_str());
+					_pipec.close();
+					_client.close();
+					_server.close();
+					_worker.stop();
+				});
+				_client.write("1234");
+			} else {
+				ASSERT_TRUE(0);
+			}
+		});
+	});
+
+
 	UvContext::run();
 	UvContext::close();
 }

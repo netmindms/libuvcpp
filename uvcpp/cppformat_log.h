@@ -56,7 +56,9 @@ namespace uvcpp {
 //#define LOG_LEVEL LOG_INFO
 //#endif
 
-#if defined(LOG_LEVEL_ERROR)
+#if defined(LOG_LEVEL_NONE)
+#define LOG_LEVEL LOG_NONE
+#elif defined(LOG_LEVEL_ERROR)
 #define LOG_LEVEL LOG_ERROR
 #elif defined(LOG_LEVEL_WARN)
 #define LOG_LEVEL LOG_WARN

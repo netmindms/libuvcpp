@@ -9,13 +9,12 @@
 namespace uvcpp {
 	class HandleReceiver {
 	public:
-		typedef std::function<void(UvPipe* pipe, uv_handle_type)> Lis;
+		typedef std::function<void (UvPipe*, uv_handle_type)> Lis;
 
 		/*
 		 *  In Windows, name must be started with //./pipe/ . ex) //./pipe/mypipename
 		 *
 		 */
-		int open(const char* name, Lis lis);
 
 		int open(const std::string& name, Lis lis);
 
@@ -31,6 +30,7 @@ namespace uvcpp {
 		};
 		uvcpp::UvPipe _svr;
 		std::list<HandlePipe> _pipeList;
+		std::string _pipeName;
 	};
 }
 

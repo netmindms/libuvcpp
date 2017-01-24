@@ -10,18 +10,19 @@ using namespace std;
 
 namespace uvcpp {
 
-	int HandleReceiver::open(const char* name, Lis lis) {
+	int HandleReceiver::open(const std::string& pipename, Lis lis) {
 		int ret;
 		_lis = lis;
 		_svr.init(0);
-		ret = _svr.bind(name);
+		_pipeName = pipename;
+		ret = _svr.bind(pipename.c_str());
 		if(ret) {
 			_svr.close();
 			assert(0);
 			return -1;
 		}
 		_svr.listen([this]() {
-			ali("incoming handle pass connection");
+			ald("incoming handle pass connection");
 			_pipeList.emplace_back();
 			auto &pipe = _pipeList.back();
 			pipe.itr = --_pipeList.end();
@@ -30,15 +31,18 @@ namespace uvcpp {
 			assert(0==ret);
 			pipe.setOnCnnLis([this, &pipe](int status) {
 				if(status) {
+					ald("handle pipe disconnected");
 					pipe.close();
 					_pipeList.erase(pipe.itr);
 				}
 			});
 			ret = pipe.readStart([this, &pipe](upReadBuffer upbuf) {
-				ali("pipe read event");
+				ald("pipe read event");
 				if(pipe.pendingCount()>0) {
+					ali("  pipe pendingcount=%d", pipe.pendingCount());
 					uv_handle_type type = pipe.pendingType();
 					_lis(&pipe, type);
+					ald("  accept after pendingcount=%d", pipe.pendingCount());
 				}
 			});
 			assert(ret==0);
@@ -52,10 +56,10 @@ namespace uvcpp {
 			pipe.close();
 		}
 		_pipeList.clear();
+#ifdef __linux
+		unlink(_pipeName.c_str());
+#endif
 	}
 
-	int HandleReceiver::open(const std::string &name, HandleReceiver::Lis lis) {
-		return open(name.c_str(), lis);
-	}
 
 }
