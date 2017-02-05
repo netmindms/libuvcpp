@@ -22,6 +22,11 @@ namespace uvcpp {
 	}
 
 
+	int UvTcp::connect(const sockaddr *addr, UvStream::CnnLis lis) {
+		setConnectionReq(lis);
+		return uv_tcp_connect(&_handleHolder->cnnReq, RAWH(), (struct sockaddr *) addr, UvContext::handle_connect_cb);
+	}
+
 	int UvTcp::connect(const char *ipaddr, uint16_t port, CnnLis lis) {
 		sockaddr_in req_addr;
 		uv_ip4_addr(ipaddr, port, &req_addr);
@@ -78,4 +83,6 @@ namespace uvcpp {
 	int UvTcp::getPeerName(struct sockaddr *name, int *namelen) {
 		return uv_tcp_getpeername(RAWH(), name, namelen);
 	}
+
+
 }

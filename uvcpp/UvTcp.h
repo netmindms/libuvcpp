@@ -41,6 +41,8 @@ namespace uvcpp {
 
 		int connect(const char *ipaddr, uint16_t port, UvStream::CnnLis lis=nullptr);
 
+		int connect(const sockaddr *addr, UvStream::CnnLis lis=nullptr);
+
 		int bind(const struct sockaddr *addr, unsigned int flags);
 
 		int bindAndListen(uint16_t port, const char *ipaddr, UvStream::ListenLis lis, int backlogs = 128);
