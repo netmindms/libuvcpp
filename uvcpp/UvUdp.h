@@ -35,7 +35,7 @@ namespace uvcpp {
 		void setOnRecvLis(RecvLis lis);
 		void setOnSendLis(SendLis lis);
 		int trySend(const char* bufs, size_t len, const struct sockaddr* addr);
-		int getsSockName(struct sockaddr* name, int* namelen);
+		int getSockName(struct sockaddr* name, int* namelen);
 		int setMemberShip(const char* multicast_addr, const char* interface_addr, uv_membership membership);
 		int setMulticastLoop(int on);
 		int setMulticastTtl(int ttl);

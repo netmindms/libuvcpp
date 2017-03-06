@@ -112,7 +112,7 @@ namespace uvcpp {
 		_recvLis = lis;
 	}
 
-	int UvUdp::getsSockName(struct sockaddr *name, int *namelen) {
+	int UvUdp::getSockName(struct sockaddr *name, int *namelen) {
 		return uv_udp_getsockname(RAWH(), name, namelen);
 	}
 
