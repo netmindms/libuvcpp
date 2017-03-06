@@ -150,5 +150,15 @@ namespace uvcpp {
 		return uv_udp_set_ttl(RAWH(), ttl);
 	}
 
+	void UvUdp::procSendCallback(int status) {
+		if(_sendLis != nullptr) {
+			_sendLis(status);
+		}
+	}
+
+	void UvUdp::setOnSendLis(UvUdp::SendLis lis) {
+		_sendLis = lis;
+	}
+
 
 }

@@ -152,6 +152,9 @@ namespace uvcpp {
 		auto holder = ((HandleHolder *) req->data);
 		assert(holder);
 		auto up =holder->writeReqQue.pop();
+		if(holder->uvh) {
+			((UvStream*)holder->uvh)->procWriteCallback(status);
+		}
 		holder->writeReqQue.recycleObj(move(up));
 	}
 
@@ -160,6 +163,9 @@ namespace uvcpp {
 		auto holder = (HandleHolder *) req->data;
 		assert(holder);
 		auto up =holder->sendReqQue.pop();
+		if(holder->uvh) {
+			((UvUdp*)holder->uvh)->procSendCallback(status);
+		}
 		holder->sendReqQue.recycleObj(move(up));
 	}
 
@@ -219,16 +225,17 @@ namespace uvcpp {
 		alv("readcb, nread=%d", nread);
 		auto holder = (HandleHolder*)handle->data;
 		assert(holder);
-		auto udp = (UvUdp*)(holder->uvh);
 		auto uprbuf = holder->readBufQue.pop();
 		assert(buf->base==uprbuf->buffer);
 		uprbuf->size = nread;
 		if (nread >= 0) {
 			// nread==0 && buf->base != nullptr  ==> empty udp packet recevied.
 			// nread==0 && buf->base == nullptr  ==> threre is nothing to read.
-			if (udp) {
+			if(holder) {
+				auto udp = (UvUdp*)(holder->uvh);
 				udp->procRecvCallback(move(uprbuf), addr, flags);
 			}
+
 		} else {
 			assert(0);
 		}

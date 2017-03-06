@@ -108,6 +108,12 @@ namespace uvcpp {
 		_readLis(move(upbuf));
 	}
 
+	void UvStream::procWriteCallback(int status) {
+		if(_writeLis!=nullptr) {
+			_writeLis(status);
+		}
+	}
+
 	void UvStream::procConnectCallback(int status) {
 		if(_status == UvHandle::INITIALIZED) {
 			if(_cnnLis) {
@@ -127,6 +133,10 @@ namespace uvcpp {
 
 	void UvStream::setOnReadLis(UvStream::ReadLis lis) {
 		_readLis = lis;
+	}
+
+	void UvStream::setOnWriteLis(UvStream::WriteLis lis) {
+		_writeLis = lis;
 	}
 
 	uint32_t UvStream::getWriteQueCnt() {
@@ -160,6 +170,5 @@ namespace uvcpp {
 			_shutdownLis(status);
 		}
 	}
-
 
 }

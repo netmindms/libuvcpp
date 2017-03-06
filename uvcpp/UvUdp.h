@@ -18,6 +18,7 @@ namespace uvcpp {
 		friend class UvContext;
 	public:
 		typedef std::function<void(std::unique_ptr<ReadBuffer>, const struct sockaddr *, unsigned)> RecvLis;
+		typedef std::function<void(int)> SendLis;
 		UvUdp();
 		virtual ~UvUdp();
 		int init();
@@ -32,6 +33,7 @@ namespace uvcpp {
 		int recvStart(RecvLis lis=nullptr);
 		int recvStop();
 		void setOnRecvLis(RecvLis lis);
+		void setOnSendLis(SendLis lis);
 		int trySend(const char* bufs, size_t len, const struct sockaddr* addr);
 		int getsSockName(struct sockaddr* name, int* namelen);
 		int setMemberShip(const char* multicast_addr, const char* interface_addr, uv_membership membership);
@@ -43,8 +45,10 @@ namespace uvcpp {
 	private:
 		sockaddr* _remoteAddr;
 		RecvLis _recvLis;
+		SendLis _sendLis;
 
 		void procRecvCallback(upReadBuffer upbuf, const struct sockaddr *addr, unsigned flags);
+		void procSendCallback(int status);
 	};
 
 }

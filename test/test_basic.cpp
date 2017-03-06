@@ -137,6 +137,10 @@ TEST(basic, tcp) {
 			server.close();
 		}
 	});
+	client.setOnWriteLis([&](int status) {
+		ali("client on write..., status=%d", status);
+	});
+
 	UvContext::run();
 	UvContext::close();
 	ASSERT_STREQ(teststr.c_str(), recvstr.c_str());
@@ -201,6 +205,9 @@ TEST(basic, udp) {
 	ald("recvUdp open ret=%d", ret);
 
 	ret = senderUdp.init();
+	senderUdp.setOnSendLis([&](int status) {
+		ald("send callback, status=%d", status);
+	});
 	senderUdp.setRemoteIpV4Addr("127.0.0.1", 17000);
 	ald("senderUdp open ret=%d", ret);
 	senderUdp.send(testmsg.data(), testmsg.size());
@@ -386,12 +393,18 @@ TEST(basic, poll) {
 TEST(basic, pipe) {
 	std::string teststr="test";
 	std::string recvstr="test";
+#ifdef __linux
+	std::string svr_pipename="svr_pipe";
+	std::string client_pipename="client_pipe";
+#else
 	std::string svr_pipename="//./pipe/svr";
 	std::string client_pipename="//./pipe/client";
+#endif
 
-	unlink("pipec");
-	unlink("pipes");
-
+#ifdef __linux
+	unlink(svr_pipename.c_str());
+	unlink(client_pipename.c_str());
+#endif
 	UvContext::open();
 
 	int ret;

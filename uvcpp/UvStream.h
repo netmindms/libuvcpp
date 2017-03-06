@@ -15,6 +15,7 @@ namespace uvcpp {
 		friend class UvContext;
 	public:
 		typedef std::function<void(std::unique_ptr<ReadBuffer>)> ReadLis;
+		typedef std::function<void(int)> WriteLis;
 		typedef std::function<void()> ListenLis;
 		typedef std::function<void(int)> CnnLis;
 		typedef std::function<void(int)> ShutdownLis;
@@ -53,6 +54,8 @@ namespace uvcpp {
 
 		void setOnReadLis(ReadLis lis);
 
+		void setOnWriteLis(WriteLis lis);
+
 		uint32_t getWriteQueCnt();
 
 		uint32_t getSendQueCnt();
@@ -62,11 +65,13 @@ namespace uvcpp {
 
 	private:
 		ReadLis _readLis;
+		WriteLis _writeLis;
 		CnnLis _cnnLis;
 		ListenLis _listenLis;
 		ShutdownLis _shutdownLis;
 
 		void procReadCallback(upReadBuffer upbuf);
+		void procWriteCallback(int status);
 		void procConnectCallback(int status);
 		void procListenCallback(int status);
 		void procShutdownCallback(int status);
