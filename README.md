@@ -1,4 +1,4 @@
-# libuvcpp
+# libuv c++ wrapper
 
 libuvcpp is c++ wrapper for libuv.
 
