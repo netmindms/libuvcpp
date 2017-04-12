@@ -19,8 +19,21 @@ std::atomic_uint _gHandleIdSeed;
 
 using namespace std;
 namespace uvcpp {
-
+#ifdef __GNUC__
+    #if (__GNUC__ <= 4)
+        #if (__GNUC_MINOR__ < 9)
+            __thread UvContext *_gUvContext=nullptr;
+        #else
+            thread_local UvContext *_gUvContext=nullptr;
+        #endif
+    #else
+        thread_local UvContext *_gUvContext=nullptr;
+    #endif
+#else
 	thread_local UvContext *_gUvContext=nullptr;
+#endif
+
+
 
 	UvContext::UvContext() {
 		_loop = nullptr;
