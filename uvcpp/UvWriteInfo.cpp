@@ -23,7 +23,7 @@ namespace uvcpp {
 
 	char *UvWriteInfo::bufAlloc(size_t len) {
 		if (capacity < len) {
-			delete buf;
+			delete[] buf;
 			buf = new char[len];
 			if (buf) {
 				capacity = len;
