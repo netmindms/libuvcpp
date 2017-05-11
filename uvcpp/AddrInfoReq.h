@@ -7,7 +7,7 @@
 
 #include <list>
 #include <uv.h>
-
+#include "UvContext.h"
 namespace uvcpp {
 	struct AddrInfoReq {
 		std::list<AddrInfoReq>::iterator itr;

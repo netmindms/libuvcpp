@@ -22,6 +22,8 @@ namespace uvcpp {
 		friend class UvHandle;
 		friend class UvGetAddrInfo;
 		friend class UvGetNameInfo;
+		friend class UvWork;
+
 	public:
 
 		static void open(uv_loop_t *loop=nullptr);
@@ -64,6 +66,8 @@ namespace uvcpp {
 		std::list<AddrInfoReq> _addrReqList;
 		std::list<NameInfoReq> _nameReqList;
 		uint32_t _commonHandleSeed;
+
+		std::list<uv_work_t> _workList;
 
 		void dumpHandle(UvHandle *plast);
 		void deleteHandle(HandleHolder *holder);

@@ -2,6 +2,8 @@
 // Created by netmind on 16. 11. 28.
 //
 
+#define LOG_LEVEL_DEBUG
+
 #include <chrono>
 #include <thread>
 #include <gtest/gtest.h>
@@ -105,7 +107,7 @@ TEST(basic, tcp) {
 	int ret;
 	server.init();
 	server.bindAndListen(9090, "127.0.0.1", [&]() {
-		ald("new incoming connection");
+		ali("new incoming connection");
 		child.init();
 		server.accept(&child);
 		child.readStart([&](upReadBuffer upbuf) {
@@ -146,6 +148,71 @@ TEST(basic, tcp) {
 	ASSERT_STREQ(teststr.c_str(), recvstr.c_str());
 }
 
+TEST(basic, tcpwritelis) {
+	UvTcp client;
+	UvTcp server;
+	UvTcp child;
+	std::string teststr="test string";
+	std::string recvstr;
+
+	FILE* _st = fopen("/home/netmind/temp/test.pcm", "rb");
+	FILE* _wst = fopen("/tmp/test.pcm", "wb");
+
+	UvContext::open();
+	int ret;
+	server.init();
+	server.bindAndListen(9090, "127.0.0.1", [&]() {
+		ali("new incoming connection");
+		child.init();
+		server.accept(&child);
+		child.readStart([&](upReadBuffer upbuf) {
+//			ald("child on read");
+			fwrite(upbuf->buffer, 1, upbuf->size, _wst);
+		});
+		child.setOnCnnLis([&](int status) {
+			if(status) {
+				ald("child cnn disconnected");
+				child.close();
+				server.close();
+				fclose(_wst);
+			}
+		});
+	});
+
+	ret = client.init();
+
+	client.connect("127.0.0.1", 9090, [&](int status) {
+		if(!status) {
+			ald("connected");
+			client.readStart([&](upReadBuffer upbuf) {
+				ald("client on read");
+			});
+			char temp[1024];
+//			auto rcnt = fread(temp, 1, 1024, _st);
+//			if(rcnt>0) {
+//				client.write(temp, rcnt);
+//			}
+			client.write(temp, 0);
+		} else {
+			ald("disconnected");
+			client.close();
+		}
+	});
+	client.setOnWriteLis([&](int status) {
+//		ali("client on write..., status=%d", status);
+		char temp[1024];
+		auto rcnt = fread(temp, 1, 1024, _st);
+		if(rcnt>0) {
+			client.write(temp, rcnt);
+		} else {
+			client.close();
+			fclose(_st);
+		}
+	});
+
+	UvContext::run();
+	UvContext::close();
+}
 
 TEST(basic, shutdown) {
 	UvContext::open();
