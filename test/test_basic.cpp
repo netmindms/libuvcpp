@@ -29,6 +29,7 @@
 #include "../uvcpp/UvFsPoll.h"
 #include "../uvcpp/UvSignal.h"
 #include "../uvcpp/UvSpawn.h"
+#include "../uvcpp/UvWork.h"
 
 using namespace std;
 using namespace uvcpp;
@@ -627,6 +628,31 @@ TEST(basic, commonhandle) {
 	ASSERT_EQ(1, id);
 	id = UvContext::newCommonHandle();
 	ASSERT_EQ(2, id);
+	UvContext::run();
+	UvContext::close();
+}
+
+TEST(basic, work) {
+	UvContext::open();
+	UvWork work;
+	UvTimer tm;
+	int cnt=0;
+	work.setWork([&]() {
+		for(int i=0;i<10;i++) {
+			this_thread::sleep_for(milliseconds(100));
+			ali("count");
+			cnt++;
+		}
+	});
+	work.setOnListener([&](int status) {
+		ali("complete, tid=%x", this_thread::get_id());
+		tm.close();
+	});
+	tm.init();
+	tm.start(100, 100, []{
+		ali("expired");
+	});
+	work.work();
 	UvContext::run();
 	UvContext::close();
 }
