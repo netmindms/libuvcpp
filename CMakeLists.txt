@@ -27,10 +27,14 @@ add_library(uvcpp SHARED ${SOURCE_FILES} uvcpp/uvcpp.cpp)
 target_link_libraries(uvcpp ${DEP_LIB})
 set_target_properties(uvcpp PROPERTIES SOVERSION ${UVCPP_VER_MAJOR}.${UVCPP_VER_MINOR} VERSION ${UVCPP_VER})
 
+add_library(uvcpp_static STATIC ${SOURCE_FILES} uvcpp/uvcpp.cpp)
+target_link_libraries(uvcpp_static ${DEP_LIB})
 
 install(TARGETS uvcpp DESTINATION lib )
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/uvcpp/ DESTINATION include/uvcpp
         FILES_MATCHING PATTERN "*.h")
+
+install(TARGETS uvcpp_static DESTINATION lib )
 
 file(GLOB TESTSRCS "test/*.cpp")
 add_executable(testuvcpp EXCLUDE_FROM_ALL ${SOURCE_FILES} ${TESTSRCS} test/test_basic.cpp test/test_ipc.cpp)
