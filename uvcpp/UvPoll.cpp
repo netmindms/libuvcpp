@@ -17,14 +17,13 @@ namespace uvcpp {
 	}
 
 	UvPoll::~UvPoll() {
-		assert(_fd<=0);
 	}
 
 	int UvPoll::init(int fd) {
 		if(_fd < 0) {
 			initHandle();
 			_fd =fd;
-			uv_poll_init(getLoop(), RAWH(), _fd);
+			return uv_poll_init(getLoop(), RAWH(), _fd);
 		} else {
 			ale("### already opened");
 			return -1;

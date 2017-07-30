@@ -69,31 +69,15 @@ TEST(basic, timer) {
 
 #ifdef __linux
 TEST(basic, fdtimer) {
-	uint64_t expire_cnt=0;
-	bool bexit=false;
-	std::thread thr = thread([&]() {
-		UvContext::openWithDefaultLoop();
-		FdTimer timer;
-		timer.init();
-		timer.start(100, 100, [&]() {
-			ald("timer expired");
-			expire_cnt += timer.getFireCount();
-			if(bexit) {
-				timer.stop();
-			}
-		});
-		UvContext::run();
-		UvContext::close();
-
-		uv_loop_close(uv_default_loop());
+	UvContext::open();
+	FdTimer timer;
+	timer.init();
+	timer.start(100, 0, [&]() {
+		ali("on fd timer");
+		timer.close();
 	});
-
-	std::this_thread::sleep_for(chrono::milliseconds(790));
-//	ASSERT_EQ(5, expire_cnt);
-	bexit = true;
-	if(thr.joinable()) {
-		thr.join();
-	}
+	UvContext::run();
+	UvContext::close();
 }
 #endif
 

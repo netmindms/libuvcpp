@@ -16,19 +16,20 @@
 namespace uvcpp {
 	FdTimer::FdTimer() {
 		_fireCount = 0;
+		_fd = -1;
 	}
 
 	FdTimer::~FdTimer() {
 	}
 
-	void FdTimer::startUsec(uint64_t usec, uint64_t first_usec, Lis lis) {
+	void FdTimer::startUsec(uint64_t expire_us, uint64_t period_usec, Lis lis) {
 		_lis = lis;
 
-		mTimerSpec.it_interval.tv_sec = usec / 1000000;
-		mTimerSpec.it_interval.tv_nsec = (usec % 1000000) * 1000;
-		uint64_t iusec = (first_usec == 0) ? usec : first_usec;
-		mTimerSpec.it_value.tv_sec = iusec / 1000000;
-		mTimerSpec.it_value.tv_nsec = (iusec % 1000000) * 1000;
+		mTimerSpec.it_interval.tv_sec = period_usec / 1000000;
+		mTimerSpec.it_interval.tv_nsec = (period_usec % 1000000) * 1000;
+
+		mTimerSpec.it_value.tv_sec = expire_us / 1000000;
+		mTimerSpec.it_value.tv_nsec = (expire_us % 1000000) * 1000;
 
 		timerfd_settime(_fd, 0, &mTimerSpec, NULL);
 		auto ret = UvPoll::start(UV_READABLE, [&](int events) {
@@ -48,7 +49,11 @@ namespace uvcpp {
 	}
 
 	void FdTimer::stop(bool isclose) {
-		UvPoll::stop(isclose);
+		if(_fd>=0) {
+			UvPoll::stop(isclose);
+			::close(_fd);
+			_fd = -1;
+		}
 	}
 
 	void FdTimer::pause(void) {
@@ -66,9 +71,16 @@ namespace uvcpp {
 	}
 
 	int FdTimer::init() {
-		auto fd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
-		ald("timerfd create fd=%d", fd);
-		return UvPoll::init(fd);
+		_fd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
+		ald("timerfd create fd=%d", _fd);
+		return UvPoll::init(_fd);
+	}
+
+	void FdTimer::close(UvHandle::CloseLis lis) {
+		if(_fd>=0) {
+			UvPoll::close(lis);
+			::close(_fd); _fd=-1;
+		}
 	}
 
 }
