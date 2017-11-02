@@ -30,6 +30,7 @@
 #include "../uvcpp/UvSignal.h"
 #include "../uvcpp/UvSpawn.h"
 #include "../uvcpp/UvWork.h"
+#include "../uvcpp/Immediate.h"
 
 using namespace std;
 using namespace uvcpp;
@@ -637,6 +638,38 @@ TEST(basic, work) {
 		ali("expired");
 	});
 	work.work();
+	UvContext::run();
+	UvContext::close();
+}
+
+TEST(basic, immediate) {
+	UvContext::open();
+	Immediate imd;
+	int id1=100;
+	int id2=200;
+	int id3=300;
+
+	imd.setImmediate([id1]() {
+		ald("on imd=%d", id1);
+	});
+
+	auto handle = imd.setImmediate([id2]() {
+		ald("on imd=%d", id2);
+	});
+
+	imd.setImmediate([id3, &imd]() {
+		ald("on imd=%d", id3);
+		imd.close();
+	});
+
+	imd.abort(handle);
+
+//	UvTimer endtimer;
+//	endtimer.init();
+//	endtimer.start(1000, 0, [&]() {
+//		endtimer.close();
+//	});
+
 	UvContext::run();
 	UvContext::close();
 }

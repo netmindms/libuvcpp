@@ -13,6 +13,8 @@ ELSEIF(WIN32)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 ENDIF(UNIX)
 
+#set(CMAKE_CXX_FLAGS "-fsanitize=leak -fsanitize=address")
+
 set(DEP_LIB uv)
 IF(WIN32)
 set(DEP_LIB ${DEP_LIB} ws2_32)
@@ -39,6 +41,7 @@ install(TARGETS uvcpp_static DESTINATION lib )
 file(GLOB TESTSRCS "test/*.cpp")
 add_executable(testuvcpp EXCLUDE_FROM_ALL ${SOURCE_FILES} ${TESTSRCS} test/test_basic.cpp test/test_ipc.cpp)
 target_link_libraries(testuvcpp gtest ${DEP_LIB})
+
 
 add_executable(chatsvr EXCLUDE_FROM_ALL ${UVCPPSRCS} "samples/chatserver.cpp" )
 target_link_libraries(chatsvr ${DEP_LIB} )
