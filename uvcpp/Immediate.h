@@ -12,7 +12,7 @@ namespace uvcpp {
 	public:
 		Immediate();
 
-		uint32_t setImmediate(std::function<void()> lis);
+		uint32_t setImmediate(std::function<void(uint32_t)> lis);
 
 		void abort(uint32_t handle);
 
@@ -21,8 +21,8 @@ namespace uvcpp {
 	private:
 		struct Msg {
 			uint32_t handle;
-			std::function<void()> lis;
-			Msg(uint32_t handle, std::function<void()> cb);
+			std::function<void(uint32_t)> lis;
+			Msg(uint32_t handle, std::function<void(uint32_t)> cb);
 		};
 		uint32_t _handleSeed;
 		UvAsync _async;

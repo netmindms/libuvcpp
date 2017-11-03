@@ -17,6 +17,8 @@
 namespace uvcpp {
 
 	class UvHandle;
+	class Immediate;
+	class ImmediateWrapper;
 
 	class UvContext {
 		friend class UvHandle;
@@ -45,6 +47,7 @@ namespace uvcpp {
 
 		int handleCount();
 
+		static std::unique_ptr<ImmediateWrapper> createImmediate();
 
 		void closeHandle(HandleHolder* holder);
 		static void handle_close_cb(uv_handle_t *phandle);
@@ -66,6 +69,7 @@ namespace uvcpp {
 		std::list<AddrInfoReq> _addrReqList;
 		std::list<NameInfoReq> _nameReqList;
 		uint32_t _commonHandleSeed;
+		Immediate* _ctxImmd;
 
 		std::list<uv_work_t> _workList;
 

@@ -9,13 +9,13 @@ using namespace std;
 
 namespace uvcpp {
 
-	uint32_t Immediate::setImmediate(std::function<void()> lis) {
+	uint32_t Immediate::setImmediate(std::function<void(uint32_t)> lis) {
 		if(!_async.getRawHandle()) {
 			_async.init([this]() {
 				for(;_msgList.size();) {
 					auto upmsg = move(_msgList.front());
 					_msgList.pop_front();
-					upmsg->lis();
+					upmsg->lis(upmsg->handle);
 				}
 			});
 		}
@@ -44,7 +44,7 @@ namespace uvcpp {
 		_handleSeed = 0;
 	}
 
-	Immediate::Msg::Msg(uint32_t handle, std::function<void()> cb) {
+	Immediate::Msg::Msg(uint32_t handle, std::function<void(uint32_t)> cb) {
 		this->handle = handle;
 		this->lis =  cb;
 	}

@@ -31,6 +31,7 @@
 #include "../uvcpp/UvSpawn.h"
 #include "../uvcpp/UvWork.h"
 #include "../uvcpp/Immediate.h"
+#include "../uvcpp/ImmediateWrapper.h"
 
 using namespace std;
 using namespace uvcpp;
@@ -649,15 +650,15 @@ TEST(basic, immediate) {
 	int id2=200;
 	int id3=300;
 
-	imd.setImmediate([id1]() {
+	imd.setImmediate([id1](uint32_t handle) {
 		ald("on imd=%d", id1);
 	});
 
-	auto handle = imd.setImmediate([id2]() {
+	auto handle = imd.setImmediate([id2](uint32_t handle) {
 		ald("on imd=%d", id2);
 	});
 
-	imd.setImmediate([id3, &imd]() {
+	imd.setImmediate([id3, &imd](uint32_t handle) {
 		ald("on imd=%d", id3);
 		imd.close();
 	});
@@ -669,6 +670,30 @@ TEST(basic, immediate) {
 //	endtimer.start(1000, 0, [&]() {
 //		endtimer.close();
 //	});
+
+	UvContext::run();
+	UvContext::close();
+}
+
+TEST(basic, immdwrap) {
+	UvContext::open();
+
+	int id1=100;
+	int id2=200;
+	int id3=300;
+
+	auto upimmd = UvContext::createImmediate();
+	auto h1 = upimmd->setImmediate([&](uint32_t handle) {
+		ald("h1 on immd, handle=%u", handle);
+	});
+
+
+	UvTimer endtimer;
+	endtimer.init();
+	endtimer.start(1000, 0, [&]() {
+		endtimer.close();
+		upimmd->close();
+	});
 
 	UvContext::run();
 	UvContext::close();

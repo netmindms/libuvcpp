@@ -14,6 +14,8 @@
 #include "UvFsEvent.h"
 #include "UvGetAddrInfo.h"
 #include "UvGetNameInfo.h"
+#include "ImmediateWrapper.h"
+#include "Immediate.h"
 
 std::atomic_uint _gHandleIdSeed;
 
@@ -40,6 +42,7 @@ namespace uvcpp {
 		_createLoop = false;
 		_pendingHandleCnt = 0;
 		_handleLast = nullptr;
+		_ctxImmd = nullptr;
 	}
 
 	UvContext::~UvContext() {
@@ -73,6 +76,11 @@ namespace uvcpp {
 	void UvContext::close() {
 		if(_gUvContext) {
 			auto ctx = _gUvContext;
+			if(ctx->_ctxImmd) {
+				ctx->_ctxImmd->close();
+				delete ctx->_ctxImmd;
+				ctx->_ctxImmd = nullptr;
+			}
 			assert(ctx->_handleLast == nullptr);
 			if (ctx->_createLoop) {
 				if (ctx->_loop) {
@@ -321,5 +329,12 @@ namespace uvcpp {
 		return seed;
 	}
 
+	std::unique_ptr<ImmediateWrapper> UvContext::createImmediate() {
+		auto* ctx = _gUvContext;
+		if(ctx->_ctxImmd==nullptr) {
+			ctx->_ctxImmd = new Immediate();
+		}
+		return ImmediateWrapper::create(ctx->_ctxImmd);
+	}
 
 }
