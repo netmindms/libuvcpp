@@ -695,14 +695,21 @@ TEST(basic, immdwrap) {
 	h3 = upimmd->setImmediate([&](uint32_t handle) {
 		ald("h3 on immd, handle=%u", handle);
 	});
-	upimmd = nullptr;
 
-//	UvTimer endtimer;
-//	endtimer.init();
-//	endtimer.start(1000, 0, [&]() {
-//		endtimer.close();
-//		upimmd->close();
+//	uint32_t c1, c2;
+//	c1 = UvContext::setImmediate([&](uint32_t handle) {
+//		ald("c1 on immd");
 //	});
+
+	UvTimer endtimer;
+	endtimer.init();
+	endtimer.start(1000, 0, [&]() {
+		endtimer.close();
+		upimmd->setImmediate([&](uint32_t handle) {
+			ald("end immd");
+			upimmd->close();
+		});
+	});
 
 	UvContext::run();
 	UvContext::close();

@@ -338,4 +338,12 @@ namespace uvcpp {
 		return ImmediateWrapper::create(ctx->_ctxImmd);
 	}
 
+	uint32_t UvContext::setImmediate(std::function<void(uint32_t)> lis) {
+		return _gUvContext->_ctxImmd->setImmediate(lis);
+	}
+
+	void UvContext::abortImmediate(uint32_t handle) {
+		_gUvContext->_ctxImmd->abort(handle);
+	}
+
 }

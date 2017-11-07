@@ -37,9 +37,6 @@ namespace uvcpp {
 			lis(th);
 		});
 		_handles.push_back(handle);
-		if(_handles.size()==0) {
-			_immd = nullptr;
-		}
 		return handle;
 	}
 
@@ -52,9 +49,6 @@ namespace uvcpp {
 				}
 			}
 			_immd->abort(handle);
-			if(_handles.size()==0) {
-				_immd = nullptr;
-			}
 		}
 	}
 
