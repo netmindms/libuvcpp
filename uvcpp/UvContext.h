@@ -50,6 +50,11 @@ namespace uvcpp {
 		static std::unique_ptr<ImmediateWrapper> createImmediate();
 
 		void closeHandle(HandleHolder* holder);
+
+		static uint32_t setImmediate(std::function<void(uint32_t)> lis);
+
+		static void abortImmediate(uint32_t handle);
+
 		static void handle_close_cb(uv_handle_t *phandle);
 		static void handle_write_cb(uv_write_t *req, int status);
 		static void handle_send_cb(uv_udp_send_t* req, int status);
