@@ -13,9 +13,14 @@ namespace uvcpp {
 		if(!_async.getRawHandle()) {
 			_async.init([this]() {
 				_async.close();
-				for(;_msgList.size();) {
-					auto upmsg = move(_msgList.front());
-					_msgList.pop_front();
+				// listener callback에서 immediate를 설정하는 경우 _msgList에  새로운 event가 추가 되어
+				// loop를 계속 돌게 되므로 새로 등록한 event는 다음 event loop에서
+				// 실행 되도록 하기위해 _msgList를 임시 list로 옮기고 임시 list에서 event를 꺼내와
+				// callback을 실행 시킨다.
+				std::list<std::unique_ptr<Msg>> tmplist = move(_msgList);
+				for(;tmplist.size();) {
+					auto upmsg = move(tmplist.front());
+					tmplist.pop_front();
 					upmsg->lis(upmsg->handle);
 				}
 			});

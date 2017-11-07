@@ -58,7 +58,7 @@ namespace uvcpp {
 			return;
 		}
 		auto ctx = new UvContext();
-
+		ctx->_ctxImmd = new Immediate();
 		if(!loop) {
 			ctx->_loop = new uv_loop_t;
 			ctx->_createLoop = true;
@@ -332,9 +332,9 @@ namespace uvcpp {
 
 	std::unique_ptr<ImmediateWrapper> UvContext::createImmediate() {
 		auto* ctx = _gUvContext;
-		if(ctx->_ctxImmd==nullptr) {
-			ctx->_ctxImmd = new Immediate();
-		}
+//		if(ctx->_ctxImmd==nullptr) {
+//			ctx->_ctxImmd = new Immediate();
+//		}
 		return ImmediateWrapper::create(ctx->_ctxImmd);
 	}
 
