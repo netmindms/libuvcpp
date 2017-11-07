@@ -681,20 +681,30 @@ TEST(basic, immdwrap) {
 	int id1=100;
 	int id2=200;
 	int id3=300;
-
-	auto upimmd = UvContext::createImmediate();
-	auto h1 = upimmd->setImmediate([&](uint32_t handle) {
+	uint32_t h1,h2,h3;
+	unique_ptr<ImmediateWrapper> upimmd = UvContext::createImmediate();
+	h1 = upimmd->setImmediate([&](uint32_t handle) {
 		ald("h1 on immd, handle=%u", handle);
 	});
 
-
-	UvTimer endtimer;
-	endtimer.init();
-	endtimer.start(1000, 0, [&]() {
-		endtimer.close();
-		upimmd->close();
+	h2 = upimmd->setImmediate([&](uint32_t handle) {
+		ald("h2 on immd, handle=%u", handle);
+		upimmd->abort(h3);
 	});
+
+	h3 = upimmd->setImmediate([&](uint32_t handle) {
+		ald("h3 on immd, handle=%u", handle);
+	});
+	upimmd = nullptr;
+
+//	UvTimer endtimer;
+//	endtimer.init();
+//	endtimer.start(1000, 0, [&]() {
+//		endtimer.close();
+//		upimmd->close();
+//	});
 
 	UvContext::run();
 	UvContext::close();
+	ald("after context close");
 }

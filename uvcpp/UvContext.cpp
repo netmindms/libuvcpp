@@ -46,7 +46,9 @@ namespace uvcpp {
 	}
 
 	UvContext::~UvContext() {
-
+		if(_ctxImmd) {
+			delete _ctxImmd;
+		}
 	}
 
 
@@ -78,8 +80,7 @@ namespace uvcpp {
 			auto ctx = _gUvContext;
 			if(ctx->_ctxImmd) {
 				ctx->_ctxImmd->close();
-				delete ctx->_ctxImmd;
-				ctx->_ctxImmd = nullptr;
+				// Immediate delete는 destructor에서 한다.
 			}
 			assert(ctx->_handleLast == nullptr);
 			if (ctx->_createLoop) {

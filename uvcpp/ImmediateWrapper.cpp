@@ -3,6 +3,7 @@
 //
 
 #include "ImmediateWrapper.h"
+#include "uvcpplog.h"
 
 namespace uvcpp {
 
@@ -36,12 +37,24 @@ namespace uvcpp {
 			lis(th);
 		});
 		_handles.push_back(handle);
+		if(_handles.size()==0) {
+			_immd = nullptr;
+		}
 		return handle;
 	}
 
 	void ImmediateWrapper::abort(uint32_t handle) {
 		if(_immd) {
+			for(auto itr = _handles.begin();itr != _handles.end(); itr++) {
+				if(*itr == handle) {
+					_handles.erase(itr);
+					break;
+				}
+			}
 			_immd->abort(handle);
+			if(_handles.size()==0) {
+				_immd = nullptr;
+			}
 		}
 	}
 

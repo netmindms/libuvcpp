@@ -12,6 +12,8 @@ namespace uvcpp {
 	public:
 		Immediate();
 
+		virtual ~Immediate();
+
 		uint32_t setImmediate(std::function<void(uint32_t)> lis);
 
 		void abort(uint32_t handle);

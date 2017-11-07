@@ -12,6 +12,7 @@ namespace uvcpp {
 	uint32_t Immediate::setImmediate(std::function<void(uint32_t)> lis) {
 		if(!_async.getRawHandle()) {
 			_async.init([this]() {
+				_async.close();
 				for(;_msgList.size();) {
 					auto upmsg = move(_msgList.front());
 					_msgList.pop_front();
@@ -33,6 +34,9 @@ namespace uvcpp {
 				break;
 			}
 		}
+		if(_msgList.size()==0) {
+			_async.close();
+		}
 	}
 
 	void Immediate::close() {
@@ -42,6 +46,9 @@ namespace uvcpp {
 
 	Immediate::Immediate() {
 		_handleSeed = 0;
+	}
+
+	Immediate::~Immediate() {
 	}
 
 	Immediate::Msg::Msg(uint32_t handle, std::function<void(uint32_t)> cb) {
