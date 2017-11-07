@@ -30,6 +30,8 @@ namespace uvcpp {
 		ImmediateWrapper(Immediate* immd);
 
 	};
+
+	typedef std::unique_ptr<ImmediateWrapper> upImmediateWrapper;
 }
 
 
