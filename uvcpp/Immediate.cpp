@@ -13,14 +13,15 @@ namespace uvcpp {
 		if(!_async.getRawHandle()) {
 			_async.init([this]() {
 				_async.close();
-				// listener callback에서 immediate를 설정하는 경우 _msgList에  새로운 event가 추가 되어
+				// app에서 listener callback에서 immediate를 설정하는 경우 _msgList에  새로운 event가 추가 되어
 				// loop를 계속 돌게 되므로 새로 등록한 event는 다음 event loop에서
-				// 실행 되도록 하기위해 _msgList를 임시 list로 옮기고 임시 list에서 event를 꺼내와
-				// callback을 실행 시킨다.
-				std::list<std::unique_ptr<Msg>> tmplist = move(_msgList);
-				for(;tmplist.size();) {
-					auto upmsg = move(tmplist.front());
-					tmplist.pop_front();
+				// 실행 되도록 하기위해 _msgList를 _running_event_list 옮기고 _running_event_list에서 event를
+				// 차례대로 꺼내와 callback을 실행 시킨다.
+				assert(_running_event_list.size()==0);
+				_running_event_list = move(_msgList);
+				for(;_running_event_list.size();) {
+					auto upmsg = move(_running_event_list.front());
+					_running_event_list.pop_front();
 					upmsg->lis(upmsg->handle);
 				}
 			});
@@ -39,6 +40,15 @@ namespace uvcpp {
 				break;
 			}
 		}
+
+		// 중지하려는 event handle이 이미 running list로 옮겨져 있을 수 있으므로 running list 에서도
+		// 검색한다.
+		for(auto itr=_running_event_list.begin(); itr != _running_event_list.end(); itr++) {
+			if( (*itr)->handle == handle) {
+				_running_event_list.erase(itr);
+				break;
+			}
+		}
 		if(_msgList.size()==0) {
 			_async.close();
 		}
@@ -50,7 +60,7 @@ namespace uvcpp {
 	}
 
 	Immediate::Immediate() {
-		_handleSeed = 0;
+		_handleSeed = 0x50000000;
 	}
 
 	Immediate::~Immediate() {

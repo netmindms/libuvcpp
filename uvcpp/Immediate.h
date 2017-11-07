@@ -29,6 +29,7 @@ namespace uvcpp {
 		uint32_t _handleSeed;
 		UvAsync _async;
 		std::list<std::unique_ptr<Msg>> _msgList;
+		std::list<std::unique_ptr<Msg>> _running_event_list;
 	};
 }
 
