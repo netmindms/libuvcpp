@@ -19,7 +19,7 @@ namespace uvcpp {
 
 		void abort(uint32_t handle);
 
-		void close();
+		void abortAll();
 
 		static std::unique_ptr<ImmediateWrapper> create(Immediate* immd);
 

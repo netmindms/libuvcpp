@@ -707,7 +707,7 @@ TEST(basic, immdwrap) {
 		endtimer.close();
 		upimmd->setImmediate([&](uint32_t handle) {
 			ald("end immd");
-			upimmd->close();
+			upimmd->abortAll();
 		});
 	});
 

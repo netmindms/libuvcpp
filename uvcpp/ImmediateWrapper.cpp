@@ -12,10 +12,10 @@ namespace uvcpp {
 	}
 
 	ImmediateWrapper::~ImmediateWrapper() {
-		close();
+		abortAll();
 	}
 
-	void ImmediateWrapper::close() {
+	void ImmediateWrapper::abortAll() {
 		if(_immd) {
 			for (; _handles.size();) {
 				auto handle = _handles.front();
@@ -23,7 +23,6 @@ namespace uvcpp {
 				_immd->abort(handle);
 			}
 		}
-		_immd = nullptr;
 	}
 
 	uint32_t ImmediateWrapper::setImmediate(std::function<void(uint32_t)> lis) {

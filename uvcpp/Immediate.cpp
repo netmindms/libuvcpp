@@ -17,7 +17,6 @@ namespace uvcpp {
 				// loop를 계속 돌게 되므로 새로 등록한 event는 다음 event loop에서
 				// 실행 되도록 하기위해 _msgList를 _running_event_list 옮기고 _running_event_list에서 event를
 				// 차례대로 꺼내와 callback을 실행 시킨다.
-				assert(_running_event_list.size()==0);
 				_running_event_list = move(_msgList);
 				for(;_running_event_list.size();) {
 					auto upmsg = move(_running_event_list.front());
