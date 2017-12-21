@@ -17,6 +17,7 @@
 #include "UvPrepare.h"
 #include "UvPipe.h"
 #include "UvTty.h"
+#include "ImmediateWrapper.h"
 
 namespace uvcpp {
 	void SetLogLevel(int level);

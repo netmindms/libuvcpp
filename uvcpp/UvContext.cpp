@@ -230,8 +230,14 @@ namespace uvcpp {
 			if(holder->uvh) {
 				((UvStream*)holder->uvh)->procConnectCallback(-1);
 			}
+		} else if(nread < 0) {
+			if(holder->uvh) {
+				((UvStream*)holder->uvh)->procConnectCallback(-1);
+			}
 		} else {
-			assert(0);
+			// nread == 0 인 경우.
+			// this means EWOULDBOCK
+			// TODO: research 필요.
 		}
 	}
 
