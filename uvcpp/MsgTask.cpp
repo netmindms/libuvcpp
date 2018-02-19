@@ -29,7 +29,16 @@ namespace uvcpp {
 			std::unique_lock<mutex> tlock(startMutex);
 			_ipc.open([&](IpcMsg& msg) {
 				OnMsgProc(msg);
-				if(msg.msgId == TM_CLOSE) {
+				if(msg.msgId == TM_RUNNABLE) {
+					Runnable* runnable = (Runnable*)msg.sendUserData;
+					runnable->func();
+				} else if(msg.msgId == TM_RUNNABLE_ASYNC) {
+					Runnable* runnable = (Runnable*)msg._upUserObj.get();
+					if(runnable) {
+						runnable->func();
+					}
+				}
+				else if(msg.msgId == TM_CLOSE) {
 					_ipc.close();
 				}
 			});
@@ -84,5 +93,17 @@ namespace uvcpp {
 
 	int MsgTask::sendMsg(uint32_t msgid, uint32_t p1, uint32_t p2, void* userdata) {
 		return _ipc.sendMsg(msgid, p1, p2, userdata);
+	}
+
+	int MsgTask::runOnThread(std::function<void()> func) {
+		Runnable rn;
+		rn.func = func;
+		return sendMsg(TM_RUNNABLE, 0, 0, &rn);
+	}
+
+	int MsgTask::runOnThreadAsync(std::function<void()> func) {
+		unique_ptr<Runnable> rn(new Runnable);
+		rn->func = func;
+		return postMsg(TM_RUNNABLE_ASYNC, 0, 0, move(rn));
 	}
 }
