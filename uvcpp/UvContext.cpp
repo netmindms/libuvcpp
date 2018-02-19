@@ -82,7 +82,11 @@ namespace uvcpp {
 				ctx->_ctxImmd->close();
 				// Immediate delete는 destructor에서 한다.
 			}
-			assert(ctx->_handleLast == nullptr);
+			if(ctx->_handleLast != nullptr) {
+				ale("### handle not closed, handle_class=%s", ctx->_handleLast->handleName);
+				assert(0);
+			}
+
 			if (ctx->_createLoop) {
 				if (ctx->_loop) {
 					uv_loop_close(ctx->_loop);

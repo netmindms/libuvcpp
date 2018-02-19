@@ -20,7 +20,7 @@ namespace uvcpp {
 
 	UvHandle::~UvHandle() {
 		if(_status != IDLE) {
-			ale("### handle not closed");
+			ale("### handle not closed, obj_class=%s", typeid(*this).name());
 			assert(0);
 			close();
 		}
