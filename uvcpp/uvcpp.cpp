@@ -8,14 +8,14 @@
 
 namespace uvcpp {
 	void SetLogLevel(int level) {
-		NMDU_SET_LOG_LEVEL(level);
+		UVC_SET_LOG_LEVEL(level);
 	}
 
 	void SetFileLogLevel(int level) {
-		NMDU_SET_LOG_LEVEL_FILE(level);
+		UVC_SET_LOG_LEVEL_FILE(level);
 	}
 
 	void SetFileLog(const char* path) {
-		NMDU_SET_LOG_FILE(path);
+		UVC_SET_LOG_FILE(path);
 	}
 }

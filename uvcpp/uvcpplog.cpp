@@ -90,7 +90,7 @@ int setFileLog(int level, const char *path) {
 
 
 LogInst::LogInst() {
-	mLevel = LOG_WARN;
+	mLevel = UVCLOG_DEBUG;
 	mFileLevel = -1;
 	mFd = -1;
 	mMaxFileSize = 10*1024*1024; // default 10MB
