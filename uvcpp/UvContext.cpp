@@ -177,7 +177,7 @@ namespace uvcpp {
 		ulv("write cb, status=%d, ptcp=%p", status, req->data);
 		auto holder = ((HandleHolder *) req->data);
 		assert(holder);
-		auto up =holder->writeReqQue.pop();
+		auto up = holder->writeReqQue.pop_front();
 		if(holder->uvh) {
 			((UvStream*)holder->uvh)->procWriteCallback(status);
 		}
@@ -188,7 +188,7 @@ namespace uvcpp {
 		ulv("send cb, status=%d, psock=%p", status, req->data);
 		auto holder = (HandleHolder *) req->data;
 		assert(holder);
-		auto up =holder->sendReqQue.pop();
+		auto up = holder->sendReqQue.pop_front();
 		if(holder->uvh) {
 			((UvUdp*)holder->uvh)->procSendCallback(status);
 		}
@@ -223,7 +223,7 @@ namespace uvcpp {
 	void UvContext::handle_read_cb(uv_stream_t *handle, ssize_t nread, const uv_buf_t *buf) {
 		ulv("readcb, nread=%ld, buf_base=%p", nread, buf->base);
 		auto holder = (HandleHolder*)handle->data;
-		auto uprbuf = holder->readBufQue.pop();
+		auto uprbuf = holder->readBufQue.pop_front();
 		assert(buf->base==uprbuf->buffer);
 		if (nread > 0) {
 			if(holder->uvh) {
@@ -257,7 +257,7 @@ namespace uvcpp {
 		ulv("readcb, nread=%ld", nread);
 		auto holder = (HandleHolder*)handle->data;
 		assert(holder);
-		auto uprbuf = holder->readBufQue.pop();
+		auto uprbuf = holder->readBufQue.pop_front();
 		assert(buf->base==uprbuf->buffer);
 		uprbuf->size = nread;
 		if (nread >= 0) {

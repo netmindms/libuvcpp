@@ -22,7 +22,7 @@ namespace uvcpp {
 			upIpcMsg upmsg;
 			for(;!_isClosing;) {
 				_msgQue.lock();
-				upmsg = _msgQue.pop();
+				upmsg = _msgQue.pop_front();
 				_msgQue.unlock();
 				if(upmsg) {
 					if(upmsg->isSync) {

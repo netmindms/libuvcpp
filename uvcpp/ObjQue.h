@@ -18,26 +18,31 @@ template<typename T>
 class ObjQue {
 public:
 	ObjQue() {
-		mAllocCnt = 0;
+		_allocCnt = 0;
 	};
 	virtual ~ObjQue() {
 	};
 
 
 	void clear() {
-		mQue.clear();
-		mPool.clear();
-		mMemPool.clear();
-		mAllocCnt = 0;
+		_que.clear();
+		_containerBufs.clear();
+		_memPool.clear();
+		_allocCnt = 0;
 	}
 
 	void push(std::unique_ptr<T> obj) {
-		if(mPool.empty()) {
-			mPool.emplace_back();
+		if(_containerBufs.empty()) {
+			// container 가 없으면 하나 생성한다.
+			_containerBufs.emplace_back();
 		}
-		auto &pobj = mPool.front();
+
+		// container에 obj 를 담는다.
+		auto &pobj = _containerBufs.front();
 		pobj = std::move(obj);
-		mQue.splice(mQue.end(), mPool, mPool.begin());
+
+		// 그리고 나서 que로 옮긴다.
+		_que.splice(_que.end(), _containerBufs, _containerBufs.begin());
 	};
 
 	void pushSync(std::unique_ptr<T> obj) {
@@ -46,38 +51,46 @@ public:
 		unlock();
 	}
 
-	std::unique_ptr<T> pop() {
-		auto itr = mQue.begin();
-		if(itr != mQue.end()) {
+	std::unique_ptr<T> pop_front() {
+		auto itr = _que.begin();
+		if(itr != _que.end()) {
+			// que에 있는 pointer를 가져온다.(move)
 			auto up = std::move(*itr);
-			mPool.splice(mPool.end(), mQue, mQue.begin());
+
+			// 비어 있는 상태가 된 que의 container를 container pool로 옮긴다.
+			_containerBufs.splice(_containerBufs.end(), _que, _que.begin());
 			return up;
 		} else {
 			return nullptr;
 		}
 	};
 
-	std::unique_ptr<T> popSync() {
+	std::unique_ptr<T> pop_front_sync() {
 		lock();
-		auto up = pop();
+		auto up = pop_front();
 		unlock();
 		return up;
 	}
 
 	size_t getQueCnt() {
 		size_t ret;
-		ret = mQue.size();
+		ret = _que.size();
 		return ret;
 	}
 
 	void recycleObj(std::unique_ptr<T> upobj) {
 		if(upobj==nullptr) return;
-		if(mPool.empty()) {
-			mPool.emplace_back();
+		if(_containerBufs.empty()) {
+			// container 가 없으면 하나 만든다.
+			_containerBufs.emplace_back();
 		}
-		auto &pobj = mPool.front();
+
+		// container로 재활용할 obj pointer 로 옮긴다.
+		auto &pobj = _containerBufs.front();
 		pobj = std::move(upobj);
-		mMemPool.splice(mMemPool.end(), mPool, mPool.begin());
+
+		// mem pool로 옮긴다.
+		_memPool.splice(_memPool.end(), _containerBufs, _containerBufs.begin());
 	}
 
 	void recycleObjSync(std::unique_ptr<T> upobj) {
@@ -89,11 +102,11 @@ public:
 
 	std::unique_ptr<T> allocObj() {
 		std::unique_ptr<T> ret;
-		if(mMemPool.size()) {
-			ret = std::move(mMemPool.front());
-			mPool.splice(mPool.begin(), mMemPool, mMemPool.begin());
+		if(_memPool.size()) {
+			ret = std::move(_memPool.front());
+			_containerBufs.splice(_containerBufs.begin(), _memPool, _memPool.begin());
 		} else {
-			mAllocCnt++;
+			_allocCnt++;
 			ret.reset(new T);
 		}
 		return ret;
@@ -107,13 +120,13 @@ public:
 
 
 	size_t getMemPoolCnt() {
-		return mMemPool.size();
+		return _memPool.size();
 	}
 
 
 	T* getFirstObj() {
-		if(mQue.size()) {
-			return mQue.front().get();
+		if(_que.size()) {
+			return _que.front().get();
 		} else {
 			return nullptr;
 		}
@@ -122,10 +135,10 @@ public:
 
 	std::string getStatistics() {
 		std::string ret;
-		ret = "alloc_cnt: " + std::to_string(mAllocCnt) + ", ";
-		ret += "mem_pool: " + std::to_string(mMemPool.size()) + ", ";
-		ret += "que : " + std::to_string(mQue.size()) + ", ";
-		ret += "item_pool: " + std::to_string(mPool.size()) + ", ";
+		ret = "alloc_cnt: " + std::to_string(_allocCnt) + ", ";
+		ret += "mem_pool: " + std::to_string(_memPool.size()) + ", ";
+		ret += "que : " + std::to_string(_que.size()) + ", ";
+		ret += "item_pool: " + std::to_string(_containerBufs.size()) + ", ";
 		return std::move(ret);
 	}
 
@@ -137,11 +150,11 @@ public:
 	}
 
 private:
-	size_t mMaxQue;
-	std::list<std::unique_ptr<T>> mQue;
-	std::list<std::unique_ptr<T>> mPool;
-	std::list<std::unique_ptr<T>> mMemPool;
-	size_t mAllocCnt;
+	size_t _maxQue;
+	std::list<std::unique_ptr<T>> _que;
+	std::list<std::unique_ptr<T>> _containerBufs;
+	std::list<std::unique_ptr<T>> _memPool;
+	size_t _allocCnt;
 	std::mutex _mutex;
 };
 
