@@ -13,7 +13,9 @@ ELSEIF(WIN32)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 ENDIF(UNIX)
 
-#set(CMAKE_CXX_FLAGS "-fsanitize=leak -fsanitize=address")
+#IF(ASAN_CHECK)
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=leak -fsanitize=address ")
+#ENDIF(ASAN_CHECK)
 
 set(DEP_LIB uv)
 IF(WIN32)
@@ -23,7 +25,7 @@ IF(UNIX)
  set(DEP_LIB ${DEP_LIB} pthread)
 ENDIF(UNIX)
 
-file(GLOB UVCPPSRCS "uvcpp/*.cpp")
+file(GLOB UVCPPSRCS "uvcpp/*.cpp" "uvcpp/*.h")
 set(SOURCE_FILES ${UVCPPSRCS})
 add_library(uvcpp SHARED ${SOURCE_FILES} uvcpp/uvcpp.cpp)
 target_link_libraries(uvcpp ${DEP_LIB})
@@ -48,3 +50,6 @@ target_link_libraries(chatsvr ${DEP_LIB} )
 
 add_executable(chatclient EXCLUDE_FROM_ALL ${UVCPPSRCS} "samples/chatclient.cpp" )
 target_link_libraries(chatclient ${DEP_LIB} )
+
+add_executable(udppeer EXCLUDE_FROM_ALL ${UVCPPSRCS} "samples/udppeer.cpp" )
+target_link_libraries(udppeer ${DEP_LIB} )

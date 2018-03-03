@@ -20,7 +20,7 @@ namespace uvcpp {
 
 	UvHandle::~UvHandle() {
 		if(_status != IDLE) {
-			ale("### handle not closed, obj_class=%s", typeid(*this).name());
+			ule("### handle not closed, obj_class=%s", typeid(*this).name());
 			assert(0);
 			close();
 		}
@@ -30,7 +30,7 @@ namespace uvcpp {
 	void UvHandle::close(CloseLis lis) {
 		if(_status == INITIALIZED) {
 			assert(_ctx == UvContext::getContext() && "### uv context must be the same that initiating, This may be caused thread calling init() and close() is differ");
-			ald("   closing handle, name=%s, cb=%x", _handleHolder->handleName, (long) UvContext::handle_close_cb);
+			uld("   closing handle, name=%s, cb=%x", _handleHolder->handleName, (long) UvContext::handle_close_cb);
 
 			if(uv_is_closing(&_handleHolder->rawh.handle)==0) {
 				uv_close(&_handleHolder->rawh.handle, UvContext::handle_close_cb);
@@ -60,7 +60,7 @@ namespace uvcpp {
 
 	int UvHandle::initHandle() {
 		if(_status != IDLE) {
-			ale("### handle already initialized");
+			ule("### handle already initialized");
 			assert(0);
 			return -1;
 		}
@@ -71,7 +71,7 @@ namespace uvcpp {
 			_handleHolder->rawh.handle.data = _handleHolder;
 			_handleHolder->uvh = this;
 		} else {
-			ale("### context not found");
+			ule("### context not found");
 			assert(0);
 			return -1;
 		}

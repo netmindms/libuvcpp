@@ -18,7 +18,7 @@ TEST(util, addrinfo) {
 
 	uvaddr.init();
 	uvaddr.getAddrInfo("www.google.co.kr", nullptr, nullptr, [&](int status, struct addrinfo* info) {
-		ali("addr info result");
+		uli("addr info result");
 		struct addrinfo* addrs = info;
 		for(;addrs;) {
 			if(addrs->ai_addr) {
@@ -26,7 +26,7 @@ TEST(util, addrinfo) {
 					sockaddr_in *inaddr = (sockaddr_in*)addrs->ai_addr;
 					char dst[128];
 					uv_ip4_name(inaddr, dst, 128);
-					ali("ipv4 addrss=%s", dst);
+					uli("ipv4 addrss=%s", dst);
 					resolvedInaddr = *inaddr;
 					// reverse
 					uvname.init();

@@ -37,7 +37,7 @@ namespace uvcpp {
 		if (!ret) {
 			return ret;
 		} else {
-			ale("### accept error");
+			ule("### accept error");
 			assert(0);
 			newstrm->close();
 			return -1;
@@ -52,7 +52,7 @@ namespace uvcpp {
 		if (!ret) {
 			_handleHolder->writeReqQue.push(move(upwr));
 		} else {
-			ale("### uv write fail, ret=%d", ret);
+			ule("### uv write fail, ret=%d", ret);
 		}
 		return ret;
 	}
@@ -82,7 +82,7 @@ namespace uvcpp {
 //			send_handle->releaseRawHandle();
 			send_handle->close();
 		} else {
-			ale("### uv write fail, ret=%d", ret);
+			ule("### uv write fail, ret=%d", ret);
 		}
 		return ret;
 	}
@@ -103,7 +103,7 @@ namespace uvcpp {
 	}
 
 	void UvStream::procReadCallback(upReadBuffer upbuf) {
-		alv("stream read callback");
+		ulv("stream read callback");
 		assert(_readLis != nullptr);
 		_readLis(move(upbuf));
 	}

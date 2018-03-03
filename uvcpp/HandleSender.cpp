@@ -11,7 +11,7 @@ namespace uvcpp {
 		_status = 0;
 		_pipe.connect(name, [this](int status) {
 			if(!status) {
-				ali("handler sender connected");
+				uli("handler sender connected");
 				_status = status;
 			}
 		});

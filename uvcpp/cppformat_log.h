@@ -51,11 +51,6 @@ namespace uvcpp {
 #define UVCLOG_VERBOSE 6
 
 
-//
-//#ifndef LOG_LEVEL
-//#define LOG_LEVEL LOG_INFO
-//#endif
-
 #if defined(UVCLOG_LEVEL_NONE)
 #define UVCLOG_LEVEL UVCLOG_NONE
 #elif defined(UVCLOG_LEVEL_ERROR)
@@ -237,12 +232,12 @@ struct INST_TYPE_##NAME { \
 	}\
 	}while(0)
 #endif
-#define ale(FMTSTR, ...) UVCPPLOGPUT(UVCLOG_ERROR, stderr, FMTSTR, ## __VA_ARGS__)
-#define alw(FMTSTR, ...) UVCPPLOGPUT(UVCLOG_WARN, stderr, FMTSTR, ## __VA_ARGS__)
-#define aln(FMTSTR, ...) UVCPPLOGPUT(UVCLOG_NOTICE, stdout, FMTSTR, ## __VA_ARGS__)
-#define ali(FMTSTR, ...) UVCPPLOGPUT(UVCLOG_INFO, stdout, FMTSTR, ## __VA_ARGS__)
-#define ald(FMTSTR, ...) UVCPPLOGPUT(UVCLOG_DEBUG, stdout, FMTSTR, ## __VA_ARGS__)
-#define alv(FMTSTR, ...) UVCPPLOGPUT(UVCLOG_VERBOSE, stdout, FMTSTR, ## __VA_ARGS__)
+#define ule(FMTSTR, ...) UVCPPLOGPUT(UVCLOG_ERROR, stderr, FMTSTR, ## __VA_ARGS__)
+#define ulw(FMTSTR, ...) UVCPPLOGPUT(UVCLOG_WARN, stderr, FMTSTR, ## __VA_ARGS__)
+#define uln(FMTSTR, ...) UVCPPLOGPUT(UVCLOG_NOTICE, stdout, FMTSTR, ## __VA_ARGS__)
+#define uli(FMTSTR, ...) UVCPPLOGPUT(UVCLOG_INFO, stdout, FMTSTR, ## __VA_ARGS__)
+#define uld(FMTSTR, ...) UVCPPLOGPUT(UVCLOG_DEBUG, stdout, FMTSTR, ## __VA_ARGS__)
+#define ulv(FMTSTR, ...) UVCPPLOGPUT(UVCLOG_VERBOSE, stdout, FMTSTR, ## __VA_ARGS__)
 #else
 #define ale(FMTSTR, ...) { if(UVCLOG_LEVEL>=UVCLOG_ERROR) { if(UVCLOCAL_LOG_INST->level()>=UVCLOG_ERROR) { UVCLOCAL_LOG_INST->lock();uvcppfmt::fprintf(stderr, "%s [E:%s:%d] " FMTSTR "\n", uvcpp::GetLogTimeNow(), NMDU_FILE_NAME, __LINE__, ## __VA_ARGS__);LOCAL_LOG_INST->unlock(); }; if(LOCAL_LOG_INST->levelFile()>=LOG_ERROR) {LOCAL_LOG_INST->lock(); std::string s = uvcppfmt::sprintf("%s [E:%s:%d] " FMTSTR "\n", uvcpp::GetLogTimeNow(), NMDU_FILE_NAME, __LINE__, ## __VA_ARGS__);LOCAL_LOG_INST->writeFile(s.data(), s.size());LOCAL_LOG_INST->unlock();} } }
 #define alw(FMTSTR, ...) { if(UVCLOG_LEVEL>=UVCLOG_WARN) { if(UVCLOCAL_LOG_INST->level()>=UVCLOG_WARN) { UVCLOCAL_LOG_INST->lock();uvcppfmt::fprintf(stderr, "%s [W:%s:%d] " FMTSTR "\n", uvcpp::GetLogTimeNow(), NMDU_FILE_NAME, __LINE__, ## __VA_ARGS__);LOCAL_LOG_INST->unlock(); }; if(LOCAL_LOG_INST->levelFile()>=LOG_WARN) {LOCAL_LOG_INST->lock(); std::string s = uvcppfmt::sprintf("%s [W:%s:%d] " FMTSTR "\n", uvcpp::GetLogTimeNow(), NMDU_FILE_NAME, __LINE__, ## __VA_ARGS__);LOCAL_LOG_INST->writeFile(s.data(), s.size());LOCAL_LOG_INST->unlock();} } }

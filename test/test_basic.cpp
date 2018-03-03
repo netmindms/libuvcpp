@@ -40,7 +40,7 @@ using namespace chrono;
 #define logflush() fflush(stdout)
 
 static void test_close_cb(uv_handle_t* handle) {
-	ald("test close callback");
+	uld("test close callback");
 }
 TEST(testuv, handle) {
 	uv_idle_t handle;
@@ -57,9 +57,9 @@ TEST(basic, timer) {
 	UvTimer timer;
 	auto ret = timer.init();
 	assert(!ret);
-	ali("timer starting...");
+	uli("timer starting...");
 	timer.start(100, 0, [&]() {
-		ali("timer expired");
+		uli("timer expired");
 		logflush();
 		expire_cnt++;
 		timer.stop();
@@ -75,7 +75,7 @@ TEST(basic, fdtimer) {
 	FdTimer timer;
 	timer.init();
 	timer.start(100, 0, [&]() {
-		ali("on fd timer");
+		uli("on fd timer");
 		timer.close();
 	});
 	UvContext::run();
@@ -94,16 +94,16 @@ TEST(basic, tcp) {
 	int ret;
 	server.init();
 	server.bindAndListen(9090, "127.0.0.1", [&]() {
-		ali("new incoming connection");
+		uli("new incoming connection");
 		child.init();
 		server.accept(&child);
 		child.readStart([&](upReadBuffer upbuf) {
-			ald("child on read");
+			uld("child on read");
 			child.write(upbuf->buffer, upbuf->size);
 		});
 		child.setOnCnnLis([&](int status) {
 			if(status) {
-				ald("child cnn disconnected");
+				uld("child cnn disconnected");
 				child.close();
 			}
 		});
@@ -112,22 +112,22 @@ TEST(basic, tcp) {
 	ret = client.init();
 	client.connect("127.0.0.1", 9090, [&](int status) {
 		if(!status) {
-			ald("connected");
+			uld("connected");
 			client.readStart([&](upReadBuffer upbuf) {
-				ald("client on read");
+				uld("client on read");
 				recvstr.assign(upbuf->buffer, upbuf->size);
 				client.close();
 				server.close();
 			});
 			client.write(teststr);
 		} else {
-			ald("disconnected");
+			uld("disconnected");
 			client.close();
 			server.close();
 		}
 	});
 	client.setOnWriteLis([&](int status) {
-		ali("client on write..., status=%d", status);
+		uli("client on write..., status=%d", status);
 	});
 
 	UvContext::run();
@@ -149,7 +149,7 @@ TEST(basic, tcpwritelis) {
 	int ret;
 	server.init();
 	server.bindAndListen(9090, "127.0.0.1", [&]() {
-		ali("new incoming connection");
+		uli("new incoming connection");
 		child.init();
 		server.accept(&child);
 		child.readStart([&](upReadBuffer upbuf) {
@@ -158,7 +158,7 @@ TEST(basic, tcpwritelis) {
 		});
 		child.setOnCnnLis([&](int status) {
 			if(status) {
-				ald("child cnn disconnected");
+				uld("child cnn disconnected");
 				child.close();
 				server.close();
 				fclose(_wst);
@@ -170,9 +170,9 @@ TEST(basic, tcpwritelis) {
 
 	client.connect("127.0.0.1", 9090, [&](int status) {
 		if(!status) {
-			ald("connected");
+			uld("connected");
 			client.readStart([&](upReadBuffer upbuf) {
-				ald("client on read");
+				uld("client on read");
 			});
 			char temp[1024];
 //			auto rcnt = fread(temp, 1, 1024, _st);
@@ -181,7 +181,7 @@ TEST(basic, tcpwritelis) {
 //			}
 			client.write(temp, 0);
 		} else {
-			ald("disconnected");
+			uld("disconnected");
 			client.close();
 		}
 	});
@@ -221,10 +221,10 @@ TEST(basic, shutdown) {
 			tcp.write(tmp, 1024);
 		}
 		tcp.shutDown([&](int status) {
-			ali("shutdown callback");
+			uli("shutdown callback");
 		});
 		tcp.close([&](UvHandle*){
-			ali("close callback");
+			uli("close callback");
 			child.close();
 			server.close();
 		});
@@ -251,19 +251,19 @@ TEST(basic, udp) {
 	recvUdp.bind((sockaddr*)&inaddr);
 	ret = recvUdp.recvStart([&](upReadBuffer upbuf, const sockaddr* padr, unsigned) {
 		string ts(upbuf->buffer, upbuf->size);
-		ald("recv str: %s", ts);
+		uld("recv str: %s", ts);
 		recvstr = ts;
 		senderUdp.close();
 		recvUdp.close();
 	});
-	ald("recvUdp open ret=%d", ret);
+	uld("recvUdp open ret=%d", ret);
 
 	ret = senderUdp.init();
 	senderUdp.setOnSendLis([&](int status) {
-		ald("send callback, status=%d", status);
+		uld("send callback, status=%d", status);
 	});
 	senderUdp.setRemoteIpV4Addr("127.0.0.1", 17000);
-	ald("senderUdp open ret=%d", ret);
+	uld("senderUdp open ret=%d", ret);
 	senderUdp.send(testmsg.data(), testmsg.size());
 	senderUdp.recvStart([&](upReadBuffer upbuf, const sockaddr* paddr, unsigned) {
 		assert(0);
@@ -283,17 +283,17 @@ TEST(basic, check) {
 	timer.init();
 	ret = chk.init();
 	chk.start([&](){
-		ald("check call back");
+		uld("check call back");
 		chk.stop();
 	});
 	assert(!ret);
 	timer.start(1000, 1000, [&]() {
-		ald("timer expired");
+		uld("timer expired");
 		timer.stop();
 	});
 	UvContext::run();
 	UvContext::close();
-	ald("test end");
+	uld("test end");
 }
 
 TEST(basic, prepare) {
@@ -302,7 +302,7 @@ TEST(basic, prepare) {
 	UvPrepare prepare;
 	prepare.init();
 	prepare.start([&]() {
-		ald("prepare callback");
+		uld("prepare callback");
 		prepare.stop();
 	});
 	UvContext::run();
@@ -314,7 +314,7 @@ TEST(basic, async) {
 	int cnt=0;
 	UvAsync async;
 	async.init([&]() {
-		ald("async callback");
+		uld("async callback");
 		cnt++;
 		async.close(nullptr);
 	});
@@ -331,7 +331,7 @@ TEST(basic, idle) {
 	UvIdle idle;
 	idle.init();
 	idle.start([&]() {
-		ald("idle callback");
+		uld("idle callback");
 		cnt++;
 		idle.stop();
 	});
@@ -373,7 +373,7 @@ TEST(basic, closecb) {
 		cnt++;
 		timer->stop(false);
 		timer->close([&](UvHandle* uvh){
-			ald("timer closed");
+			uld("timer closed");
 			closeCnt++;
 			delete uvh;
 		});
@@ -412,7 +412,7 @@ TEST(basic, poll) {
 						uint64_t cnt;
 						auto rcnt = ::read(_fd, &cnt, sizeof(cnt));
 						if(rcnt>0) {
-							ald("timer cnt=%llu", rcnt);
+							uld("timer cnt=%llu", rcnt);
 							_fireCnt++;
 							kill();
 						}
@@ -473,16 +473,16 @@ TEST(basic, pipe) {
 		auto accret = ps.accept(&child);
 		assert(!accret);
 		child.setOnCnnLis([&](int status) {
-			ald("child status=%d", status);
+			uld("child status=%d", status);
 			if(status) {
-				ald("  child disconnected");
+				uld("  child disconnected");
 				child.close();
 				ps.close();
 			}
 		});
 		child.readStart([&](upReadBuffer upbuf) {
 			recvstr.assign(upbuf->buffer, upbuf->size);
-			ald("recv : %s", recvstr);
+			uld("recv : %s", recvstr);
 			child.write(recvstr);
 		});
 	});
@@ -492,10 +492,10 @@ TEST(basic, pipe) {
 	ret = pc.bind(client_pipename.c_str());
 	ASSERT_EQ(0, ret);
 	pc.connect(svr_pipename.c_str(), [&](int status) {
-		ald("pipe connect event status=%d", status);
+		uld("pipe connect event status=%d", status);
 		if(!status) {
 			pc.readStart([&](upReadBuffer upbuf) {
-				ald("client received"); logflush();
+				uld("client received"); logflush();
 				pc.close();
 				child.close();
 				ps.close();
@@ -626,17 +626,17 @@ TEST(basic, work) {
 	work.setWork([&]() {
 		for(int i=0;i<10;i++) {
 			this_thread::sleep_for(milliseconds(100));
-			ali("count");
+			uli("count");
 			cnt++;
 		}
 	});
 	work.setOnListener([&](int status) {
-		ali("complete, tid=%x", this_thread::get_id());
+		uli("complete, tid=%x", this_thread::get_id());
 		tm.close();
 	});
 	tm.init();
 	tm.start(100, 100, []{
-		ali("expired");
+		uli("expired");
 	});
 	work.work();
 	UvContext::run();
@@ -651,15 +651,15 @@ TEST(basic, immediate) {
 	int id3=300;
 
 	imd.setImmediate([id1](uint32_t handle) {
-		ald("on imd=%d", id1);
+		uld("on imd=%d", id1);
 	});
 
 	auto handle = imd.setImmediate([id2](uint32_t handle) {
-		ald("on imd=%d", id2);
+		uld("on imd=%d", id2);
 	});
 
 	imd.setImmediate([id3, &imd](uint32_t handle) {
-		ald("on imd=%d", id3);
+		uld("on imd=%d", id3);
 		imd.close();
 	});
 
@@ -684,16 +684,16 @@ TEST(basic, immdwrap) {
 	uint32_t h1,h2,h3;
 	unique_ptr<ImmediateWrapper> upimmd = UvContext::createImmediate();
 	h1 = upimmd->setImmediate([&](uint32_t handle) {
-		ald("h1 on immd, handle=%u", handle);
+		uld("h1 on immd, handle=%u", handle);
 	});
 
 	h2 = upimmd->setImmediate([&](uint32_t handle) {
-		ald("h2 on immd, handle=%u", handle);
+		uld("h2 on immd, handle=%u", handle);
 		upimmd->abort(h3);
 	});
 
 	h3 = upimmd->setImmediate([&](uint32_t handle) {
-		ald("h3 on immd, handle=%u", handle);
+		uld("h3 on immd, handle=%u", handle);
 	});
 
 //	uint32_t c1, c2;
@@ -706,12 +706,12 @@ TEST(basic, immdwrap) {
 	endtimer.start(1000, 0, [&]() {
 		endtimer.close();
 		upimmd->setImmediate([&](uint32_t handle) {
-			ald("end immd");
+			uld("end immd");
 			upimmd->abortAll();
 		});
 	});
 
 	UvContext::run();
 	UvContext::close();
-	ald("after context close");
+	uld("after context close");
 }

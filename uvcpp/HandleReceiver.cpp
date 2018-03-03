@@ -22,7 +22,7 @@ namespace uvcpp {
 			return -1;
 		}
 		_svr.listen([this]() {
-			ald("incoming handle pass connection");
+			uld("incoming handle pass connection");
 			_pipeList.emplace_back();
 			auto &pipe = _pipeList.back();
 			pipe.itr = --_pipeList.end();
@@ -31,18 +31,18 @@ namespace uvcpp {
 			assert(0==ret);
 			pipe.setOnCnnLis([this, &pipe](int status) {
 				if(status) {
-					ald("handle pipe disconnected");
+					uld("handle pipe disconnected");
 					pipe.close();
 					_pipeList.erase(pipe.itr);
 				}
 			});
 			ret = pipe.readStart([this, &pipe](upReadBuffer upbuf) {
-				ald("pipe read event");
+				uld("pipe read event");
 				if(pipe.pendingCount()>0) {
-					ali("  pipe pendingcount=%d", pipe.pendingCount());
+					uli("  pipe pendingcount=%d", pipe.pendingCount());
 					uv_handle_type type = pipe.pendingType();
 					_lis(&pipe, type);
-					ald("  accept after pendingcount=%d", pipe.pendingCount());
+					uld("  accept after pendingcount=%d", pipe.pendingCount());
 				}
 			});
 			assert(ret==0);

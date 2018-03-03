@@ -54,7 +54,7 @@ namespace uvcpp {
 
 	void UvContext::open(uv_loop_t *loop) {
 		if(_gUvContext) {
-			alw("*** UvContext already opened. UvContext is a singletone object.");
+			ulw("*** UvContext already opened. UvContext is a singletone object.");
 			return;
 		}
 		auto ctx = new UvContext();
@@ -83,7 +83,7 @@ namespace uvcpp {
 				// Immediate delete는 destructor에서 한다.
 			}
 			if(ctx->_handleLast != nullptr) {
-				ale("### handle not closed, handle_class=%s", ctx->_handleLast->handleName);
+				ule("### handle not closed, handle_class=%s", ctx->_handleLast->handleName);
 				assert(0);
 			}
 
@@ -135,7 +135,7 @@ namespace uvcpp {
 			_handleLast = tprev;
 		}
 
-		alv("delete handle, name=%s, remain=%d", holder->handleName, _pendingHandleCnt-1);
+		ulv("delete handle, name=%s, remain=%d", holder->handleName, _pendingHandleCnt-1);
 		delete holder;
 		--_pendingHandleCnt;
 	}
@@ -163,7 +163,7 @@ namespace uvcpp {
 		holder->handleName = ss.str();
 #endif
 		++_pendingHandleCnt;
-		alv("create handle holder, handle_name=%s, count=%u", holder->handleName, _pendingHandleCnt);
+		ulv("create handle holder, handle_name=%s, count=%u", holder->handleName, _pendingHandleCnt);
 		return holder;
 	}
 
@@ -174,7 +174,7 @@ namespace uvcpp {
 	}
 
 	void UvContext::handle_write_cb(uv_write_t *req, int status) {
-		alv("write cb, status=%d, ptcp=%0x", status, (uint64_t) req->data);
+		ulv("write cb, status=%d, ptcp=%0x", status, (uint64_t) req->data);
 		auto holder = ((HandleHolder *) req->data);
 		assert(holder);
 		auto up =holder->writeReqQue.pop();
@@ -185,7 +185,7 @@ namespace uvcpp {
 	}
 
 	void UvContext::handle_send_cb(uv_udp_send_t *req, int status) {
-		alv("send cb, status=%d, psock=%0x", status, (uint64_t) req->data);
+		ulv("send cb, status=%d, psock=%0x", status, (uint64_t) req->data);
 		auto holder = (HandleHolder *) req->data;
 		assert(holder);
 		auto up =holder->sendReqQue.pop();
@@ -204,11 +204,11 @@ namespace uvcpp {
 		puvbuf->len = tbuf.first;
 		puvbuf->base = tbuf.second;
 		holder->readBufQue.push(move(upbuf));
-		alv("alloc buffer, buf_base=%x", (long)puvbuf->base);
+		ulv("alloc buffer, buf_base=%x", (long)puvbuf->base);
 	}
 
 	void UvContext::handle_connect_cb(uv_connect_t *req, int status) {
-		ald("on connect, status=%d", status);
+		uld("on connect, status=%d", status);
 		auto holder = (HandleHolder*)req->data;
 		assert(holder);
 		auto strm = (UvStream*)(holder->uvh);
@@ -221,7 +221,7 @@ namespace uvcpp {
 	 * uv_read_cb is not called after read_stop()
 	 */
 	void UvContext::handle_read_cb(uv_stream_t *handle, ssize_t nread, const uv_buf_t *buf) {
-		alv("readcb, nread=%d, buf_base=%x", nread, (long)buf->base);
+		ulv("readcb, nread=%d, buf_base=%x", nread, (long)buf->base);
 		auto holder = (HandleHolder*)handle->data;
 		auto uprbuf = holder->readBufQue.pop();
 		assert(buf->base==uprbuf->buffer);
@@ -254,7 +254,7 @@ namespace uvcpp {
 	}
 
 	void UvContext::handle_recv_cb(uv_udp_t *handle, ssize_t nread, const uv_buf_t *buf, const struct sockaddr *addr, unsigned flags) {
-		alv("readcb, nread=%d", nread);
+		ulv("readcb, nread=%d", nread);
 		auto holder = (HandleHolder*)handle->data;
 		assert(holder);
 		auto uprbuf = holder->readBufQue.pop();

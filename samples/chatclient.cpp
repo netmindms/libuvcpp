@@ -11,6 +11,7 @@ using namespace uvcpp;
 
 int main(int argc, char* argv[]) {
 	UvContext::open();
+	SetLogLevel(UVCLOG_VERBOSE);
 	UvTcp tcp;
 	UvTty tty;
 	tcp.init();

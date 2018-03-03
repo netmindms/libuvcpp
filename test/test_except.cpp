@@ -24,9 +24,9 @@ TEST(except, connect) {
 	tcp.connect("111.111.111.111", 9090, [&](int status) {
 		callbackCnt++;
 		if(!status) {
-			ald("connected");
+			uld("connected");
 		} else {
-			ald("disconnected");
+			uld("disconnected");
 			tcp.close();
 		}
 	});
@@ -70,7 +70,7 @@ TEST(except, timerrep) {
 	timer.init();
 	int callbackCnt=0;
 	timer.start(100, 100, [&]() {
-		ald("expired");
+		uld("expired");
 		callbackCnt++;
 		timer.setRepeat(50);
 		if(callbackCnt>=3) {
@@ -102,7 +102,7 @@ namespace {
 		public:
 			virtual void OnMsgProc(IpcMsg &msg) {
 				if (msg.msgId == TM_INIT) {
-					ali("child task init...");
+					uli("child task init...");
 					_idSeed = 0;
 					_strmIpc.open([this]() {
 						auto id = ++_idSeed;
@@ -114,7 +114,7 @@ namespace {
 						activeChild(cnn);
 					});
 				} else if (msg.msgId == TM_CLOSE) {
-					ali("task closing...");
+					uli("task closing...");
 					_strmIpc.close();
 				}
 			}
@@ -130,13 +130,13 @@ namespace {
 			std::unordered_map<uint32_t, ChildCnn> _childCnnMap;
 
 			void activeChild(ChildCnn &cnn) {
-				ald("new child cnn,...id=%d", cnn.id);
+				uld("new child cnn,...id=%d", cnn.id);
 				cnn.readStart([this, &cnn](upReadBuffer upbuf) {
 					cnn.write(upbuf->buffer, upbuf->size); // echo message
 				});
 				cnn.setOnCnnLis([this, &cnn](int status) {
 					if (status) {
-						ald("child disconnected");
+						uld("child disconnected");
 						cnn.close();
 						_childCnnMap.erase(cnn.id);
 						// dead zone from here
@@ -179,7 +179,7 @@ namespace {
 		itertimer.init();
 		itertimer.start(1, 1, [&]() {
 			if (trycnt >= 100) {
-				ald("iter timer stop");
+				uld("iter timer stop");
 				itertimer.stop();
 			} else {
 				clientlist.emplace_front();
@@ -192,7 +192,7 @@ namespace {
 					if (!status) {
 						clientConnectCnt++;
 						if(clientConnectCnt==100) {
-							ali("100th connected");
+							uli("100th connected");
 						}
 						client->readStart([&](upReadBuffer upbuf) {
 							std::string ts(upbuf->buffer, upbuf->size);
@@ -238,7 +238,7 @@ TEST(except, inotify) {
 	ipoll.start(UV_READABLE, [&](int event) {
 		inotify_event evt;
 		::read(ipoll.getFd(), &evt, sizeof(evt));
-		ald("file closed on write");
+		uld("file closed on write");
 		ipoll.stop();
 		::close(fd);
 	});
@@ -247,7 +247,7 @@ TEST(except, inotify) {
 	UvTimer timer;
 	timer.init();
 	timer.start(1000, 1000, [&]() {
-		ald("timer stop");
+		uld("timer stop");
 		timer.stop();
 		fclose(st);
 	});

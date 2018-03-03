@@ -19,7 +19,7 @@ namespace uvcpp {
 	}
 
 	int MsgTask::start(void *arg) {
-		ald("task starting...");
+		uld("task starting...");
 		std::condition_variable startSync;
 		std::mutex startMutex;
 
@@ -55,15 +55,15 @@ namespace uvcpp {
 			UvContext::close();
 		});
 		startSync.wait(ulock);
-		ald("task starting sync ok");
+		uld("task starting sync ok");
 		return 0;
 	}
 
 	void MsgTask::stop() {
-		ald("task stopping");
+		uld("task stopping");
 		_ipc.sendMsg(TM_CLOSE, 0, 0, nullptr);
 		_msgThread.join();
-		ald("task stop ok");
+		uld("task stop ok");
 	}
 
 	void MsgTask::OnMsgProc(IpcMsg &msg) {
@@ -73,7 +73,7 @@ namespace uvcpp {
 	}
 
 	void MsgTask::postExit() {
-		ald("post exiting,");
+		uld("post exiting,");
 		_ipc.postMsg(TM_CLOSE, 0, 0, nullptr);
 	}
 

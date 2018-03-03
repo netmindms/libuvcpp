@@ -47,11 +47,11 @@ TEST(basic, ipc) {
 	thread subtask = thread([&](){
 		UvContext::open();
 		ipc.open([&](IpcMsg& msg) {
-			ald("msg recv: id=%u, p1=%u, p2=%u", msg.msgId, msg.param1, msg.param2);
+			uld("msg recv: id=%u, p1=%u, p2=%u", msg.msgId, msg.param1, msg.param2);
 			if(msg.msgId == 1000) {
 				unique_ptr<MyMsgObj> umsg = getIpcMsg<MyMsgObj>(move(msg._upUserObj));
 				if(umsg) {
-					ald("  recv user msg: %s", umsg->extraString);
+					uld("  recv user msg: %s", umsg->extraString);
 					recvstr = umsg->extraString;
 					recvCnt++;
 				} else {
@@ -61,7 +61,7 @@ TEST(basic, ipc) {
 			} else if(msg.msgId == 1001) {
 				ipc.close();
 			} else if(msg.msgId == 1002) {
-				ald("send msg received.");
+				uld("send msg received.");
 				++sendCnt;
 				msg.returnValue = sendCnt;
 			}
@@ -98,17 +98,17 @@ TEST(basic, msgtask) {
 		int startcheck=0;
 		virtual void OnMsgProc(IpcMsg& msg) {
 			if(msg.msgId == MsgTask::TM_INIT) {
-				ald("task init");
+				uld("task init");
 				_cnt = 0;
 				this_thread::sleep_for(chrono::milliseconds(200));
 				startcheck = 1;
 			} else if(msg.msgId == MsgTask::TM_CLOSE) {
-				ald("task closing");
+				uld("task closing");
 				_timer.stop();
 			} else if(msg.msgId == UM_POST) {
 				_timer.init();
 				_timer.start(100, 100, [this]() {
-					ald("task timer expired");
+					uld("task timer expired");
 					_cnt++;
 				});
 			} else if(msg.msgId == UM_SEND) {
@@ -128,7 +128,7 @@ TEST(basic, msgtask) {
 	this_thread::sleep_for(chrono::milliseconds(280));
 	task.stop();
 	ASSERT_EQ(2, task._cnt);
-	ald("test end");
+	uld("test end");
 }
 
 
@@ -171,18 +171,18 @@ TEST(basic, handlepass) {
 
 	pips.readStart([&](upReadBuffer upbuf) {
 		auto cnt = pips.pendingCount();
-		ald("pending count=%d", cnt);
+		uld("pending count=%d", cnt);
 		if(cnt>0) {
 			child.init();
 			pips.accept(&child);
 			child.readStart([&](upReadBuffer upbuf) {
 				recvstr.assign(upbuf->buffer, upbuf->size);
-				ald("recv: %s", recvstr);
+				uld("recv: %s", recvstr);
 				child.write(recvstr);
 			});
 			child.setOnCnnLis([&](int status) {
 				if(status) {
-					ald("child disconnected");
+					uld("child disconnected");
 					pips.close();
 					child.close();
 				}
@@ -197,7 +197,7 @@ TEST(basic, handlepass) {
 
 	server.init();
 	server.bindAndListen(9090, "0.0.0.0", [&]() {
-		ald("incoming tcp cnn");
+		uld("incoming tcp cnn");
 		UvTcp temptcp;
 		temptcp.init();
 		server.accept(&temptcp);
@@ -208,9 +208,9 @@ TEST(basic, handlepass) {
 	client.init();
 	client.connect("127.0.0.1", 9090, [&](int status) {
 		if(!status) {
-			ald("client connected");
+			uld("client connected");
 			client.readStart([&](upReadBuffer upbuf) {
-				ald("client read,...");
+				uld("client read,...");
 				echostr.assign(upbuf->buffer, upbuf->size);
 				client.close();
 				pipc.close();
@@ -218,7 +218,7 @@ TEST(basic, handlepass) {
 			});
 			client.write(teststr);
 		} else {
-			ald("client disconnected");
+			uld("client disconnected");
 			assert(0 && "client disconnected");
 		}
 	});
@@ -241,9 +241,9 @@ TEST(basic, streamipc) {
 		UvTcp childCnn;
 		virtual void OnMsgProc(IpcMsg &msg)  {
 			if(msg.msgId == TM_INIT) {
-				ali("tast init....");
+				uli("tast init....");
 				auto ret = strmipc.open([this]() {
-					ali("child incoming");
+					uli("child incoming");
 					childCnn.init();
 					strmipc.accept(&childCnn);
 					childCnn.readStart([this](upReadBuffer upbuf) {
@@ -251,15 +251,15 @@ TEST(basic, streamipc) {
 					});
 					childCnn.setOnCnnLis([this](int status) {
 						if(status) {
-							ali("child disconnected");
+							uli("child disconnected");
 							childCnn.close();
 							postExit();
-							ali("posting exit");
+							uli("posting exit");
 						}
 					});
 				});
 			} else if(msg.msgId == TM_CLOSE) {
-				ali("task closing");
+				uli("task closing");
 				strmipc.close();
 			}
 		}
@@ -280,7 +280,7 @@ TEST(basic, streamipc) {
 
 	server.init();
 	server.bindAndListen(9090, "0.0.0.0", [&]() {
-		ali("incoming");
+		uli("incoming");
 		UvTcp temptcp;
 		temptcp.init();
 		server.accept(&temptcp);
@@ -292,7 +292,7 @@ TEST(basic, streamipc) {
 		if(!status) {
 			client.readStart([&](upReadBuffer upbuf) {
 				echostr.assign(upbuf->buffer, upbuf->size);
-				ali("client read str=%s", echostr);
+				uli("client read str=%s", echostr);
 				client.close();
 				server.close();
 				childtask.strmipc.disconnectIpc();
@@ -345,24 +345,24 @@ TEST(ipc, handlereceiver) {
 			if(msg.msgId == TM_INIT) {
 				unlink("hrecv");
 				_hrecv.open("hrecv", [this](UvPipe* pipe, uv_handle_type type) {
-					ali("handle recv");
+					uli("handle recv");
 					_jobTcp.init();
 					int ret = pipe->accept(&_jobTcp);
 					assert(ret==0);
 					_jobTcp.setOnCnnLis([this](int status) {
 						if(status) {
-							ali("tcp job disconnected");
+							uli("tcp job disconnected");
 							_jobTcp.close();
 						}
 					});
 					_jobTcp.readStart([this](upReadBuffer upbuf) {
 						std::string rs(upbuf->buffer, upbuf->size);
-						ali("recv job2: %s", rs);
+						uli("recv job2: %s", rs);
 						_jobTcp.write(rs);
 					});
 				});
 			} else if(msg.msgId == TM_CLOSE) {
-				ali("task closing");
+				uli("task closing");
 				_hrecv.close();
 
 			}
@@ -377,7 +377,7 @@ TEST(ipc, handlereceiver) {
 	_pipec.connect("hrecv", [&](int status) {
 //	_pipec.connect("worker_pipe_server", [&](int status) {
 		if(!status) {
-			ali("client pipe connected");
+			uli("client pipe connected");
 			logflush();
 		}
 	});

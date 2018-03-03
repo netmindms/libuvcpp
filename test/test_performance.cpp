@@ -33,7 +33,7 @@ TEST(perf, udp) {
 			uint16_t seq = ntohs(*((uint16_t *) upbuf->buffer));
 			int16_t diffseq = seq - _preRecvSeq;
 			if (diffseq != 1) {
-				alw("*** recv seq error, cur_seq=%d, pre_seq=%d", seq, _preRecvSeq);
+				ulw("*** recv seq error, cur_seq=%d, pre_seq=%d", seq, _preRecvSeq);
 			}
 			_preRecvSeq = seq;
 		}
@@ -52,7 +52,7 @@ TEST(perf, udp) {
 		*pseq = htons(_sendSeq);
 		ret = _send.send(tmp, sizeof(tmp));
 		if(ret) {
-			alw("*** send error, ret=%d", ret);
+			ulw("*** send error, ret=%d", ret);
 		}
 		++_sendCnt;
 		if(_sendCnt >= 10000) {
@@ -62,7 +62,7 @@ TEST(perf, udp) {
 				_timer.stop();
 				_send.close();
 				_recv.close();
-				ali("last send_seq=%d, recv_seq=%d", _sendSeq, _preRecvSeq);
+				uli("last send_seq=%d, recv_seq=%d", _sendSeq, _preRecvSeq);
 			});
 		}
 	});

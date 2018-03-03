@@ -25,7 +25,7 @@ namespace uvcpp {
 			_fd =fd;
 			return uv_poll_init(getLoop(), RAWH(), _fd);
 		} else {
-			ale("### already opened");
+			ule("### already opened");
 			return -1;
 		}
 	}

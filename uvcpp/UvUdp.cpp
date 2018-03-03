@@ -70,7 +70,7 @@ namespace uvcpp {
 			_handleHolder->sendReqQue.push(move(upsd));
 		} else {
 			char tmp[50];
-			ale("### udp send error, ret=%d, buf=%x, len=%d, addr=%s", ret, (uint64_t)buf, uv_ip4_name((sockaddr_in*)addr, tmp, sizeof(tmp)));
+			ule("### udp send error, ret=%d, buf=%x, len=%d, addr=%s", ret, (uint64_t)buf, uv_ip4_name((sockaddr_in*)addr, tmp, sizeof(tmp)));
 			assert(0);
 		}
 		return ret;

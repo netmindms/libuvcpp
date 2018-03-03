@@ -72,7 +72,7 @@ namespace uvcpp {
 
 	int FdTimer::init() {
 		_fd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
-		ald("timerfd create fd=%d", _fd);
+		uld("timerfd create fd=%d", _fd);
 		return UvPoll::init(_fd);
 	}
 
