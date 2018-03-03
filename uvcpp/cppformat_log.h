@@ -167,24 +167,9 @@ inline void NmduMemPrintf2(uvcppfmt::MemoryWriter& w, const char level, const ch
 }
 FMT_VARIADIC(void, NmduMemPrintf2, uvcppfmt::MemoryWriter&, const char, const char*, int, int, const char*)
 
-#define MAKE_LOG_INSTANCE(NAME) \
-uvcpp::LogInst *NAME=nullptr; \
-struct INST_TYPE_##NAME { \
-	INST_TYPE_##NAME() { \
-		NAME = new nmdu::LogInst; \
-	};\
-	virtual ~INST_TYPE_##NAME() { \
-		if(NAME) delete (NAME); \
-	};\
-}; static INST_TYPE_##NAME _MOD_INIT_##NAME;
-
-#define EXTERN_LOG_INSTANCE(LOG) extern nmdu::LogInst* LOG;
-
 #ifndef UVCLOCAL_LOG_INST
 #define UVCLOCAL_LOG_INST UVC_DEFAULT_LOG_INST
 #endif
-
-
 
 #ifdef UVCLOCAL_LOG_INST
 #define UVC_SET_LOG_LEVEL(L) UVCLOCAL_LOG_INST->level(L)
