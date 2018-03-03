@@ -12,7 +12,7 @@ using namespace uvcpp;
 
 int main(int argc, char* argv[]) {
 	UvContext::open();
-	SetLogLevel(UVCLOG_VERBOSE);
+//	SetLogLevel(UVCLOG_INFO);
 	UvUdp udp;
 	UvTty tty;
 	udp.init();

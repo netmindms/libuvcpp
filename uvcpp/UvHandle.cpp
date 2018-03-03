@@ -30,7 +30,7 @@ namespace uvcpp {
 	void UvHandle::close(CloseLis lis) {
 		if(_status == INITIALIZED) {
 			assert(_ctx == UvContext::getContext() && "### uv context must be the same that initiating, This may be caused thread calling init() and close() is differ");
-			uld("   closing handle, name=%s, cb=%x", _handleHolder->handleName, (long) UvContext::handle_close_cb);
+			uld("   closing handle, name=%s, cb=%p", _handleHolder->handleName.data(), UvContext::handle_close_cb);
 
 			if(uv_is_closing(&_handleHolder->rawh.handle)==0) {
 				uv_close(&_handleHolder->rawh.handle, UvContext::handle_close_cb);
