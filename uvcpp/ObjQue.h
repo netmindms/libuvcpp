@@ -72,7 +72,7 @@ public:
 		return up;
 	}
 
-	size_t getQueCnt() {
+	size_t size() {
 		size_t ret;
 		ret = _que.size();
 		return ret;

@@ -196,7 +196,10 @@ namespace uvcpp {
 	}
 
 	void UvContext::handle_read_alloc_cb(uv_handle_t *handle, size_t suggesited_size, uv_buf_t *puvbuf) {
-
+		// FixMe: test
+		if(!suggesited_size) {
+			uli("******* read alloc cb, suggestied size is zero");
+		}
 		auto holder = (HandleHolder*)handle->data;
 		assert(holder);
 		auto upbuf = holder->readBufQue.allocObj();
@@ -204,7 +207,7 @@ namespace uvcpp {
 		puvbuf->len = tbuf.first;
 		puvbuf->base = tbuf.second;
 		holder->readBufQue.push(move(upbuf));
-		ulv("alloc buffer, buf_base=%p", puvbuf->base);
+		ulv("alloc buffer, buf_base=%p, suggested_size=%ld", puvbuf->base, suggesited_size);
 	}
 
 	void UvContext::handle_connect_cb(uv_connect_t *req, int status) {
@@ -254,8 +257,13 @@ namespace uvcpp {
 	}
 
 	void UvContext::handle_recv_cb(uv_udp_t *handle, ssize_t nread, const uv_buf_t *buf, const struct sockaddr *addr, unsigned flags) {
-		ulv("readcb, nread=%ld", nread);
+		ulv("readcb, nread=%ld, buf_base=%p", nread, buf->base);
 		auto holder = (HandleHolder*)handle->data;
+		// FixMe: test code
+		if(holder->readBufQue.size()>1) {
+			uli("*** read que size=%ld", holder->readBufQue.size());
+		}
+
 		assert(holder);
 		auto uprbuf = holder->readBufQue.pop_front();
 		assert(buf->base==uprbuf->buffer);

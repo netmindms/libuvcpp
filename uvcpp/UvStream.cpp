@@ -62,7 +62,7 @@ namespace uvcpp {
 	}
 
 	int UvStream::tryWrite(const char *buf, size_t len) {
-		if(_handleHolder->writeReqQue.getQueCnt() == 0 ) {
+		if(_handleHolder->writeReqQue.size() == 0 ) {
 			uv_buf_t uvbuf;
 			uvbuf.base = (char*)buf;
 			uvbuf.len = len;
@@ -140,11 +140,11 @@ namespace uvcpp {
 	}
 
 	uint32_t UvStream::getWriteQueCnt() {
-		return _handleHolder->writeReqQue.getQueCnt();
+		return _handleHolder->writeReqQue.size();
 	}
 
 	uint32_t UvStream::getSendQueCnt() {
-		return _handleHolder->sendReqQue.getQueCnt();
+		return _handleHolder->sendReqQue.size();
 	}
 
 	int UvStream::isReadable() {

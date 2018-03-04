@@ -132,7 +132,7 @@ namespace uvcpp {
 	}
 
 	constexpr int comp_checkslash(const char *str, const int p, const int n) {
-#ifdef __WIN32
+#ifdef _WIN32
 		return p<0?0: str[p]=='\\'?p+1:comp_checkslash(str, p-1, n+1);
 #else
 		return p < 0 ? 0 : str[p] == '/' ? p + 1 : comp_checkslash(str, p - 1, n + 1);
@@ -150,20 +150,19 @@ namespace uvcpp {
 #define UVCPPLOGPUT(LL, OUT, FMTSTR, ...) do {\
     if(UVCLOG_LEVEL>=LL) { /*compile time log level check*/ \
         if(UVCLOCAL_LOG_INST->level()>=LL || UVCLOCAL_LOG_INST->levelFile()>=LL ) { \
-                    constexpr int s=uvcpp::comp_checkslash(__FILE__, uvcpp::comp_length(__FILE__), 0); \
-                    constexpr int e=uvcpp::comp_checkdot(__FILE__, uvcpp::comp_length(__FILE__), 0);\
-                    char logbuf[2048];\
-                    /*char sn[NAME_MAX+1];*/\
-                    char sn[e-s+1];\
-                    memcpy(sn, __FILE__+s, e-s);sn[e-s]=0; \
-                    int loglen = snprintf(logbuf, sizeof(logbuf)-1, "%s <" C_ ##LL ">[%s:%d] " FMTSTR "\n", \
-                        uvcpp::GetLogTimeNow().c_str(), sn /*__FILE__+ nmdu::comp_checkslash(__FILE__, nmdu::comp_length(__FILE__), 0)*/, \
-                        __LINE__, ## __VA_ARGS__);\
+						constexpr int ___start_pos=uvcpp::comp_checkslash(__FILE__, uvcpp::comp_length(__FILE__), 0); \
+						/*constexpr int ___end_pos=nmdu::comp_checkdot(__FILE__, nmdu::comp_length(__FILE__), 0);*/ \
+						/*constexpr int ___just_fname_len=___end_pos-___start_pos;*/ \
+						/*char ___sn[___just_fname_len+1];*/ \
+						/*memcpy(___sn, __FILE__+___start_pos, ___just_fname_len);___sn[___just_fname_len]=0;*/ \
+						char ___logbuf[2048];\
+						int ___loglen = snprintf(___logbuf, sizeof(___logbuf)-1, "%s <" C_ ##LL ">[%s:%d] " FMTSTR "\n", \
+                        uvcpp::GetLogTimeNow().c_str(), (const char*)(__FILE__+___start_pos), __LINE__, ## __VA_ARGS__);\
             if(UVCLOCAL_LOG_INST->level()>=LL) {\
-                UVCLOCAL_LOG_INST->writeLog(OUT, logbuf, loglen); \
+                UVCLOCAL_LOG_INST->writeLog(OUT, ___logbuf, ___loglen); \
             }\
             if(UVCLOCAL_LOG_INST->levelFile()>=LL) {\
-                UVCLOCAL_LOG_INST->writeFile(logbuf, loglen);\
+                UVCLOCAL_LOG_INST->writeFile(___logbuf, ___loglen);\
             }\
         } \
     }\

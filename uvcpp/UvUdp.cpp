@@ -120,7 +120,7 @@ namespace uvcpp {
 	}
 
 	int UvUdp::trySend(const char *buf, size_t len, const struct sockaddr *addr) {
-		if(_handleHolder->sendReqQue.getQueCnt() == 0 ) {
+		if(_handleHolder->sendReqQue.size() == 0 ) {
 			uv_buf_t uvbuf;
 			uvbuf.base = (char*)buf;
 			uvbuf.len = len;
