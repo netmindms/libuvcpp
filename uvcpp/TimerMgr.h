@@ -35,7 +35,7 @@ namespace uvcpp {
 		void gotoDummy(uint32_t handle);
 	};
 
-	typedef std::unique_ptr<TimerMgr> spTimerMgr;
+	typedef std::unique_ptr<TimerMgr> upTimerMgr;
 }
 
 

@@ -87,12 +87,12 @@ namespace uvcpp {
 			return mFd;
 		}
 
-		inline void writeFile(const char *ptr, size_t len) {
-			lock();
-			write(mFd, ptr, len);
-			checkSize();
-			unlock();
-		};
+//		inline void writeFile(const char *ptr, size_t len) {
+//			lock();
+//			write(mFd, ptr, len);
+//			checkSize();
+//			unlock();
+//		};
 
 		inline void writeLog(FILE *scr_st, const char *ptr, size_t len) {
 			lock();
@@ -161,9 +161,9 @@ namespace uvcpp {
             if(UVCLOCAL_LOG_INST->level()>=LL) {\
                 UVCLOCAL_LOG_INST->writeLog(OUT, ___logbuf, ___loglen); \
             }\
-            if(UVCLOCAL_LOG_INST->levelFile()>=LL) {\
-                UVCLOCAL_LOG_INST->writeFile(___logbuf, ___loglen);\
-            }\
+            /*if(UVCLOCAL_LOG_INST->levelFile()>=LL) {*/ \
+                /*UVCLOCAL_LOG_INST->writeFile(___logbuf, ___loglen);*/ \
+            /*}*/ \
         } \
     }\
     } while(0)

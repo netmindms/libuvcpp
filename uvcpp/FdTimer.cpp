@@ -33,7 +33,7 @@ namespace uvcpp {
 
 		timerfd_settime(_fd, 0, &mTimerSpec, NULL);
 		auto ret = UvPoll::start(UV_READABLE, [&](int events) {
-			read(_fd, &_fireCount, sizeof(_fireCount));
+			int rcnt = read(_fd, &_fireCount, sizeof(_fireCount));
 			_lis();
 		});
 		assert(!ret);
