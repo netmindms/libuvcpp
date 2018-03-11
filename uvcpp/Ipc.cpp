@@ -63,7 +63,7 @@ namespace uvcpp {
 		upmsg->param2 = p2;
 		upmsg->_upUserObj = move(userobj);
 		upmsg->isSync = false;
-		_msgQue.push(move(upmsg));
+		_msgQue.push_back(move(upmsg));
 		_async.send();
 		_msgQue.unlock();
 		return 0;
@@ -86,7 +86,7 @@ namespace uvcpp {
 		upmsg->isSync = true;
 		std::unique_lock<mutex> ulock( mtx ); // lock을 거는 이유: msg큐에 push한 후 task switching 되어 wait 하기 전에 메시지 처리 되는 것을 방지 한다.
 		ulv("send msgq lock ok");
-		_msgQue.push(move(upmsg));
+		_msgQue.push_back(move(upmsg));
 		_async.send();
 		_msgQue.unlock();
 		ulv("send msgq unlock ok");

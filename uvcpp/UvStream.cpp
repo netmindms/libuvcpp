@@ -50,7 +50,7 @@ namespace uvcpp {
 		upwr->req.data = _handleHolder;
 		auto ret = uv_write(&upwr->req, RAWH(), &upwr->uvBuf, 1, UvContext::handle_write_cb);
 		if (!ret) {
-			_handleHolder->writeReqQue.push(move(upwr));
+			_handleHolder->writeReqQue.push_back(move(upwr));
 		} else {
 			ule("### uv write fail, ret=%d", ret);
 		}
@@ -78,7 +78,7 @@ namespace uvcpp {
 		upwr->req.data = _handleHolder;
 		auto ret = uv_write2(&upwr->req, RAWH(), &upwr->uvBuf, 1, (uv_stream_t*)send_handle->getRawHandle(), UvContext::handle_write_cb);
 		if (!ret) {
-			_handleHolder->writeReqQue.push(move(upwr));
+			_handleHolder->writeReqQue.push_back(move(upwr));
 //			send_handle->releaseRawHandle();
 			send_handle->close();
 		} else {
@@ -128,7 +128,7 @@ namespace uvcpp {
 	}
 
 	void UvStream::recycleReadBuffer(upReadBuffer upbuf) {
-		_handleHolder->readBufQue.recycleObj(move(upbuf));
+		_handleHolder->readBufQue.recycle(move(upbuf));
 	}
 
 	void UvStream::setOnReadLis(UvStream::ReadLis lis) {

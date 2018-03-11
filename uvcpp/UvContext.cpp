@@ -181,7 +181,7 @@ namespace uvcpp {
 		if(holder->uvh) {
 			((UvStream*)holder->uvh)->procWriteCallback(status);
 		}
-		holder->writeReqQue.recycleObj(move(up));
+		holder->writeReqQue.recycle(move(up));
 	}
 
 	void UvContext::handle_send_cb(uv_udp_send_t *req, int status) {
@@ -192,7 +192,7 @@ namespace uvcpp {
 		if(holder->uvh) {
 			((UvUdp*)holder->uvh)->procSendCallback(status);
 		}
-		holder->sendReqQue.recycleObj(move(up));
+		holder->sendReqQue.recycle(move(up));
 	}
 
 	void UvContext::handle_read_alloc_cb(uv_handle_t *handle, size_t suggesited_size, uv_buf_t *puvbuf) {
@@ -206,7 +206,7 @@ namespace uvcpp {
 		auto tbuf = upbuf->allocBuffer(suggesited_size);
 		puvbuf->len = tbuf.first;
 		puvbuf->base = tbuf.second;
-		holder->readBufQue.push(move(upbuf));
+		holder->readBufQue.push_back(move(upbuf));
 		ulv("alloc buffer, buf_base=%p, suggested_size=%ld", puvbuf->base, suggesited_size);
 	}
 

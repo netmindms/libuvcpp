@@ -67,7 +67,7 @@ namespace uvcpp {
 		upsd->req.data = _handleHolder;
 		auto ret = uv_udp_send(&upsd->req, (uv_udp_t*)RAWH(), &upsd->uvBuf, 1, addr, UvContext::handle_send_cb);
 		if(!ret) {
-			_handleHolder->sendReqQue.push(move(upsd));
+			_handleHolder->sendReqQue.push_back(move(upsd));
 		} else {
 			char tmp[50];
 			uv_ip4_name((sockaddr_in*)addr, tmp, sizeof(tmp));
